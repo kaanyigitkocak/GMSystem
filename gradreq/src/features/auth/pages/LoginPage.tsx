@@ -1,11 +1,11 @@
 import { useState } from 'react';
 import { Box } from '@mui/material';
-import theme from '../styles/theme';
+import theme from '../../../core/styles/theme';
 
 // Import modular components
-import LoginForm from '../components/auth/LoginForm';
-import ForgotPasswordDialog from '../components/auth/ForgotPasswordDialog';
-import RegisterDialog from '../components/auth/RegisterDialog';
+import LoginForm from '../components/LoginForm';
+import ForgotPasswordDialog from '../components/ForgotPasswordDialog';
+import RegisterDialog from '../components/RegisterDialog';
 
 const LoginPage = () => {
   // State for controlling dialogs

@@ -10,10 +10,10 @@ import {
   Alert
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
-import theme from '../../core/styles/theme';
+import theme from '../../../core/styles/theme';
 
 // Import shared types and constants
-import { RegisterStage, UserType } from './types';
+import { RegisterStage, UserType } from '../types';
 
 // Import modular form components
 import EmailVerificationForm from './forms/EmailVerificationForm';

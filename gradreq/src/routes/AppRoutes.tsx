@@ -1,25 +1,26 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
-import theme from '../styles/theme';
-import { useAuth } from '../contexts/AuthContext';
+import theme from '../core/styles/theme';
+import { useAuth } from '../features/auth/contexts/AuthContext';
 
 // Lazy load pages for better performance
-const LoginPage = lazy(() => import('../pages/LoginPage'));
+const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
 
 // Student pages
-const StudentDashboard = lazy(() => import('../pages/StudentDashboard'));
-const StudentDashboardLayout = lazy(() => import('../components/layout/StudentDashboard'));
-const TranscriptPage = lazy(() => import('../components/student/TranscriptPage'));
-const GraduationRequirementsPage = lazy(() => import('../components/student/GraduationRequirementsPage'));
-const ManualCheckPage = lazy(() => import('../components/student/ManualCheckPage'));
-const DisengagementCertificatesPage = lazy(() => import('../components/student/DisengagementCertificatesPage'));
+const StudentDashboard = lazy(() => import('../features/student/pages/StudentDashboardPage'));
+const StudentDashboardLayout = lazy(() => import('../features/student/layout/StudentDashboardLayout'));
+const TranscriptPage = lazy(() => import('../features/student/pages/TranscriptPage'));
+const GraduationRequirementsPage = lazy(() => import('../features/student/pages/GraduationRequirementsPage'));
+const ManualCheckPage = lazy(() => import('../features/student/pages/ManualCheckPage'));
+const DisengagementCertificatesPage = lazy(() => import('../features/student/pages/DisengagementCertificatesPage'));
 
 // Secretary pages
-const SecretaryDashboard = lazy(() => import('../pages/SecretaryDashboard'));
-const SecretaryTranscriptPage = lazy(() => import('../pages/SecretaryTranscriptPage'));
-const SecretaryRankingPage = lazy(() => import('../pages/SecretaryRankingPage'));
-const SecretaryNotificationsPage = lazy(() => import('../pages/SecretaryNotificationsPage'));
+const SecretaryDashboard = lazy(() => import('../features/secretary/pages/SecretaryDashboardPage'));
+const SecretaryDashboardLayout = lazy(() => import('../features/secretary/layout/SecretaryDashboardLayout'));
+const TranscriptProcessingPage = lazy(() => import('../features/secretary/pages/TranscriptProcessingPage'));
+const DepartmentRankingPage = lazy(() => import('../features/secretary/pages/DepartmentRankingPage'));
+const NotificationsPage = lazy(() => import('../features/secretary/pages/NotificationsPage'));
 
 // Loading component - positioned fixed to cover the whole screen
 const LoadingComponent = () => (
@@ -132,15 +133,15 @@ const AppRoutes = () => {
         <Route path="/secretary" element={<ProtectedRoute element={<SecretaryDashboard />} />} />
         <Route 
           path="/secretary/transcripts" 
-          element={<ProtectedRoute element={<SecretaryTranscriptPage />} />} 
+          element={<ProtectedRoute element={<TranscriptProcessingPage />} />} 
         />
         <Route 
           path="/secretary/ranking" 
-          element={<ProtectedRoute element={<SecretaryRankingPage />} />} 
+          element={<ProtectedRoute element={<DepartmentRankingPage />} />} 
         />
         <Route 
           path="/secretary/notifications" 
-          element={<ProtectedRoute element={<SecretaryNotificationsPage />} />} 
+          element={<ProtectedRoute element={<NotificationsPage />} />} 
         />
         
         {/* Redirect root to appropriate dashboard or login */}

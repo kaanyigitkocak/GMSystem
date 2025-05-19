@@ -1,8 +1,9 @@
 import { useState } from 'react';
-import type { ReactNode } from 'react';
 import { 
   Box, 
   Typography, 
+  Paper,
+  Container,
   IconButton,
   Menu,
   MenuItem,
@@ -16,8 +17,8 @@ import {
   Drawer,
   useTheme,
   useMediaQuery,
-  Badge,
   ListItemButton,
+  Badge,
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
@@ -29,33 +30,30 @@ import {
   Dashboard as DashboardIcon,
   Close as CloseIcon,
   Notifications as NotificationsIcon,
-  Email as EmailIcon
+  Email as EmailIcon,
+  Upload as UploadIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
-import iyteLogoPng from '../../assets/iyte-logo.png';
+import { useAuth } from '../../../features/auth/contexts/AuthContext';
+import iyteLogoPng from '../../../core/assets/iyte-logo.png';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
-interface DashboardLayoutProps {
-  children: ReactNode;
-}
-
-const DashboardLayout = ({ children }: DashboardLayoutProps) => {
+// Main StudentDashboardLayout component
+const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) => {
   const { user, logout } = useAuth();
   const theme = useTheme();
+  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   
-  // Profile menu state
+  // Menu anchor states
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
-  const profileMenuOpen = Boolean(profileMenuAnchor);
-  
-  // Notifications menu state
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
-  const notificationsOpen = Boolean(notificationsAnchor);
-  
-  // Messages menu state
   const [messagesAnchor, setMessagesAnchor] = useState<null | HTMLElement>(null);
-  const messagesOpen = Boolean(messagesAnchor);
   
+  // Current active path for highlighting navigation
+  const pathname = window.location.pathname;
+  
+  // Menu handlers
   const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
     setProfileMenuAnchor(event.currentTarget);
   };
@@ -91,6 +89,22 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
   
   const drawerWidth = 240;
   
+  // Navigation items
+  const navItems = [
+    { path: '/student', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
+    { path: '/student/transcript', icon: <DescriptionIcon />, label: 'My Transcript' },
+    { path: '/student/requirements', icon: <SchoolIcon />, label: 'Graduation Requirements' },
+    { path: '/student/manual-check', icon: <CheckCircleIcon />, label: 'Manual Check' },
+    { path: '/student/disengagement', icon: <UploadIcon />, label: 'Disengagement Certificates' }
+  ];
+  
+  // Check if a navigation item is active
+  const isActive = (path: string, exact = false) => {
+    if (exact) return pathname === path;
+    return pathname.startsWith(path);
+  };
+  
+  // Sidebar drawer content
   const drawer = (
     <>
       <Box 
@@ -122,38 +136,21 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
       </Box>
       
       <List>
-        <ListItem disablePadding>
-          <ListItemButton selected>
-            <ListItemIcon>
-              <DashboardIcon color="primary" />
-            </ListItemIcon>
-            <ListItemText primary="Dashboard" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemIcon>
-              <DescriptionIcon />
-            </ListItemIcon>
-            <ListItemText primary="My Transcript" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemIcon>
-              <SchoolIcon />
-            </ListItemIcon>
-            <ListItemText primary="Graduation Requirements" />
-          </ListItemButton>
-        </ListItem>
-        <ListItem disablePadding>
-          <ListItemButton>
-            <ListItemIcon>
-              <CheckCircleIcon />
-            </ListItemIcon>
-            <ListItemText primary="Manual Check" />
-          </ListItemButton>
-        </ListItem>
+        {navItems.map((item) => (
+          <ListItem key={item.path} disablePadding>
+            <ListItemButton 
+              component={RouterLink} 
+              to={item.path}
+              selected={isActive(item.path, item.exact)}
+              onClick={isMobile ? toggleDrawer : undefined}
+            >
+              <ListItemIcon>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </ListItem>
+        ))}
       </List>
       
       <Box sx={{ flexGrow: 1 }} />
@@ -220,10 +217,20 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
         display: 'flex', 
         flexDirection: 'column',
         height: '100vh',
-        overflow: 'auto'
+        overflow: 'auto',
+        width: { xs: '100%', md: `calc(100% - ${drawerWidth}px)` }
       }}>
         {/* Top AppBar */}
-        <AppBar position="sticky" color="default" elevation={1}>
+        <AppBar 
+          position="fixed"
+          color="default" 
+          elevation={1}
+          sx={{
+            width: { md: `calc(100% - ${drawerWidth}px)` },
+            ml: { md: `${drawerWidth}px` },
+            zIndex: (theme) => theme.zIndex.drawer + 1
+          }}
+        >
           <Toolbar>
             {isMobile && (
               <IconButton
@@ -281,7 +288,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Profile Menu */}
             <Menu
               anchorEl={profileMenuAnchor}
-              open={profileMenuOpen}
+              open={Boolean(profileMenuAnchor)}
               onClose={handleProfileMenuClose}
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -303,7 +310,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Notifications Menu */}
             <Menu
               anchorEl={notificationsAnchor}
-              open={notificationsOpen}
+              open={Boolean(notificationsAnchor)}
               onClose={handleNotificationsClose}
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -342,7 +349,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
             {/* Messages Menu */}
             <Menu
               anchorEl={messagesAnchor}
-              open={messagesOpen}
+              open={Boolean(messagesAnchor)}
               onClose={handleMessagesClose}
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
@@ -357,7 +364,7 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
               </MenuItem>
               <MenuItem>
                 <Box>
-                  <Typography variant="body2" fontWeight={500}>Advisor: Prof. Onur Demirörs</Typography>
+                  <Typography variant="body2" fontWeight={500}>Advisor: Prof. Smith</Typography>
                   <Typography variant="caption" color="text.secondary" noWrap>
                     Please review your graduation status and get back to me...
                   </Typography>
@@ -378,11 +385,35 @@ const DashboardLayout = ({ children }: DashboardLayoutProps) => {
           </Toolbar>
         </AppBar>
         
-        {/* Page content */}
-        {children}
+        {/* Main Content Area */}
+        <Box
+          component="main"
+          sx={{
+            flexGrow: 1,
+            paddingTop: `calc(${theme.mixins.toolbar.minHeight}px + ${theme.spacing(3)})`,
+            paddingLeft: theme.spacing(3),
+            paddingRight: theme.spacing(3),
+            paddingBottom: theme.spacing(3),
+            backgroundColor: theme.palette.background.default,
+          }}
+        >
+          {/* Welcome Section with information about the student */}
+          <Paper elevation={0} sx={{ p: 3, mb: 4, bgcolor: 'rgba(204, 0, 0, 0.03)', border: '1px solid rgba(204, 0, 0, 0.1)' }}>
+            <Typography variant="h5" component="h1" gutterBottom>
+              Welcome, {user?.name || 'Student'}
+            </Typography>
+            <Typography variant="body1">
+              Welcome to the Graduation Management System. From this panel, you can check your transcript,
+              view graduation requirements, and submit a manual check request.
+            </Typography>
+          </Paper>
+          
+          {/* Page Content */}
+          {children}
+        </Box>
       </Box>
     </Box>
   );
 };
 
-export default DashboardLayout; 
+export default StudentDashboardLayout; 

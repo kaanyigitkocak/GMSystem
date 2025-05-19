@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Paper, 
@@ -17,7 +17,6 @@ import {
   Avatar,
   Chip
 } from '@mui/material';
-import Grid from '@mui/material/Grid';
 import {
   Notifications as NotificationsIcon,
   Warning as WarningIcon,
@@ -32,9 +31,9 @@ import {
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';
 
-import SecretaryDashboard from '../components/layout/SecretaryDashboard';
+import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
 import { getNotifications, getGraduationRequests } from '../services/secretaryService';
-import type { Notification, GraduationRequest } from '../types/secretary';
+import type { Notification, GraduationRequest } from '../types';
 
 const SecretaryDashboardPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
@@ -83,20 +82,20 @@ const SecretaryDashboardPage = () => {
 
   if (loading) {
     return (
-      <SecretaryDashboard>
+      <SecretaryDashboardLayout>
         <Box sx={{ width: '100%' }}>
           <LinearProgress />
         </Box>
-      </SecretaryDashboard>
+      </SecretaryDashboardLayout>
     );
   }
 
   return (
-    <SecretaryDashboard>
+    <SecretaryDashboardLayout>
       <Box sx={{ mb: 4 }}>
-        <Grid container spacing={3}>
+        <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
           {/* Welcome Section */}
-          <Grid item xs={12}>
+          <Box gridColumn="span 12">
             <Paper sx={{ p: 3, mb: 3 }}>
               <Typography variant="h5" gutterBottom fontWeight="bold">
                 Welcome!
@@ -106,15 +105,15 @@ const SecretaryDashboardPage = () => {
                 upload transcripts, and create department ranking lists.
               </Typography>
             </Paper>
-          </Grid>
+          </Box>
 
           {/* Quick Action Cards */}
-          <Grid item xs={12} md={6}>
+          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
             <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
               Quick Actions
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6}>
+            <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
+              <Box gridColumn="span 6">
                 <Card 
                   sx={{ 
                     height: '100%', 
@@ -137,8 +136,8 @@ const SecretaryDashboardPage = () => {
                     </Typography>
                   </CardContent>
                 </Card>
-              </Grid>
-              <Grid item xs={6}>
+              </Box>
+              <Box gridColumn="span 6">
                 <Card 
                   sx={{ 
                     height: '100%', 
@@ -161,18 +160,18 @@ const SecretaryDashboardPage = () => {
                     </Typography>
                   </CardContent>
                 </Card>
-              </Grid>
-            </Grid>
-          </Grid>
+              </Box>
+            </Box>
+          </Box>
 
           {/* Summary Stats */}
-          <Grid item xs={12} md={6}>
+          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
             <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
               Status Summary
             </Typography>
             <Paper sx={{ p: 2 }}>
-              <Grid container spacing={2}>
-                <Grid item xs={6}>
+              <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
+                <Box gridColumn="span 6">
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar sx={{ bgcolor: 'primary.light', mr: 2 }}>
                       <PeopleAltIcon />
@@ -186,8 +185,8 @@ const SecretaryDashboardPage = () => {
                       </Typography>
                     </Box>
                   </Box>
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box gridColumn="span 6">
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                     <Avatar sx={{ bgcolor: 'info.light', mr: 2 }}>
                       <NotificationsIcon />
@@ -201,8 +200,8 @@ const SecretaryDashboardPage = () => {
                       </Typography>
                     </Box>
                   </Box>
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box gridColumn="span 6">
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar sx={{ bgcolor: 'success.light', mr: 2 }}>
                       <SchoolIcon />
@@ -216,150 +215,146 @@ const SecretaryDashboardPage = () => {
                       </Typography>
                     </Box>
                   </Box>
-                </Grid>
-                <Grid item xs={6}>
+                </Box>
+                <Box gridColumn="span 6">
                   <Box sx={{ display: 'flex', alignItems: 'center' }}>
                     <Avatar sx={{ bgcolor: 'warning.light', mr: 2 }}>
                       <CalendarMonthIcon />
                     </Avatar>
                     <Box>
                       <Typography variant="body2" color="text.secondary">
-                        Deadline
+                        Graduation Date
                       </Typography>
                       <Typography variant="h6" fontWeight="bold">
-                        June 15
+                        Jun 15
                       </Typography>
                     </Box>
                   </Box>
-                </Grid>
-              </Grid>
-              <Divider sx={{ my: 2 }} />
-              <Box>
-                <Typography variant="body2" color="text.secondary" gutterBottom>
-                  Graduation Process Progress
-                </Typography>
-                <LinearProgress 
-                  variant="determinate" 
-                  value={getProgressValue()} 
-                  sx={{ height: 8, borderRadius: 4, mb: 1 }}
-                />
-                <Typography variant="body2" align="right">
-                  {getProgressValue()}% Completed
-                </Typography>
+                </Box>
               </Box>
             </Paper>
-          </Grid>
-
-          {/* Pending Graduation Requests */}
-          <Grid item xs={12} md={6}>
+          </Box>
+          
+          {/* Recent Notifications */}
+          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
+            <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
+              Recent Notifications
+            </Typography>
+            <Paper>
+              <List sx={{ p: 0 }}>
+                {notifications.slice(0, 4).map((notification, index) => (
+                  <React.Fragment key={notification.id}>
+                    <ListItem
+                      sx={{ 
+                        bgcolor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.02)',
+                        px: 2, py: 1.5 
+                      }}
+                      secondaryAction={
+                        <IconButton edge="end" aria-label="view">
+                          <ArrowForwardIcon fontSize="small" />
+                        </IconButton>
+                      }
+                    >
+                      <ListItemIcon sx={{ minWidth: 40 }}>
+                        {getNotificationIcon(notification.type)}
+                      </ListItemIcon>
+                      <ListItemText 
+                        primary={notification.title}
+                        secondary={
+                          <Typography variant="body2" color="text.secondary" noWrap>
+                            {notification.message}
+                          </Typography>
+                        }
+                      />
+                    </ListItem>
+                    {index < notifications.slice(0, 4).length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+                {notifications.length === 0 && (
+                  <ListItem sx={{ px: 2, py: 3 }}>
+                    <ListItemText 
+                      primary="No notifications"
+                      secondary="You're all caught up!"
+                      sx={{ textAlign: 'center' }}
+                    />
+                  </ListItem>
+                )}
+              </List>
+              <Divider />
+              <Box sx={{ p: 1, textAlign: 'center' }}>
+                <Button 
+                  size="small" 
+                  onClick={() => navigate('/secretary/notifications')}
+                  sx={{ fontWeight: 500 }}
+                >
+                  View All Notifications
+                </Button>
+              </Box>
+            </Paper>
+          </Box>
+          
+          {/* Graduation Requests */}
+          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
             <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
               Pending Graduation Requests
             </Typography>
-            <Paper sx={{ height: '100%' }}>
-              {pendingRequests.length > 0 ? (
-                <List disablePadding>
-                  {pendingRequests.map((request, index) => (
-                    <>
-                      <ListItem
-                        key={request.id}
-                        secondaryAction={
-                          <Tooltip title="Process">
-                            <IconButton edge="end" color="primary">
-                              <ArrowForwardIcon />
-                            </IconButton>
-                          </Tooltip>
+            <Paper>
+              <List sx={{ p: 0 }}>
+                {pendingRequests.slice(0, 4).map((request, index) => (
+                  <React.Fragment key={request.id}>
+                    <ListItem
+                      sx={{ px: 2, py: 1.5 }}
+                      secondaryAction={
+                        <Chip 
+                          label={request.status} 
+                          size="small"
+                          color={
+                            request.status === 'pending' 
+                              ? 'warning' 
+                              : request.status === 'approved' 
+                                ? 'success' 
+                                : 'error'
+                          }
+                        />
+                      }
+                    >
+                      <ListItemText 
+                        primary={`${request.studentName} (${request.studentId})`}
+                        secondary={
+                          <Typography variant="body2" color="text.secondary">
+                            {request.requestType} • Submitted on {request.date}
+                          </Typography>
                         }
-                      >
-                        <ListItemText
-                          primary={request.studentName}
-                          secondary={`Advisor: ${request.advisorName} | ${new Date(request.requestDate).toLocaleDateString()}`}
-                        />
-                      </ListItem>
-                      {index < pendingRequests.length - 1 && <Divider component="li" />}
-                    </>
-                  ))}
-                </List>
-              ) : (
-                <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography color="text.secondary">
-                    No pending graduation requests.
-                  </Typography>
-                </Box>
-              )}
+                      />
+                    </ListItem>
+                    {index < pendingRequests.slice(0, 4).length - 1 && <Divider />}
+                  </React.Fragment>
+                ))}
+                {pendingRequests.length === 0 && (
+                  <ListItem sx={{ px: 2, py: 3 }}>
+                    <ListItemText 
+                      primary="No pending requests"
+                      secondary="All graduation requests have been processed"
+                      sx={{ textAlign: 'center' }}
+                    />
+                  </ListItem>
+                )}
+              </List>
+              <Divider />
+              <Box sx={{ p: 1, textAlign: 'center' }}>
+                <Button 
+                  size="small" 
+                  onClick={() => navigate('/secretary/requests')}
+                  sx={{ fontWeight: 500 }}
+                >
+                  View All Requests
+                </Button>
+              </Box>
             </Paper>
-          </Grid>
-
-          {/* Notifications */}
-          <Grid item xs={12} md={6}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-              <Typography variant="h6" fontWeight="medium">
-                Notifications
-              </Typography>
-              <Button 
-                size="small" 
-                variant="outlined" 
-                endIcon={<ArrowForwardIcon />}
-                onClick={() => navigate('/secretary/notifications')}
-              >
-                View All
-              </Button>
-            </Box>
-            <Paper sx={{ height: '100%' }}>
-              {notifications.length > 0 ? (
-                <List disablePadding>
-                  {notifications.slice(0, 3).map((notification, index) => (
-                    <>
-                      <ListItem key={notification.id} alignItems="flex-start">
-                        <ListItemIcon sx={{ minWidth: 40 }}>
-                          {getNotificationIcon(notification.type)}
-                        </ListItemIcon>
-                        <ListItemText
-                          primary={
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                              <Typography variant="subtitle2">
-                                {notification.title}
-                              </Typography>
-                              {!notification.read && <Chip label="New" size="small" color="primary" />}
-                            </Box>
-                          }
-                          secondary={
-                            <>
-                              <Typography
-                                component="span"
-                                variant="body2"
-                                color="text.primary"
-                                sx={{ display: 'inline' }}
-                              >
-                                {notification.message}
-                              </Typography>
-                              <Typography
-                                component="span"
-                                variant="body2"
-                                color="text.secondary"
-                                sx={{ display: 'block', mt: 0.5, fontSize: '0.75rem' }}
-                              >
-                                {new Date(notification.date).toLocaleString()}
-                              </Typography>
-                            </>
-                          }
-                        />
-                      </ListItem>
-                      {index < Math.min(notifications.length, 3) - 1 && <Divider variant="inset" component="li" />}
-                    </>
-                  ))}
-                </List>
-              ) : (
-                <Box sx={{ p: 3, textAlign: 'center' }}>
-                  <Typography color="text.secondary">
-                    No notifications.
-                  </Typography>
-                </Box>
-              )}
-            </Paper>
-          </Grid>
-        </Grid>
+          </Box>
+        </Box>
       </Box>
-    </SecretaryDashboard>
+    </SecretaryDashboardLayout>
   );
 };
 

@@ -31,16 +31,16 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuth } from '../../contexts/AuthContext';
-import iyteLogoPng from '../../assets/iyte-logo.png';
+import { useAuth } from '../../../features/auth/contexts/AuthContext';
+import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 
 const drawerWidth = 240;
 
-interface SecretaryDashboardProps {
+interface SecretaryDashboardLayoutProps {
   children: ReactNode;
 }
 
-const SecretaryDashboard = ({ children }: SecretaryDashboardProps) => {
+const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
@@ -198,99 +198,165 @@ const SecretaryDashboard = ({ children }: SecretaryDashboardProps) => {
         ) : (
           <Drawer
             variant="permanent"
+            open
             sx={{
               '& .MuiDrawer-paper': { 
                 width: drawerWidth,
                 boxSizing: 'border-box',
-                border: 'none'
               },
             }}
-            open
           >
             {drawer}
           </Drawer>
         )}
       </Box>
       
-      <Box sx={{ 
-        flexGrow: 1, 
-        display: 'flex', 
-        flexDirection: 'column',
-        height: '100vh',
-        overflow: 'auto',
-      }}>
+      <Box
+        component="main"
+        sx={{
+          flexGrow: 1,
+          width: { md: `calc(100% - ${drawerWidth}px)` },
+          p: { xs: 2, md: 3 }
+        }}
+      >
         <AppBar 
-          position="fixed"
-          color="default" 
-          elevation={1}
-          sx={{
+          position="fixed" 
+          color="default"
+          elevation={0}
+          sx={{ 
             width: { md: `calc(100% - ${drawerWidth}px)` },
             ml: { md: `${drawerWidth}px` },
-            zIndex: (theme) => theme.zIndex.drawer + 1
+            boxShadow: '0 1px 3px rgba(0,0,0,0.12), 0 1px 2px rgba(0,0,0,0.24)',
+            bgcolor: 'background.paper'
           }}
         >
           <Toolbar>
-            {isMobile && (
-              <IconButton
-                edge="start"
-                color="inherit"
-                aria-label="menu"
-                onClick={toggleDrawer}
-                sx={{ mr: 2 }}
-              >
-                <MenuIcon />
-              </IconButton>
-            )}
+            <IconButton
+              color="inherit"
+              aria-label="open drawer"
+              edge="start"
+              onClick={toggleDrawer}
+              sx={{ mr: 2, display: { md: 'none' } }}
+            >
+              <MenuIcon />
+            </IconButton>
             
-            <Typography variant="h6" component="div" sx={{ flexGrow: 1 }}>
+            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
               Secretary Panel
             </Typography>
             
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton 
-                color="inherit" 
-                sx={{ ml: 1 }}
-                onClick={handleNotificationsOpen}
+            <Box sx={{ display: 'flex' }}>
+              <Tooltip title="Notifications">
+                <IconButton 
+                  color="inherit" 
+                  onClick={handleNotificationsOpen}
+                  aria-label="show notifications"
+                >
+                  <Badge badgeContent={3} color="error">
+                    <NotificationsIcon />
+                  </Badge>
+                </IconButton>
+              </Tooltip>
+              
+              <Menu
+                anchorEl={notificationsAnchor}
+                open={Boolean(notificationsAnchor)}
+                onClose={handleNotificationsClose}
+                PaperProps={{
+                  elevation: 0,
+                  sx: {
+                    overflow: 'visible',
+                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                    mt: 1.5,
+                    width: 320,
+                    '& .MuiAvatar-root': {
+                      width: 32,
+                      height: 32,
+                      ml: -0.5,
+                      mr: 1,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                <Badge badgeContent={3} color="error">
-                  <NotificationsIcon />
-                </Badge>
-              </IconButton>
+                <MenuItem sx={{ py: 1, px: 2 }}>
+                  <Typography variant="body2">New graduation request from John Doe</Typography>
+                </MenuItem>
+                <Divider />
+                <MenuItem sx={{ py: 1, px: 2 }}>
+                  <Typography variant="body2">Transcript uploaded for Jane Smith</Typography>
+                </MenuItem>
+                <Divider />
+                <MenuItem sx={{ py: 1, px: 2 }}>
+                  <Typography variant="body2">Disengagement certificate confirmed</Typography>
+                </MenuItem>
+                <Divider />
+                <MenuItem 
+                  sx={{ 
+                    py: 1, 
+                    justifyContent: 'center', 
+                    color: 'primary.main',
+                    fontWeight: 500,
+                  }}
+                  component={RouterLink}
+                  to="/secretary/notifications"
+                  onClick={handleNotificationsClose}
+                >
+                  View all notifications
+                </MenuItem>
+              </Menu>
+              
+              <Tooltip title="Profile settings">
+                <IconButton 
+                  onClick={handleProfileMenuOpen} 
+                  sx={{ ml: 1 }}
+                  aria-label="account settings"
+                >
+                  <Avatar 
+                    alt={user?.name || 'User'} 
+                    src="/static/images/avatar/default.jpg"
+                    sx={{ width: 32, height: 32 }}
+                  />
+                </IconButton>
+              </Tooltip>
+              
+              <Menu
+                anchorEl={profileMenuAnchor}
+                open={Boolean(profileMenuAnchor)}
+                onClose={handleProfileMenuClose}
+                PaperProps={{
+                  elevation: 0,
+                  sx: {
+                    overflow: 'visible',
+                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
+                    mt: 1.5,
+                    '& .MuiAvatar-root': {
+                      width: 32,
+                      height: 32,
+                      ml: -0.5,
+                      mr: 1,
+                    },
+                  },
+                }}
+                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
+                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+              >
+                <MenuItem onClick={handleProfileMenuClose}>
+                  Profile Settings
+                </MenuItem>
+                <MenuItem onClick={handleLogout}>
+                  Logout
+                </MenuItem>
+              </Menu>
             </Box>
           </Toolbar>
         </AppBar>
-        
-        <Menu
-          anchorEl={notificationsAnchor}
-          open={Boolean(notificationsAnchor)}
-          onClose={handleNotificationsClose}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        >
-          <MenuItem onClick={() => {
-            handleNotificationsClose();
-            navigate('/secretary/notifications');
-          }}>
-            <ListItemText primary="View All Notifications" />
-          </MenuItem>
-        </Menu>
-        
-        <Box
-          component="main"
-          sx={{
-            flexGrow: 1,
-            paddingTop: `calc(${theme.mixins.toolbar.minHeight}px + ${theme.spacing(3)})`,
-            paddingLeft: theme.spacing(3),
-            paddingRight: theme.spacing(3),
-            paddingBottom: theme.spacing(3),
-            backgroundColor: 'background.default'
-          }}
-        >
-          {children}
-        </Box>
+        <Toolbar />
+        {children}
       </Box>
     </Box>
   );
 };
 
-export default SecretaryDashboard; 
+export default SecretaryDashboardLayout; 

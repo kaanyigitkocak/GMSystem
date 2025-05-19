@@ -14,9 +14,9 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useAuth } from '../../contexts/AuthContext';
-import iyteLogoPng from '../../core/assets/iyte-logo.png';
-import theme from '../../core/styles/theme';
+import { useAuth } from '../contexts/AuthContext';
+import iyteLogoPng from '../../../core/assets/iyte-logo.png';
+import theme from '../../../core/styles/theme';
 import { useNavigate } from 'react-router-dom';
 
 interface LoginFormProps {

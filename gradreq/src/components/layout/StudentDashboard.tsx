@@ -34,7 +34,7 @@ import {
   Upload as UploadIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../contexts/AuthContext';
-import iyteLogoPng from '../../assets/iyte-logo.png';
+import iyteLogoPng from '../../core/assets/iyte-logo.png';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 
 // Main StudentDashboard component

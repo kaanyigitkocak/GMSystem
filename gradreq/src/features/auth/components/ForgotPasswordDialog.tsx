@@ -14,7 +14,7 @@ import {
   InputAdornment
 } from '@mui/material';
 import { Close, Visibility, VisibilityOff } from '@mui/icons-material';
-import theme from '../../core/styles/theme';
+import theme from '../../../core/styles/theme';
 
 interface ForgotPasswordDialogProps {
   open: boolean;
