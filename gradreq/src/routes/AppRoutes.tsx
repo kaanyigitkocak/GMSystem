@@ -3,6 +3,7 @@ import { lazy, Suspense } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import theme from '../core/styles/theme';
 import { useAuth } from '../features/auth/contexts/AuthContext';
+import { UserType } from '../features/auth/types';
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -21,6 +22,12 @@ const SecretaryDashboardLayout = lazy(() => import('../features/secretary/layout
 const TranscriptProcessingPage = lazy(() => import('../features/secretary/pages/TranscriptProcessingPage'));
 const DepartmentRankingPage = lazy(() => import('../features/secretary/pages/DepartmentRankingPage'));
 const NotificationsPage = lazy(() => import('../features/secretary/pages/NotificationsPage'));
+
+// Dean's Office pages
+const DeansOfficeDashboard = lazy(() => import('../features/deansOffice/pages/DeansOfficeDashboardPage'));
+const DeansOfficeDashboardLayout = lazy(() => import('../features/deansOffice/layout/DeansOfficeDashboardLayout'));
+const FileUploadPage = lazy(() => import('../features/deansOffice/pages/FileUploadPage'));
+const FacultyRankingPage = lazy(() => import('../features/deansOffice/pages/FacultyRankingPage'));
 
 // Loading component - positioned fixed to cover the whole screen
 const LoadingComponent = () => (
@@ -66,6 +73,10 @@ const DashboardRouter = () => {
   
   if (user.role === 'secretary') {
     return <Navigate to="/secretary" replace />;
+  }
+  
+  if (user.role === 'deans_office') {
+    return <Navigate to="/deansoffice" replace />;
   }
   
   // Later we'll add other roles
@@ -142,6 +153,33 @@ const AppRoutes = () => {
         <Route 
           path="/secretary/notifications" 
           element={<ProtectedRoute element={<NotificationsPage />} />} 
+        />
+        
+        {/* Dean's Office Dashboard routes */}
+        <Route path="/deansoffice" element={<ProtectedRoute element={<DeansOfficeDashboard />} />} />
+        <Route 
+          path="/deansoffice/file-upload" 
+          element={
+            <ProtectedRoute 
+              element={
+                <DeansOfficeDashboardLayout>
+                  <FileUploadPage />
+                </DeansOfficeDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/deansoffice/faculty-ranking" 
+          element={
+            <ProtectedRoute 
+              element={
+                <DeansOfficeDashboardLayout>
+                  <FacultyRankingPage />
+                </DeansOfficeDashboardLayout>
+              } 
+            />
+          } 
         />
         
         {/* Redirect root to appropriate dashboard or login */}
