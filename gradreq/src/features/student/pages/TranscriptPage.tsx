@@ -17,43 +17,26 @@ import {
   DialogActions,
   TextField,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import {
   GetApp as DownloadIcon,
   Error as ErrorIcon,
 } from '@mui/icons-material';
-
-// Sample transcript data
-const sampleCourses = [
-  { id: 'CENG311', name: 'Algorithms', credits: 4, grade: 'AA', semester: 'Fall 2021-2022' },
-  { id: 'CENG371', name: 'Database Management', credits: 4, grade: 'BA', semester: 'Spring 2021-2022' },
-  { id: 'MATH101', name: 'Calculus I', credits: 4, grade: 'BB', semester: 'Fall 2020-2021' },
-  { id: 'PHYS101', name: 'Physics I', credits: 4, grade: 'CB', semester: 'Fall 2020-2021' },
-  { id: 'MATH102', name: 'Calculus II', credits: 4, grade: 'BA', semester: 'Spring 2020-2021' },
-  { id: 'PHYS102', name: 'Physics II', credits: 4, grade: 'CB', semester: 'Spring 2020-2021' },
-  { id: 'CENG211', name: 'Data Structures', credits: 4, grade: 'AA', semester: 'Fall 2021-2022' },
-  { id: 'ENG101', name: 'English I', credits: 3, grade: 'BB', semester: 'Fall 2020-2021' }
-];
-
-// Function to calculate GPA
-const calculateGPA = (courses: typeof sampleCourses) => {
-  const gradePoints: { [key: string]: number } = {
-    'AA': 4.0, 'BA': 3.5, 'BB': 3.0, 'CB': 2.5, 'CC': 2.0, 'DC': 1.5, 'DD': 1.0, 'FF': 0.0
-  };
-  
-  let totalPoints = 0;
-  let totalCredits = 0;
-  
-  courses.forEach(course => {
-    totalPoints += gradePoints[course.grade] * course.credits;
-    totalCredits += course.credits;
-  });
-  
-  return (totalPoints / totalCredits).toFixed(2);
-};
+import { useTranscript } from '../hooks/useTranscript';
 
 const TranscriptPage = () => {
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    submitMissingDocumentReport, 
+    isSubmitting, 
+    reportSuccess, 
+    reportError 
+  } = useTranscript();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -66,14 +49,43 @@ const TranscriptPage = () => {
     setDialogOpen(false);
   };
 
-  const handleSendMessage = () => {
-    // Here you would implement API call to send message
-    setDialogOpen(false);
-    setSnackbarOpen(true);
-    setMessage('');
+  const handleSendMessage = async () => {
+    const success = await submitMissingDocumentReport(message);
+    if (success) {
+      setDialogOpen(false);
+      setSnackbarOpen(true);
+      setMessage('');
+    }
   };
   
-  const gpa = calculateGPA(sampleCourses);
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+  
+  // Error state
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mt: 2 }}>
+        Failed to load transcript data: {error.message}
+      </Alert>
+    );
+  }
+  
+  // Data not available
+  if (!data) {
+    return (
+      <Alert severity="warning" sx={{ mt: 2 }}>
+        Transcript data is not available.
+      </Alert>
+    );
+  }
+  
+  const { studentInfo, courses, gpa } = data;
   
   return (
     <Box>
@@ -102,15 +114,15 @@ const TranscriptPage = () => {
         <Box sx={{ mb: 3, display: 'flex', justifyContent: 'space-between' }}>
           <Box>
             <Typography variant="body2" color="text.secondary">Student Name:</Typography>
-            <Typography variant="body1" fontWeight={500}>John Doe</Typography>
+            <Typography variant="body1" fontWeight={500}>{studentInfo.name}</Typography>
           </Box>
           <Box>
             <Typography variant="body2" color="text.secondary">Student ID:</Typography>
-            <Typography variant="body1" fontWeight={500}>20190101023</Typography>
+            <Typography variant="body1" fontWeight={500}>{studentInfo.id}</Typography>
           </Box>
           <Box>
             <Typography variant="body2" color="text.secondary">Department:</Typography>
-            <Typography variant="body1" fontWeight={500}>Computer Engineering</Typography>
+            <Typography variant="body1" fontWeight={500}>{studentInfo.department}</Typography>
           </Box>
           <Box>
             <Typography variant="body2" color="text.secondary">GPA:</Typography>
@@ -130,7 +142,7 @@ const TranscriptPage = () => {
               </TableRow>
             </TableHead>
             <TableBody>
-              {sampleCourses.map((course) => (
+              {courses.map((course) => (
                 <TableRow key={course.id}>
                   <TableCell>{course.id}</TableCell>
                   <TableCell>{course.name}</TableCell>
@@ -180,22 +192,27 @@ const TranscriptPage = () => {
             variant="outlined"
             margin="normal"
           />
+          {reportError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {reportError.message}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose}>Cancel</Button>
           <Button 
             onClick={handleSendMessage} 
             variant="contained" 
-            disabled={!message.trim()}
+            disabled={!message.trim() || isSubmitting}
           >
-            Send
+            {isSubmitting ? 'Sending...' : 'Send'}
           </Button>
         </DialogActions>
       </Dialog>
 
       {/* Success Snackbar */}
       <Snackbar 
-        open={snackbarOpen} 
+        open={snackbarOpen || reportSuccess} 
         autoHideDuration={6000} 
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}

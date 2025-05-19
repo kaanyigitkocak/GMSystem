@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Box, 
   Paper, 
@@ -15,7 +15,8 @@ import {
   IconButton,
   Divider,
   Chip,
-  LinearProgress
+  LinearProgress,
+  CircularProgress
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
@@ -25,51 +26,34 @@ import {
 } from '@mui/icons-material';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-
-interface TranscriptData {
-  id: string;
-  studentId: string;
-  studentName: string;
-  department: string;
-  uploadDate: string;
-  status: 'pending' | 'processed' | 'rejected';
-  file: File | null;
-}
+import { getTranscripts, uploadTranscript, deleteTranscript, processTranscript } from '../services/secretaryService';
+import type { TranscriptData } from '../types';
 
 const TranscriptProcessingPage = () => {
   const [file, setFile] = useState<File | null>(null);
   const [processing, setProcessing] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [transcripts, setTranscripts] = useState<TranscriptData[]>([
-    {
-      id: '1',
-      studentId: '20190045',
-      studentName: 'John Doe',
-      department: 'Computer Engineering',
-      uploadDate: '2023-05-15',
-      status: 'pending',
-      file: null
-    },
-    {
-      id: '2',
-      studentId: '20190078',
-      studentName: 'Jane Smith',
-      department: 'Computer Engineering',
-      uploadDate: '2023-05-14',
-      status: 'processed',
-      file: null
-    },
-    {
-      id: '3',
-      studentId: '20190023',
-      studentName: 'Mike Johnson',
-      department: 'Computer Engineering',
-      uploadDate: '2023-05-13',
-      status: 'rejected',
-      file: null
-    }
-  ]);
+  const [transcripts, setTranscripts] = useState<TranscriptData[]>([]);
+  const [loading, setLoading] = useState<boolean>(true);
+
+  // Fetch transcripts on component mount
+  useEffect(() => {
+    const fetchTranscripts = async () => {
+      try {
+        setLoading(true);
+        const data = await getTranscripts();
+        setTranscripts(data);
+      } catch (error) {
+        console.error('Error fetching transcripts:', error);
+        setErrorMessage('Failed to load transcripts');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchTranscripts();
+  }, []);
 
   // Handle file change
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -88,54 +72,66 @@ const TranscriptProcessingPage = () => {
   };
 
   // Handle upload
-  const handleUpload = () => {
+  const handleUpload = async () => {
     if (!file) {
       setErrorMessage('Please select a file to upload.');
       return;
     }
 
-    setProcessing(true);
-    
-    // Simulate processing
-    setTimeout(() => {
-      // Create a new transcript entry
-      const newTranscript: TranscriptData = {
-        id: (transcripts.length + 1).toString(),
-        studentId: '2019' + Math.floor(1000 + Math.random() * 9000).toString(),
-        studentName: 'New Student',
-        department: 'Computer Engineering',
-        uploadDate: new Date().toISOString().split('T')[0],
-        status: 'pending',
-        file: file
-      };
+    try {
+      setProcessing(true);
       
-      // Add to transcripts
-      setTranscripts([newTranscript, ...transcripts]);
+      // Call the upload service
+      const newTranscript = await uploadTranscript(file);
       
       // Reset state
       setFile(null);
-      setProcessing(false);
       setSuccessMessage('Transcript uploaded successfully.');
       
       // Clear success message after 3 seconds
       setTimeout(() => {
         setSuccessMessage('');
       }, 3000);
-    }, 1500);
+    } catch (error) {
+      console.error('Error uploading transcript:', error);
+      setErrorMessage('Failed to upload transcript.');
+    } finally {
+      setProcessing(false);
+    }
   };
 
   // Handle delete
-  const handleDelete = (id: string) => {
-    setTranscripts(transcripts.filter(transcript => transcript.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      setLoading(true);
+      await deleteTranscript(id);
+      setTranscripts(transcripts.filter(transcript => transcript.id !== id));
+      setSuccessMessage('Transcript deleted successfully.');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error deleting transcript:', error);
+      setErrorMessage('Failed to delete transcript.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   // Handle process
-  const handleProcess = (id: string) => {
-    setTranscripts(transcripts.map(transcript => 
-      transcript.id === id 
-        ? { ...transcript, status: 'processed' } 
-        : transcript
-    ));
+  const handleProcess = async (id: string) => {
+    try {
+      setLoading(true);
+      const updatedTranscript = await processTranscript(id);
+      setTranscripts(transcripts.map(transcript => 
+        transcript.id === id ? updatedTranscript : transcript
+      ));
+      setSuccessMessage('Transcript processed successfully.');
+      setTimeout(() => setSuccessMessage(''), 3000);
+    } catch (error) {
+      console.error('Error processing transcript:', error);
+      setErrorMessage('Failed to process transcript.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -222,70 +218,78 @@ const TranscriptProcessingPage = () => {
             Uploaded Transcripts
           </Typography>
           
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Student ID</TableCell>
-                  <TableCell>Student Name</TableCell>
-                  <TableCell>Department</TableCell>
-                  <TableCell>Upload Date</TableCell>
-                  <TableCell>Status</TableCell>
-                  <TableCell>Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {transcripts.map((transcript) => (
-                  <TableRow key={transcript.id}>
-                    <TableCell>{transcript.studentId}</TableCell>
-                    <TableCell>{transcript.studentName}</TableCell>
-                    <TableCell>{transcript.department}</TableCell>
-                    <TableCell>{transcript.uploadDate}</TableCell>
-                    <TableCell>
-                      <Chip 
-                        label={transcript.status} 
-                        size="small"
-                        color={
-                          transcript.status === 'pending' 
-                            ? 'warning' 
-                            : transcript.status === 'processed' 
-                              ? 'success' 
-                              : 'error'
-                        }
-                      />
-                    </TableCell>
-                    <TableCell>
-                      <Box sx={{ display: 'flex', gap: 1 }}>
-                        {transcript.status === 'pending' && (
-                          <Button 
-                            size="small" 
-                            variant="outlined"
-                            onClick={() => handleProcess(transcript.id)}
-                          >
-                            Process
-                          </Button>
-                        )}
-                        <IconButton 
-                          size="small" 
-                          color="error"
-                          onClick={() => handleDelete(transcript.id)}
-                        >
-                          <DeleteIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
-                  </TableRow>
-                ))}
-                {transcripts.length === 0 && (
+          {loading && transcripts.length === 0 ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
                   <TableRow>
-                    <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
-                      No transcripts uploaded yet
-                    </TableCell>
+                    <TableCell>Student ID</TableCell>
+                    <TableCell>Student Name</TableCell>
+                    <TableCell>Department</TableCell>
+                    <TableCell>Upload Date</TableCell>
+                    <TableCell>Status</TableCell>
+                    <TableCell>Actions</TableCell>
                   </TableRow>
-                )}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {transcripts.map((transcript) => (
+                    <TableRow key={transcript.id}>
+                      <TableCell>{transcript.studentId}</TableCell>
+                      <TableCell>{transcript.studentName}</TableCell>
+                      <TableCell>{transcript.department}</TableCell>
+                      <TableCell>{transcript.uploadDate}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={transcript.status} 
+                          size="small"
+                          color={
+                            transcript.status === 'pending' 
+                              ? 'warning' 
+                              : transcript.status === 'processed' 
+                                ? 'success' 
+                                : 'error'
+                          }
+                        />
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', gap: 1 }}>
+                          {transcript.status === 'pending' && (
+                            <Button 
+                              size="small" 
+                              variant="outlined"
+                              onClick={() => handleProcess(transcript.id)}
+                              disabled={loading}
+                            >
+                              Process
+                            </Button>
+                          )}
+                          <IconButton 
+                            size="small" 
+                            color="error"
+                            onClick={() => handleDelete(transcript.id)}
+                            disabled={loading}
+                          >
+                            <DeleteIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                  {transcripts.length === 0 && (
+                    <TableRow>
+                      <TableCell colSpan={6} align="center" sx={{ py: 3 }}>
+                        No transcripts uploaded yet
+                      </TableCell>
+                    </TableRow>
+                  )}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Paper>
       </Box>
     </SecretaryDashboardLayout>

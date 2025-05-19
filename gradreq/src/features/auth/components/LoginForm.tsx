@@ -18,17 +18,12 @@ import { useAuth } from '../contexts/AuthContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 import theme from '../../../core/styles/theme';
 import { useNavigate } from 'react-router-dom';
+import { UserType } from '../types';
 
 interface LoginFormProps {
   onForgotPasswordClick: () => void;
   onRegisterClick: () => void;
 }
-
-// Dummy student credentials
-const STUDENT_EMAIL = "student@example.com";
-const STUDENT_PASSWORD = "student123";
-const SECRETARY_EMAIL = "secretary@example.com";
-const SECRETARY_PASSWORD = "secretary123";
 
 const LoginForm = ({ onForgotPasswordClick, onRegisterClick }: LoginFormProps) => {
   const [email, setEmail] = useState('');
@@ -52,16 +47,35 @@ const LoginForm = ({ onForgotPasswordClick, onRegisterClick }: LoginFormProps) =
     try {
       setLoading(true);
       
-      // Check for dummy student credentials
-      if (email === STUDENT_EMAIL && password === STUDENT_PASSWORD) {
-        await login(email, password);
-        navigate('/student'); // Navigate to student dashboard
-      } else if (email === SECRETARY_EMAIL && password === SECRETARY_PASSWORD) {
-        await login(email, password);
-        navigate('/secretary'); // Navigate to secretary dashboard
-      } else {
-        // For demo purposes, throw an error for non-student credentials
-        throw new Error('Invalid credentials');
+      // Use the auth context login function which uses the service
+      await login(email, password);
+      
+      // Redirect based on user role
+      const storedUser = localStorage.getItem('authUser');
+      if (storedUser) {
+        const user = JSON.parse(storedUser);
+        switch (user.role) {
+          case UserType.STUDENT:
+            navigate('/student');
+            break;
+          case UserType.SECRETARY:
+            navigate('/secretary');
+            break;
+          case UserType.ADVISOR:
+            navigate('/advisor');
+            break;
+          case UserType.DEANS_OFFICE:
+            navigate('/deans-office');
+            break;
+          case UserType.STUDENT_AFFAIRS:
+            navigate('/student-affairs');
+            break;
+          case UserType.ADMIN:
+            navigate('/admin');
+            break;
+          default:
+            navigate('/dashboard');
+        }
       }
     } catch (err) {
       setError('Login failed. Please check your email and password.');

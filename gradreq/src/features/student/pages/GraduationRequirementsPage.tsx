@@ -21,7 +21,8 @@ import {
   DialogActions,
   TextField,
   Alert,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
@@ -31,78 +32,19 @@ import {
   GetApp as DownloadIcon,
   Error as ErrorIcon
 } from '@mui/icons-material';
-
-// Sample graduation requirements data
-const requirements = [
-  {
-    category: 'Core Courses',
-    progress: 85,
-    completed: 17,
-    total: 20,
-    items: [
-      { id: 'CENG101', name: 'Introduction to Computer Engineering', credits: 4, completed: true },
-      { id: 'CENG211', name: 'Data Structures', credits: 4, completed: true },
-      { id: 'CENG311', name: 'Algorithms', credits: 4, completed: true },
-      { id: 'CENG371', name: 'Database Management', credits: 4, completed: true },
-      { id: 'CENG302', name: 'Operating Systems', credits: 4, completed: false },
-    ]
-  },
-  {
-    category: 'Mathematics & Science Courses',
-    progress: 100,
-    completed: 6,
-    total: 6,
-    items: [
-      { id: 'MATH101', name: 'Calculus I', credits: 4, completed: true },
-      { id: 'MATH102', name: 'Calculus II', credits: 4, completed: true },
-      { id: 'MATH211', name: 'Linear Algebra', credits: 4, completed: true },
-      { id: 'PHYS101', name: 'Physics I', credits: 4, completed: true },
-      { id: 'PHYS102', name: 'Physics II', credits: 4, completed: true },
-      { id: 'STAT201', name: 'Probability & Statistics', credits: 3, completed: true },
-    ]
-  },
-  {
-    category: 'Technical Electives',
-    progress: 50,
-    completed: 2,
-    total: 4,
-    items: [
-      { id: 'CENG401', name: 'Machine Learning', credits: 3, completed: true },
-      { id: 'CENG413', name: 'Computer Graphics', credits: 3, completed: true },
-      { id: 'CENG451', name: 'Distributed Systems', credits: 3, completed: false },
-      { id: 'CENG461', name: 'Cloud Computing', credits: 3, completed: false },
-    ]
-  },
-  {
-    category: 'General Education & Humanities',
-    progress: 66,
-    completed: 4,
-    total: 6,
-    items: [
-      { id: 'ENG101', name: 'English I', credits: 3, completed: true },
-      { id: 'ENG102', name: 'English II', credits: 3, completed: true },
-      { id: 'TURK101', name: 'Turkish I', credits: 2, completed: true },
-      { id: 'TURK102', name: 'Turkish II', credits: 2, completed: true },
-      { id: 'HIST101', name: 'History I', credits: 2, completed: false },
-      { id: 'HIST102', name: 'History II', credits: 2, completed: false },
-    ]
-  }
-];
-
-// Calculate overall progress
-const calculateOverallProgress = () => {
-  let totalCompleted = 0;
-  let totalRequired = 0;
-  
-  requirements.forEach(category => {
-    totalCompleted += category.completed;
-    totalRequired += category.total;
-  });
-  
-  return Math.round((totalCompleted / totalRequired) * 100);
-};
+import { useGraduationRequirements } from '../hooks/useGraduationRequirements';
 
 const GraduationRequirementsPage = () => {
+  const { 
+    data, 
+    isLoading, 
+    error, 
+    submitMissingFilesReport, 
+    isSubmitting, 
+    reportSuccess, 
+    reportError 
+  } = useGraduationRequirements();
+  
   const [dialogOpen, setDialogOpen] = useState(false);
   const [message, setMessage] = useState('');
   const [snackbarOpen, setSnackbarOpen] = useState(false);
@@ -115,14 +57,43 @@ const GraduationRequirementsPage = () => {
     setDialogOpen(false);
   };
 
-  const handleSendMessage = () => {
-    // Here you would implement API call to send message
-    setDialogOpen(false);
-    setSnackbarOpen(true);
-    setMessage('');
+  const handleSendMessage = async () => {
+    const success = await submitMissingFilesReport(message);
+    if (success) {
+      setDialogOpen(false);
+      setSnackbarOpen(true);
+      setMessage('');
+    }
   };
   
-  const overallProgress = calculateOverallProgress();
+  // Loading state
+  if (isLoading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 400 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+  
+  // Error state
+  if (error) {
+    return (
+      <Alert severity="error" sx={{ mt: 2 }}>
+        Failed to load graduation requirements data: {error.message}
+      </Alert>
+    );
+  }
+  
+  // Data not available
+  if (!data) {
+    return (
+      <Alert severity="warning" sx={{ mt: 2 }}>
+        Graduation requirements data is not available.
+      </Alert>
+    );
+  }
+  
+  const { requirements, overallProgress, studentInfo } = data;
   
   return (
     <Box>
@@ -187,15 +158,15 @@ const GraduationRequirementsPage = () => {
               <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, justifyContent: 'flex-end' }}>
                 <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                   <Typography variant="body2" color="text.secondary">Department</Typography>
-                  <Typography variant="body1" fontWeight={500}>Computer Engineering</Typography>
+                  <Typography variant="body1" fontWeight={500}>{studentInfo.department}</Typography>
                 </Box>
                 <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                   <Typography variant="body2" color="text.secondary">Required Credits</Typography>
-                  <Typography variant="body1" fontWeight={500}>140</Typography>
+                  <Typography variant="body1" fontWeight={500}>{studentInfo.requiredCredits}</Typography>
                 </Box>
                 <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
                   <Typography variant="body2" color="text.secondary">Completed Credits</Typography>
-                  <Typography variant="body1" fontWeight={500}>105</Typography>
+                  <Typography variant="body1" fontWeight={500}>{studentInfo.completedCredits}</Typography>
                 </Box>
               </Box>
             </Grid>
@@ -248,23 +219,46 @@ const GraduationRequirementsPage = () => {
                 {category.items.map((item) => (
                   <ListItem key={item.id} sx={{ pl: 0, pr: 0 }}>
                     <ListItemIcon sx={{ minWidth: 36 }}>
-                      {item.completed ? (
-                        <CheckCircleIcon color="success" fontSize="small" />
-                      ) : (
-                        <CancelIcon color="error" fontSize="small" />
-                      )}
+                      {item.completed ? 
+                        <CheckCircleIcon fontSize="small" color="success" /> : 
+                        <CancelIcon fontSize="small" color="error" />
+                      }
                     </ListItemIcon>
                     <ListItemText 
                       primary={
-                        <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <Typography variant="body2" fontWeight={item.completed ? 400 : 500}>
-                            {item.id} - {item.name}
+                        <Box component="span" sx={{ display: 'flex', alignItems: 'center' }}>
+                          <Typography 
+                            component="span" 
+                            variant="body2" 
+                            sx={{ 
+                              fontWeight: item.completed ? 400 : 500,
+                              color: item.completed ? 'text.secondary' : 'text.primary',
+                              textDecoration: item.completed ? 'line-through' : 'none',
+                              mr: 1
+                            }}
+                          >
+                            {item.id}
                           </Typography>
-                          <Typography variant="body2" color="text.secondary">
-                            {item.credits} credits
+                          <Typography 
+                            component="span" 
+                            variant="body2" 
+                            sx={{ 
+                              fontWeight: item.completed ? 400 : 500,
+                              color: item.completed ? 'text.secondary' : 'text.primary',
+                              textDecoration: item.completed ? 'line-through' : 'none',
+                            }}
+                          >
+                            {item.name}
                           </Typography>
                         </Box>
-                      } 
+                      }
+                      secondary={`${item.credits} credits`}
+                      secondaryTypographyProps={{
+                        sx: {
+                          color: item.completed ? 'text.secondary' : 'text.primary',
+                          textDecoration: item.completed ? 'line-through' : 'none',
+                        }
+                      }}
                     />
                   </ListItem>
                 ))}
@@ -272,10 +266,6 @@ const GraduationRequirementsPage = () => {
             </AccordionDetails>
           </Accordion>
         ))}
-        
-        <Typography variant="body2" color="text.secondary" sx={{ mt: 2 }}>
-          This is a digital representation of your graduation requirements. For any discrepancies, please contact your department.
-        </Typography>
       </Paper>
       
       {/* Missing Files Dialog */}
@@ -283,7 +273,7 @@ const GraduationRequirementsPage = () => {
         <DialogTitle>Report Missing Files</DialogTitle>
         <DialogContent>
           <Typography variant="body2" paragraph sx={{ mt: 1 }}>
-            Please describe the issue with the graduation requirements files and we'll notify the Student Affairs.
+            Please describe the issue with your graduation requirement files and we'll notify your advisor.
           </Typography>
           <TextField
             autoFocus
@@ -296,28 +286,33 @@ const GraduationRequirementsPage = () => {
             variant="outlined"
             margin="normal"
           />
+          {reportError && (
+            <Alert severity="error" sx={{ mt: 1 }}>
+              {reportError.message}
+            </Alert>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={handleDialogClose}>Cancel</Button>
           <Button 
             onClick={handleSendMessage} 
             variant="contained" 
-            disabled={!message.trim()}
+            disabled={!message.trim() || isSubmitting}
           >
-            Send
+            {isSubmitting ? 'Sending...' : 'Send'}
           </Button>
         </DialogActions>
       </Dialog>
-
+      
       {/* Success Snackbar */}
       <Snackbar 
-        open={snackbarOpen} 
+        open={snackbarOpen || reportSuccess} 
         autoHideDuration={6000} 
         onClose={() => setSnackbarOpen(false)}
         anchorOrigin={{ vertical: 'bottom', horizontal: 'center' }}
       >
         <Alert onClose={() => setSnackbarOpen(false)} severity="success">
-          Missing files report sent successfully to Student Affairs.
+          Missing files report sent successfully to your advisor.
         </Alert>
       </Snackbar>
     </Box>

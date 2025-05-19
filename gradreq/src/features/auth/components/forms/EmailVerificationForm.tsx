@@ -7,6 +7,8 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
+import { validateEmail } from '../../types';
+import { sendVerificationEmail } from '../../services/authService';
 
 interface EmailVerificationFormProps {
   initialEmail: string;
@@ -18,18 +20,8 @@ const EmailVerificationForm = ({ initialEmail, onVerificationSent }: EmailVerifi
   const [emailSending, setEmailSending] = useState(false);
   const [emailError, setEmailError] = useState<string | null>(null);
   
-  // Email validation
-  const validateEmail = (email: string): boolean => {
-    if (!email.trim()) {
-      return false;
-    }
-    
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    return emailRegex.test(email);
-  };
-  
   // Send verification code to email
-  const handleSendVerificationCode = () => {
+  const handleSendVerificationCode = async () => {
     setEmailError(null);
     
     if (!email.trim()) {
@@ -44,18 +36,19 @@ const EmailVerificationForm = ({ initialEmail, onVerificationSent }: EmailVerifi
     
     setEmailSending(true);
     
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Sending verification code to:', email);
+    try {
+      // Use the auth service to send verification email
+      await sendVerificationEmail(email);
+      onVerificationSent(email);
+    } catch (error) {
+      setEmailError(
+        error instanceof Error 
+          ? error.message 
+          : 'Unable to send verification code. Please try again later.'
+      );
+    } finally {
       setEmailSending(false);
-      
-      // Simulate API errors for testing
-      if (email.includes('error') || email.includes('test')) {
-        setEmailError('Unable to send verification code. Please try again later.');
-      } else {
-        onVerificationSent(email);
-      }
-    }, 1500);
+    }
   };
   
   return (

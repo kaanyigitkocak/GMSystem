@@ -7,6 +7,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
+import { verifyCode } from '../../services/authService';
 
 interface CodeVerificationFormProps {
   email: string;
@@ -19,7 +20,7 @@ const CodeVerificationForm = ({ email, onVerified }: CodeVerificationFormProps) 
   const [verificationError, setVerificationError] = useState<string | null>(null);
   
   // Verify the code
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     setVerificationError(null);
     
     if (!verificationCode.trim()) {
@@ -35,18 +36,19 @@ const CodeVerificationForm = ({ email, onVerified }: CodeVerificationFormProps) 
     
     setVerifying(true);
     
-    // Simulate API verification
-    setTimeout(() => {
-      console.log('Verifying code:', verificationCode);
+    try {
+      // Use the auth service to verify the code
+      await verifyCode(email, verificationCode);
+      onVerified();
+    } catch (error) {
+      setVerificationError(
+        error instanceof Error 
+          ? error.message 
+          : 'Invalid verification code. Please try again.'
+      );
+    } finally {
       setVerifying(false);
-      
-      // For demo, "123456" is valid
-      if (verificationCode === '123456') {
-        onVerified();
-      } else {
-        setVerificationError('Invalid verification code. Please try again.');
-      }
-    }, 1000);
+    }
   };
   
   return (
@@ -66,7 +68,7 @@ const CodeVerificationForm = ({ email, onVerified }: CodeVerificationFormProps) 
         value={verificationCode}
         onChange={(e) => setVerificationCode(e.target.value)}
         error={!!verificationError}
-        helperText={verificationError || 'For demo purposes, use "123456"'}
+        helperText={verificationError || 'Enter a 6-digit verification code'}
       />
       
       {verificationError && (

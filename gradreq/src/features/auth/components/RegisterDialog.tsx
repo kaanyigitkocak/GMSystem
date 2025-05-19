@@ -11,6 +11,7 @@ import {
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import theme from '../../../core/styles/theme';
+import { registerUser } from '../services/authService';
 
 // Import shared types and constants
 import { RegisterStage, UserType } from '../types';
@@ -42,12 +43,14 @@ const RegisterDialog = ({ open, onClose }: RegisterDialogProps) => {
   const [currentStage, setCurrentStage] = useState<RegisterStage>(RegisterStage.EMAIL_VERIFICATION);
   const [userType, setUserType] = useState<UserType>(UserType.STUDENT);
   const [email, setEmail] = useState('');
+  const [registrationError, setRegistrationError] = useState<string | null>(null);
   
   // Handle dialog close with reset
   const handleClose = () => {
     setCurrentStage(RegisterStage.EMAIL_VERIFICATION);
     setUserType(UserType.STUDENT);
     setEmail('');
+    setRegistrationError(null);
     onClose();
   };
   
@@ -68,70 +71,57 @@ const RegisterDialog = ({ open, onClose }: RegisterDialogProps) => {
     setCurrentStage(RegisterStage.REGISTRATION_FORM);
   };
   
+  // Generic registration handler that uses our auth service
+  const handleRegistration = async (formData: any) => {
+    try {
+      setRegistrationError(null);
+      
+      // Combine all data and register the user
+      const userData = {
+        email,
+        type: userType,
+        ...formData
+      };
+      
+      await registerUser(userData);
+      setCurrentStage(RegisterStage.COMPLETE);
+    } catch (error) {
+      setRegistrationError(
+        error instanceof Error 
+          ? error.message 
+          : 'Registration failed. Please try again.'
+      );
+    }
+  };
+  
   // Handle student registration completion
-  const handleStudentRegistered = (formData: StudentFormData) => {
-    console.log('Registering student:', {
-      email,
-      type: userType,
-      ...formData
-    });
-    
-    setCurrentStage(RegisterStage.COMPLETE);
+  const handleStudentRegistered = async (formData: StudentFormData) => {
+    await handleRegistration(formData);
   };
   
   // Handle admin registration completion
-  const handleAdminRegistered = (formData: AdminFormData) => {
-    console.log('Registering admin:', {
-      email,
-      type: userType,
-      ...formData
-    });
-    
-    setCurrentStage(RegisterStage.COMPLETE);
+  const handleAdminRegistered = async (formData: AdminFormData) => {
+    await handleRegistration(formData);
   };
   
   // Handle advisor registration completion
-  const handleAdvisorRegistered = (formData: AdvisorFormData) => {
-    console.log('Registering advisor:', {
-      email,
-      type: userType,
-      ...formData
-    });
-    
-    setCurrentStage(RegisterStage.COMPLETE);
+  const handleAdvisorRegistered = async (formData: AdvisorFormData) => {
+    await handleRegistration(formData);
   };
   
   // Handle secretary registration completion
-  const handleSecretaryRegistered = (formData: SecretaryFormData) => {
-    console.log('Registering secretary:', {
-      email,
-      type: userType,
-      ...formData
-    });
-    
-    setCurrentStage(RegisterStage.COMPLETE);
+  const handleSecretaryRegistered = async (formData: SecretaryFormData) => {
+    await handleRegistration(formData);
   };
   
   // Handle dean's office registration completion
-  const handleDeansOfficeRegistered = (formData: DeansOfficeFormData) => {
-    console.log('Registering dean\'s office staff:', {
-      email,
-      type: userType,
-      ...formData
-    });
-    
-    setCurrentStage(RegisterStage.COMPLETE);
+  const handleDeansOfficeRegistered = async (formData: DeansOfficeFormData) => {
+    await handleRegistration(formData);
   };
   
   // Handle student affairs registration completion
-  const handleStudentAffairsRegistered = (formData: StudentAffairsFormData) => {
-    console.log('Registering student affairs staff:', {
-      email,
-      type: userType,
-      ...formData
-    });
-    
-    setCurrentStage(RegisterStage.COMPLETE);
+  const handleStudentAffairsRegistered = async (formData: StudentAffairsFormData) => {
+    await handleRegistration(formData);
   };
   
   // Get dialog title based on current stage
@@ -178,6 +168,12 @@ const RegisterDialog = ({ open, onClose }: RegisterDialogProps) => {
       </DialogTitle>
       
       <DialogContent>
+        {registrationError && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            {registrationError}
+          </Alert>
+        )}
+        
         {/* Email verification stage */}
         {currentStage === RegisterStage.EMAIL_VERIFICATION && (
           <EmailVerificationForm 

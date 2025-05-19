@@ -1,12 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
-
-interface User {
-  id: string;
-  email: string;
-  role: 'student' | 'admin' | 'advisor' | 'secretary' | 'deans_office' | 'student_affairs';
-  name: string;
-}
+import { loginUser, validateToken, type User } from '../services/authService';
 
 interface AuthContextType {
   user: User | null;
@@ -38,59 +32,34 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check for stored token on mount
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
-      // If we have a token, try to get the user info
-      // In a real app, we would validate the token with the server
-      const storedUser = localStorage.getItem('authUser');
-      if (storedUser) {
+      // Validate the token with our service function
+      const verifyToken = async () => {
         try {
-          setUser(JSON.parse(storedUser));
+          const userData = await validateToken(storedToken);
+          setUser(userData);
           setToken(storedToken);
         } catch (error) {
-          console.error('Failed to parse stored user', error);
+          console.error('Token validation failed', error);
           localStorage.removeItem('authToken');
           localStorage.removeItem('authUser');
         }
-      }
+      };
+      
+      verifyToken();
     }
   }, []);
 
   const login = async (email: string, password: string) => {
     try {
-      // TODO: API call will be implemented here
-      // For now, simulate successful login
-      console.log('Login attempt with:', email, password);
+      // Use our auth service to log in
+      const { user: userData, token: authToken } = await loginUser(email, password);
       
-      // Determine role based on email for testing
-      let role: User['role'] = 'student';
-      
-      if (email.includes('secretary') || email.includes('sekreter')) {
-        role = 'secretary';
-      } else if (email.includes('advisor') || email.includes('danisman')) {
-        role = 'advisor';
-      } else if (email.includes('dean') || email.includes('dekan')) {
-        role = 'deans_office';
-      } else if (email.includes('affairs') || email.includes('isleri')) {
-        role = 'student_affairs';
-      } else if (email.includes('admin')) {
-        role = 'admin';
-      }
-      
-      // Simulated response
-      const mockUser: User = {
-        id: '1',
-        email,
-        role,
-        name: email.split('@')[0], // Use part of email as name for simplicity
-      };
-      
-      const mockToken = 'mock-jwt-token';
-      
-      setUser(mockUser);
-      setToken(mockToken);
+      setUser(userData);
+      setToken(authToken);
       
       // Store token and user in localStorage for persistence
-      localStorage.setItem('authToken', mockToken);
-      localStorage.setItem('authUser', JSON.stringify(mockUser));
+      localStorage.setItem('authToken', authToken);
+      localStorage.setItem('authUser', JSON.stringify(userData));
     } catch (error) {
       console.error('Login failed:', error);
       throw error;

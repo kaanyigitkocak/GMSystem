@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -21,7 +21,8 @@ import {
   DialogTitle,
   DialogContent,
   DialogActions,
-  Snackbar
+  Snackbar,
+  CircularProgress
 } from '@mui/material';
 import type { SelectChangeEvent } from '@mui/material';
 import {
@@ -34,70 +35,36 @@ import {
 } from '@mui/icons-material';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-
-interface StudentRanking {
-  id: string;
-  studentId: string;
-  studentName: string;
-  department: string;
-  gpa: number;
-  graduationDate: string;
-  ranking: number;
-}
+import { getStudentRankings, updateStudentRanking, reorderStudentRankings } from '../services/secretaryService';
+import type { StudentRanking } from '../types';
 
 const DepartmentRankingPage = () => {
   const [selectedDepartment, setSelectedDepartment] = useState('Computer Engineering');
-  const [students, setStudents] = useState<StudentRanking[]>([
-    {
-      id: '1',
-      studentId: '20190045',
-      studentName: 'John Doe',
-      department: 'Computer Engineering',
-      gpa: 3.85,
-      graduationDate: '2023-06-15',
-      ranking: 1
-    },
-    {
-      id: '2',
-      studentId: '20190078',
-      studentName: 'Jane Smith',
-      department: 'Computer Engineering',
-      gpa: 3.75,
-      graduationDate: '2023-06-15',
-      ranking: 2
-    },
-    {
-      id: '3',
-      studentId: '20190023',
-      studentName: 'Mike Johnson',
-      department: 'Computer Engineering',
-      gpa: 3.62,
-      graduationDate: '2023-06-15',
-      ranking: 3
-    },
-    {
-      id: '4',
-      studentId: '20190098',
-      studentName: 'Emily Brown',
-      department: 'Computer Engineering',
-      gpa: 3.57,
-      graduationDate: '2023-06-15',
-      ranking: 4
-    },
-    {
-      id: '5',
-      studentId: '20190132',
-      studentName: 'David Wilson',
-      department: 'Computer Engineering',
-      gpa: 3.45,
-      graduationDate: '2023-06-15',
-      ranking: 5
-    }
-  ]);
+  const [students, setStudents] = useState<StudentRanking[]>([]);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<StudentRanking | null>(null);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
+  const [loading, setLoading] = useState(true);
+
+  // Fetch student rankings when department changes
+  useEffect(() => {
+    const fetchStudentRankings = async () => {
+      setLoading(true);
+      try {
+        const data = await getStudentRankings(selectedDepartment);
+        setStudents(data);
+      } catch (error) {
+        console.error('Error fetching student rankings:', error);
+        setSnackbarMessage('Failed to load student rankings');
+        setSnackbarOpen(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStudentRankings();
+  }, [selectedDepartment]);
 
   // Handle department change
   const handleDepartmentChange = (event: SelectChangeEvent) => {
@@ -117,48 +84,77 @@ const DepartmentRankingPage = () => {
   };
 
   // Handle save student
-  const handleSaveStudent = () => {
+  const handleSaveStudent = async () => {
     if (!currentStudent) return;
     
-    setStudents(students.map(student => 
-      student.id === currentStudent.id ? currentStudent : student
-    ));
-    
-    setSnackbarMessage('Student information updated successfully');
-    setSnackbarOpen(true);
-    handleCloseEditDialog();
+    try {
+      setLoading(true);
+      const updatedStudent = await updateStudentRanking(currentStudent);
+      
+      setStudents(students.map(student => 
+        student.id === updatedStudent.id ? updatedStudent : student
+      ));
+      
+      setSnackbarMessage('Student information updated successfully');
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Error updating student:', error);
+      setSnackbarMessage('Failed to update student information');
+      setSnackbarOpen(true);
+    } finally {
+      setLoading(false);
+      handleCloseEditDialog();
+    }
   };
 
   // Handle move student up
-  const handleMoveUp = (id: string) => {
+  const handleMoveUp = async (id: string) => {
     const index = students.findIndex(student => student.id === id);
     if (index <= 0) return;
     
-    const newStudents = [...students];
-    const temp = newStudents[index - 1].ranking;
-    newStudents[index - 1].ranking = newStudents[index].ranking;
-    newStudents[index].ranking = temp;
-    
-    // Swap positions
-    [newStudents[index - 1], newStudents[index]] = [newStudents[index], newStudents[index - 1]];
-    
-    setStudents(newStudents);
+    try {
+      const newStudents = [...students];
+      const temp = newStudents[index - 1].ranking;
+      newStudents[index - 1].ranking = newStudents[index].ranking;
+      newStudents[index].ranking = temp;
+      
+      // Swap positions
+      [newStudents[index - 1], newStudents[index]] = [newStudents[index], newStudents[index - 1]];
+      
+      // Update the rankings on the server
+      await reorderStudentRankings(newStudents);
+      
+      setStudents(newStudents);
+    } catch (error) {
+      console.error('Error reordering students:', error);
+      setSnackbarMessage('Failed to reorder students');
+      setSnackbarOpen(true);
+    }
   };
 
   // Handle move student down
-  const handleMoveDown = (id: string) => {
+  const handleMoveDown = async (id: string) => {
     const index = students.findIndex(student => student.id === id);
     if (index >= students.length - 1) return;
     
-    const newStudents = [...students];
-    const temp = newStudents[index + 1].ranking;
-    newStudents[index + 1].ranking = newStudents[index].ranking;
-    newStudents[index].ranking = temp;
-    
-    // Swap positions
-    [newStudents[index + 1], newStudents[index]] = [newStudents[index], newStudents[index + 1]];
-    
-    setStudents(newStudents);
+    try {
+      const newStudents = [...students];
+      const temp = newStudents[index + 1].ranking;
+      newStudents[index + 1].ranking = newStudents[index].ranking;
+      newStudents[index].ranking = temp;
+      
+      // Swap positions
+      [newStudents[index + 1], newStudents[index]] = [newStudents[index], newStudents[index + 1]];
+      
+      // Update the rankings on the server
+      await reorderStudentRankings(newStudents);
+      
+      setStudents(newStudents);
+    } catch (error) {
+      console.error('Error reordering students:', error);
+      setSnackbarMessage('Failed to reorder students');
+      setSnackbarOpen(true);
+    }
   };
 
   // Handle generate PDF
@@ -194,6 +190,7 @@ const DepartmentRankingPage = () => {
                 value={selectedDepartment}
                 label="Department"
                 onChange={handleDepartmentChange}
+                disabled={loading}
               >
                 <MenuItem value="Computer Engineering">Computer Engineering</MenuItem>
                 <MenuItem value="Electrical Engineering">Electrical Engineering</MenuItem>
@@ -207,6 +204,7 @@ const DepartmentRankingPage = () => {
                 variant="outlined"
                 startIcon={<PrintIcon />}
                 onClick={handleGeneratePDF}
+                disabled={loading || students.length === 0}
               >
                 Generate PDF
               </Button>
@@ -214,6 +212,7 @@ const DepartmentRankingPage = () => {
                 variant="outlined"
                 startIcon={<FileDownloadIcon />}
                 onClick={handleExportExcel}
+                disabled={loading || students.length === 0}
               >
                 Export to Excel
               </Button>
@@ -224,58 +223,69 @@ const DepartmentRankingPage = () => {
             The ranking is automatically calculated based on student GPA. You can manually adjust the ranking by using the up/down arrows.
           </Alert>
           
-          <TableContainer>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Rank</TableCell>
-                  <TableCell>Student ID</TableCell>
-                  <TableCell>Student Name</TableCell>
-                  <TableCell>GPA</TableCell>
-                  <TableCell>Graduation Date</TableCell>
-                  <TableCell align="center">Actions</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {students.map((student) => (
-                  <TableRow key={student.id}>
-                    <TableCell>{student.ranking}</TableCell>
-                    <TableCell>{student.studentId}</TableCell>
-                    <TableCell>{student.studentName}</TableCell>
-                    <TableCell>{student.gpa.toFixed(2)}</TableCell>
-                    <TableCell>{student.graduationDate}</TableCell>
-                    <TableCell align="center">
-                      <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                        <IconButton 
-                          size="small" 
-                          color="primary" 
-                          onClick={() => handleMoveUp(student.id)}
-                          disabled={student.ranking === 1}
-                        >
-                          <ArrowUpwardIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          color="primary" 
-                          onClick={() => handleMoveDown(student.id)}
-                          disabled={student.ranking === students.length}
-                        >
-                          <ArrowDownwardIcon fontSize="small" />
-                        </IconButton>
-                        <IconButton 
-                          size="small" 
-                          color="primary"
-                          onClick={() => handleEditClick(student)}
-                        >
-                          <EditIcon fontSize="small" />
-                        </IconButton>
-                      </Box>
-                    </TableCell>
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          ) : students.length === 0 ? (
+            <Alert severity="warning" sx={{ mb: 3 }}>
+              No student rankings found for this department.
+            </Alert>
+          ) : (
+            <TableContainer>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Rank</TableCell>
+                    <TableCell>Student ID</TableCell>
+                    <TableCell>Student Name</TableCell>
+                    <TableCell>GPA</TableCell>
+                    <TableCell>Graduation Date</TableCell>
+                    <TableCell align="center">Actions</TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+                </TableHead>
+                <TableBody>
+                  {students.map((student) => (
+                    <TableRow key={student.id}>
+                      <TableCell>{student.ranking}</TableCell>
+                      <TableCell>{student.studentId}</TableCell>
+                      <TableCell>{student.studentName}</TableCell>
+                      <TableCell>{student.gpa.toFixed(2)}</TableCell>
+                      <TableCell>{student.graduationDate}</TableCell>
+                      <TableCell align="center">
+                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
+                          <IconButton 
+                            size="small" 
+                            color="primary" 
+                            onClick={() => handleMoveUp(student.id)}
+                            disabled={student.ranking === 1 || loading}
+                          >
+                            <ArrowUpwardIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton 
+                            size="small" 
+                            color="primary" 
+                            onClick={() => handleMoveDown(student.id)}
+                            disabled={student.ranking === students.length || loading}
+                          >
+                            <ArrowDownwardIcon fontSize="small" />
+                          </IconButton>
+                          <IconButton 
+                            size="small" 
+                            color="primary"
+                            onClick={() => handleEditClick(student)}
+                            disabled={loading}
+                          >
+                            <EditIcon fontSize="small" />
+                          </IconButton>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          )}
         </Paper>
       </Box>
       
@@ -326,8 +336,10 @@ const DepartmentRankingPage = () => {
           </Box>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseEditDialog}>Cancel</Button>
-          <Button onClick={handleSaveStudent} variant="contained">Save</Button>
+          <Button onClick={handleCloseEditDialog} disabled={loading}>Cancel</Button>
+          <Button onClick={handleSaveStudent} variant="contained" disabled={loading}>
+            {loading ? <CircularProgress size={24} /> : 'Save'}
+          </Button>
         </DialogActions>
       </Dialog>
       

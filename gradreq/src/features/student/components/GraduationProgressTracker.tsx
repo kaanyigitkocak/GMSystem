@@ -8,7 +8,8 @@ import {
   StepLabel,
   Tooltip,
   IconButton,
-  useTheme
+  useTheme,
+  CircularProgress
 } from '@mui/material';
 import {
   Assignment as AssignmentIcon,
@@ -18,36 +19,22 @@ import {
   EmojiEvents as EmojiEventsIcon,
   Info as InfoIcon,
   CheckCircle as CheckCircleIcon,
-  School as SchoolIcon
+  School as SchoolIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
+import { useGraduationProgress } from '../hooks/useGraduationProgress';
 
 const GraduationProgressTracker = () => {
   const theme = useTheme();
-  // This would come from API in real implementation
-  const activeStep = 2; // 0-indexed, so this is "Disconnection Procedures"
-  
-  const steps = [
-    {
-      label: 'Application & Academic Assessment',
-      description: 'Your application is being reviewed by your advisor and department secretary.'
-    },
-    {
-      label: "Dean's Office Approval",
-      description: 'Your graduation application is being reviewed by the dean\'s office.'
-    },
-    {
-      label: 'Disconnection Procedures',
-      description: 'You need to complete disconnection procedures with Library, IT, Student Affairs, etc.'
-    },
-    {
-      label: 'Rectorate Approval',
-      description: 'Your graduation is awaiting final approval from the rectorate.'
-    },
-    {
-      label: 'Graduation Approved',
-      description: 'Congratulations! Your graduation has been approved and your documents are being prepared.'
-    }
-  ];
+  const { 
+    activeStep, 
+    steps, 
+    disconnectionProcedures, 
+    isLoading, 
+    error,
+    isDisconnectionLoading,
+    disconnectionError 
+  } = useGraduationProgress();
   
   const getStepIcon = (index: number) => {
     const icons = [
@@ -70,6 +57,54 @@ const GraduationProgressTracker = () => {
       color: theme.palette.primary.main,
     }
   };
+  
+  // Error display
+  if (error) {
+    return (
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 3,
+          mb: 4,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: theme.palette.error.main,
+          backgroundColor: theme.palette.error.light
+        }}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <ErrorIcon color="error" sx={{ mr: 1 }} />
+          <Typography variant="h6" component="h2" color="error">
+            Error Loading Graduation Status
+          </Typography>
+        </Box>
+        <Typography variant="body2">{error.message}</Typography>
+      </Paper>
+    );
+  }
+  
+  // Loading state
+  if (isLoading) {
+    return (
+      <Paper 
+        elevation={0} 
+        sx={{ 
+          p: 3,
+          mb: 4,
+          borderRadius: 2,
+          border: '1px solid',
+          borderColor: theme.palette.divider,
+          display: 'flex',
+          justifyContent: 'center',
+          alignItems: 'center',
+          height: 200
+        }}
+      >
+        <CircularProgress />
+        <Typography variant="body1" sx={{ ml: 2 }}>Loading graduation progress...</Typography>
+      </Paper>
+    );
+  }
   
   return (
     <Paper 
@@ -155,53 +190,62 @@ const GraduationProgressTracker = () => {
       {activeStep === 2 && (
         <Box sx={{ mt: 3, p: 2, borderRadius: 1, bgcolor: 'rgba(204, 0, 0, 0.03)', border: '1px solid rgba(204, 0, 0, 0.1)' }}>
           <Typography variant="subtitle2" gutterBottom>Required Disconnection Procedures:</Typography>
-          <Grid container spacing={2} sx={{ mt: 1 }}>
-            {[
-              { name: 'Library', completed: true },
-              { name: 'IT Department', completed: false },
-              { name: 'Student Affairs', completed: false },
-              { name: 'Graduate Office', completed: false },
-              { name: 'Sports & Culture Dept.', completed: false }
-            ].map((item, index) => (
-              <Grid key={index} sx={{ width: { xs: '50%', sm: '33.33%', md: '20%' }, mb: 1 }}>
-                <Box 
-                  sx={{ 
-                    display: 'flex', 
-                    alignItems: 'center',
-                    p: 1,
-                    borderRadius: 1,
-                    bgcolor: item.completed ? 'rgba(76, 175, 80, 0.08)' : 'transparent'
-                  }}
-                >
+          
+          {isDisconnectionLoading && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 2 }}>
+              <CircularProgress size={24} />
+            </Box>
+          )}
+          
+          {disconnectionError && (
+            <Typography color="error" variant="body2">
+              Error loading disconnection procedures: {disconnectionError.message}
+            </Typography>
+          )}
+          
+          {!isDisconnectionLoading && !disconnectionError && disconnectionProcedures && (
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              {disconnectionProcedures.map((item, index) => (
+                <Grid key={index} sx={{ width: { xs: '50%', sm: '33.33%', md: '20%' }, mb: 1 }}>
                   <Box 
                     sx={{ 
-                      width: 24, 
-                      height: 24, 
-                      borderRadius: '50%', 
                       display: 'flex', 
-                      alignItems: 'center', 
-                      justifyContent: 'center',
-                      border: '1px solid',
-                      borderColor: item.completed ? 'success.main' : 'divider',
-                      bgcolor: item.completed ? 'success.main' : 'transparent',
-                      mr: 1
+                      alignItems: 'center',
+                      p: 1,
+                      borderRadius: 1,
+                      bgcolor: item.completed ? 'rgba(76, 175, 80, 0.08)' : 'transparent'
                     }}
                   >
-                    {item.completed && <CheckCircleIcon sx={{ color: 'white', fontSize: 16 }} />}
+                    <Box 
+                      sx={{ 
+                        width: 24, 
+                        height: 24, 
+                        borderRadius: '50%', 
+                        display: 'flex', 
+                        alignItems: 'center', 
+                        justifyContent: 'center',
+                        border: '1px solid',
+                        borderColor: item.completed ? 'success.main' : 'divider',
+                        bgcolor: item.completed ? 'success.main' : 'transparent',
+                        mr: 1
+                      }}
+                    >
+                      {item.completed && <CheckCircleIcon sx={{ color: 'white', fontSize: 16 }} />}
+                    </Box>
+                    <Typography 
+                      variant="body2" 
+                      sx={{ 
+                        color: item.completed ? 'success.main' : 'text.primary',
+                        fontWeight: item.completed ? 500 : 400
+                      }}
+                    >
+                      {item.name}
+                    </Typography>
                   </Box>
-                  <Typography 
-                    variant="body2" 
-                    sx={{ 
-                      color: item.completed ? 'success.main' : 'text.primary',
-                      fontWeight: item.completed ? 500 : 400
-                    }}
-                  >
-                    {item.name}
-                  </Typography>
-                </Box>
-              </Grid>
-            ))}
-          </Grid>
+                </Grid>
+              ))}
+            </Grid>
+          )}
         </Box>
       )}
     </Paper>

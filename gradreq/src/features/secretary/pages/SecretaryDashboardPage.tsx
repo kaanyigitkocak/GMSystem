@@ -32,25 +32,30 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { getNotifications, getGraduationRequests } from '../services/secretaryService';
+import { getNotifications, getGraduationRequests, getDashboardStats } from '../services/secretaryService';
 import type { Notification, GraduationRequest } from '../types';
 
 const SecretaryDashboardPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [pendingRequests, setPendingRequests] = useState<GraduationRequest[]>([]);
+  const [graduatesCount, setGraduatesCount] = useState<number>(0);
+  const [graduationDate, setGraduationDate] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [notificationsData, requestsData] = await Promise.all([
+        const [notificationsData, requestsData, statsData] = await Promise.all([
           getNotifications(),
-          getGraduationRequests()
+          getGraduationRequests(),
+          getDashboardStats()
         ]);
         
         setNotifications(notificationsData);
         setPendingRequests(requestsData);
+        setGraduatesCount(statsData.graduatesCount);
+        setGraduationDate(statsData.graduationDate);
       } catch (error) {
         console.error('Error fetching dashboard data:', error);
       } finally {
@@ -74,10 +79,11 @@ const SecretaryDashboardPage = () => {
     }
   };
 
-  const getProgressValue = () => {
-    // Simulating graduation progress based on various factors
-    // In a real application, this would come from the backend
-    return 45;
+  const formatGraduationDate = (dateStr: string) => {
+    if (!dateStr) return '';
+    
+    const date = new Date(dateStr);
+    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
   };
 
   if (loading) {
@@ -211,7 +217,7 @@ const SecretaryDashboardPage = () => {
                         Graduates
                       </Typography>
                       <Typography variant="h6" fontWeight="bold">
-                        23
+                        {graduatesCount}
                       </Typography>
                     </Box>
                   </Box>
@@ -226,7 +232,7 @@ const SecretaryDashboardPage = () => {
                         Graduation Date
                       </Typography>
                       <Typography variant="h6" fontWeight="bold">
-                        Jun 15
+                        {formatGraduationDate(graduationDate)}
                       </Typography>
                     </Box>
                   </Box>
