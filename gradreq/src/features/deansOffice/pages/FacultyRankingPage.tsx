@@ -264,6 +264,14 @@ const FacultyRankingPage = () => {
             
             <Button
               variant="contained"
+              color="success"
+              onClick={() => console.log('Approve clicked')}
+            >
+              Approve
+            </Button>
+            
+            <Button
+              variant="contained"
               startIcon={<FileDownloadIcon />}
               onClick={handleExportRankings}
             >
@@ -343,6 +351,11 @@ const FacultyRankingPage = () => {
                         Credits
                       </TableSortLabel>
                     </TableCell>
+                    <TableCell>
+                      <TableSortLabel>
+                        Actions
+                      </TableSortLabel>
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -365,6 +378,15 @@ const FacultyRankingPage = () => {
                         <TableCell>{student.faculty}</TableCell>
                         <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
                         <TableCell align="right">{student.credits}</TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => console.log(`View transcript for ${student.studentId}`)}
+                          >
+                            View Transcript
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : isLoading ? (

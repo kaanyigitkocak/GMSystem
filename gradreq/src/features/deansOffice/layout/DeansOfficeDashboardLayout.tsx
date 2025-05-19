@@ -24,7 +24,6 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  CloudUpload as CloudUploadIcon,
   FormatListNumbered as FormatListNumberedIcon,
   Notifications as NotificationsIcon,
   Logout as LogoutIcon,
@@ -54,7 +53,6 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
 
   const navItems = [
     { path: '/deansoffice', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/deansoffice/file-upload', icon: <CloudUploadIcon />, label: 'File Upload' },
     { path: '/deansoffice/faculty-ranking', icon: <FormatListNumberedIcon />, label: 'Faculty Ranking' },
   ];
 

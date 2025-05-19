@@ -5,14 +5,12 @@ import {
   Grid,
   Card,
   CardContent,
-  CardHeader,
   Button,
   List,
   ListItem,
   ListItemText,
   Divider,
   Paper,
-  IconButton,
   Stack,
   LinearProgress,
   Alert
@@ -30,8 +28,6 @@ import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
 // Sample data for dashboard
 const recentActivities = [
   { id: 1, action: 'Faculty ranking updated', timestamp: '2 hours ago', user: 'Dean\'s Office' },
-  { id: 2, action: 'Department ranking file uploaded from Computer Engineering', timestamp: '1 day ago', user: 'Department Secretary' },
-  { id: 3, action: 'Department ranking file uploaded from Mathematics', timestamp: '2 days ago', user: 'Department Secretary' },
   { id: 4, action: 'Faculty ranking updated', timestamp: '1 week ago', user: 'Dean\'s Office' },
 ];
 
