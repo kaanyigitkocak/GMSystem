@@ -5,6 +5,49 @@ import type {
   TranscriptData,
 } from "../types";
 
+// Course information interface to represent parsed CSV data
+interface CourseInfo {
+  studentId: string;
+  studentName?: string;
+  courseCode: string;
+  courseName: string;
+  credit: number;
+  grade: string;
+  semester: string;
+}
+
+// Grade point mapping for GPA calculation
+const GRADE_POINTS: Record<string, number> = {
+  AA: 4.0,
+  A: 4.0,
+  BA: 3.5,
+  "B+": 3.5,
+  BB: 3.0,
+  B: 3.0,
+  CB: 2.5,
+  "C+": 2.5,
+  CC: 2.0,
+  C: 2.0,
+  DC: 1.5,
+  "D+": 1.5,
+  DD: 1.0,
+  D: 1.0,
+  FF: 0.0,
+  F: 0.0,
+};
+
+// Department code mapping
+const DEPARTMENT_MAP: Record<string, string> = {
+  CENG: "Computer Engineering",
+  CSE: "Computer Engineering",
+  EE: "Electrical Engineering",
+  ME: "Mechanical Engineering",
+  CE: "Civil Engineering",
+  MATH: "Mathematics",
+  PHYS: "Physics",
+  CHEM: "Chemistry",
+};
+
 // Mock data for notifications
 const mockNotifications: Notification[] = [
   {
@@ -251,7 +294,6 @@ const mockDashboardStats = {
 
 // Function to fetch notifications (simulated API call)
 export const getNotifications = async (): Promise<Notification[]> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockNotifications);
@@ -261,7 +303,6 @@ export const getNotifications = async (): Promise<Notification[]> => {
 
 // Function to fetch graduation requests (simulated API call)
 export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockGraduationRequests);
@@ -273,7 +314,6 @@ export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
 export const getStudentRankings = async (
   department: string
 ): Promise<StudentRanking[]> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockStudentRankings[department] || []);
@@ -285,11 +325,9 @@ export const getStudentRankings = async (
 export const updateStudentRanking = async (
   student: StudentRanking
 ): Promise<StudentRanking> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       // In a real implementation, this would update the database
-      // For now, we just return the updated student
       resolve(student);
     }, 500);
   });
@@ -299,11 +337,9 @@ export const updateStudentRanking = async (
 export const reorderStudentRankings = async (
   rankings: StudentRanking[]
 ): Promise<StudentRanking[]> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       // In a real implementation, this would update the database
-      // For now, we just return the updated rankings
       resolve(rankings);
     }, 500);
   });
@@ -311,41 +347,346 @@ export const reorderStudentRankings = async (
 
 // Function to fetch transcripts (simulated API call)
 export const getTranscripts = async (): Promise<TranscriptData[]> => {
-  // Simulating API delay
   return new Promise((resolve) => {
+    console.log("Current mockTranscripts:", mockTranscripts);
     setTimeout(() => {
       resolve(mockTranscripts);
     }, 500);
   });
 };
 
-// Function to upload transcript (simulated API call)
+/**
+ * Calculates GPA from an array of grade strings
+ */
+const calculateGPA = (grades: string[]): { gpa: number; credits: number } => {
+  let totalPoints = 0;
+  let validGrades = 0;
+
+  grades.forEach((grade) => {
+    if (grade in GRADE_POINTS) {
+      totalPoints += GRADE_POINTS[grade];
+      validGrades++;
+    }
+  });
+
+  return {
+    gpa: validGrades > 0 ? totalPoints / validGrades : 0,
+    credits: validGrades,
+  };
+};
+
+/**
+ * Reads a CSV file and parses its content
+ */
+const readCSVFile = (file: File): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+
+    reader.onload = (event) => {
+      if (!event.target || !event.target.result) {
+        reject(new Error("Error reading file: No file content found"));
+        return;
+      }
+
+      const content = event.target.result.toString();
+      if (!content.trim()) {
+        reject(new Error("CSV file is empty"));
+        return;
+      }
+
+      resolve(content);
+    };
+
+    reader.onerror = () => {
+      reject(new Error("Error reading file"));
+    };
+
+    reader.readAsText(file);
+  });
+};
+
+/**
+ * Parses CSV content into course data
+ */
+const parseCSVContent = (csvContent: string): CourseInfo[] => {
+  const lines = csvContent.split("\n");
+
+  if (lines.length < 2) {
+    throw new Error(
+      "CSV file must contain a header row and at least one data row"
+    );
+  }
+
+  // Assuming first line is header
+  const header = lines[0].split(",");
+  if (header.length < 6) {
+    throw new Error(
+      "CSV header must contain at least: StudentID, CourseCode, CourseName, Credit, Grade, Semester"
+    );
+  }
+
+  // Skip header and process content lines
+  const courseData: CourseInfo[] = [];
+
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue; // Skip empty lines
+
+    const values = lines[i].split(",");
+
+    // Basic validation to ensure we have all required fields
+    if (values.length < 6) continue;
+
+    courseData.push({
+      studentId: values[0].trim(),
+      courseCode: values[1].trim(),
+      courseName: values[2].trim(),
+      credit: parseFloat(values[3].trim()),
+      grade: values[4].trim(),
+      semester: values[5].trim(),
+      studentName: values[6]?.trim(), // Optional student name field
+    });
+  }
+
+  return courseData;
+};
+
+/**
+ * Groups course data by student ID
+ */
+const groupCoursesByStudent = (
+  courseData: CourseInfo[]
+): Record<string, CourseInfo[]> => {
+  const studentCourses: Record<string, CourseInfo[]> = {};
+
+  courseData.forEach((course) => {
+    if (!studentCourses[course.studentId]) {
+      studentCourses[course.studentId] = [];
+    }
+    studentCourses[course.studentId].push(course);
+  });
+
+  return studentCourses;
+};
+
+/**
+ * Determines department based on course codes
+ */
+const determineDepartment = (courses: CourseInfo[]): string => {
+  // Count department code frequencies
+  const departmentCounts: Record<string, number> = {};
+
+  courses.forEach((course) => {
+    // Extract department code (first letters before numbers)
+    const deptCode = course.courseCode.match(/^[A-Za-z]+/)?.[0] || "";
+    departmentCounts[deptCode] = (departmentCounts[deptCode] || 0) + 1;
+  });
+
+  // Find most frequent department code
+  let mostFrequentDept = "";
+  let maxCount = 0;
+
+  Object.entries(departmentCounts).forEach(([dept, count]) => {
+    if (count > maxCount) {
+      maxCount = count;
+      mostFrequentDept = dept;
+    }
+  });
+
+  return DEPARTMENT_MAP[mostFrequentDept] || "Computer Engineering";
+};
+
+/**
+ * Creates TranscriptData objects from parsed course data
+ */
+const createTranscripts = (
+  studentCourses: Record<string, CourseInfo[]>,
+  fileName: string,
+  fileSize: number
+): TranscriptData[] => {
+  // Create student name map
+  const studentNames: Record<string, string> = {};
+
+  Object.values(studentCourses)
+    .flat()
+    .forEach((course) => {
+      if (course.studentName && !studentNames[course.studentId]) {
+        studentNames[course.studentId] = course.studentName;
+      }
+    });
+
+  // Transform to TranscriptData
+  return Object.keys(studentCourses).map((studentId) => {
+    const courses = studentCourses[studentId];
+    const coursesCount = courses.length;
+    const studentName = studentNames[studentId] || `Student ${studentId}`;
+    const department = determineDepartment(courses);
+
+    // Calculate GPA
+    const grades = courses.map((c) => c.grade);
+    const gpaInfo = calculateGPA(grades);
+
+    // Generate timestamp-based ID to avoid collisions
+    const timestamp = new Date().getTime();
+    const uniqueId = `csv_${timestamp}_${studentId}`;
+
+    return {
+      id: uniqueId,
+      studentId,
+      studentName,
+      department,
+      uploadDate: new Date().toISOString().split("T")[0],
+      status: "pending",
+      fileName,
+      fileSize,
+      metaInfo: `Contains ${coursesCount} courses | GPA: ${gpaInfo.gpa.toFixed(
+        2
+      )}`,
+    };
+  });
+};
+
+/**
+ * Updates mock transcript data with new entries
+ */
+const updateMockTranscripts = (newTranscripts: TranscriptData[]): void => {
+  const updatedMockTranscripts = [...newTranscripts];
+
+  // Add existing transcripts while ensuring no ID collisions
+  mockTranscripts.forEach((existingTranscript) => {
+    const exists = updatedMockTranscripts.some(
+      (t) =>
+        t.studentId === existingTranscript.studentId &&
+        t.fileName === existingTranscript.fileName
+    );
+
+    if (!exists) {
+      updatedMockTranscripts.push(existingTranscript);
+    }
+  });
+
+  // Update the mock data
+  console.log("Previous mockTranscripts count:", mockTranscripts.length);
+  mockTranscripts = updatedMockTranscripts;
+  console.log("Updated mockTranscripts count:", mockTranscripts.length);
+};
+
+/**
+ * Parses a CSV file containing transcript data
+ */
+export const parseTranscriptCSV = async (
+  file: File
+): Promise<TranscriptData[]> => {
+  try {
+    // Read and parse CSV content
+    const csvContent = await readCSVFile(file);
+    const courseData = parseCSVContent(csvContent);
+    console.log("Parsed course data:", courseData);
+
+    // Group by student and create transcripts
+    const studentCourses = groupCoursesByStudent(courseData);
+    console.log("Grouped student courses:", studentCourses);
+
+    const transcripts = createTranscripts(
+      studentCourses,
+      file.name,
+      Math.round(file.size / 1024)
+    );
+    console.log("Generated transcript data:", transcripts);
+
+    // Update mock data
+    updateMockTranscripts(transcripts);
+
+    // Simulate API delay
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        resolve(transcripts);
+      }, 1000);
+    });
+  } catch (error) {
+    console.error("Error parsing CSV:", error);
+    throw error instanceof Error
+      ? error
+      : new Error("Unknown error parsing CSV");
+  }
+};
+
+/**
+ * Uploads a transcript file (PDF or CSV)
+ */
 export const uploadTranscript = async (file: File): Promise<TranscriptData> => {
-  // Simulating API delay and processing
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      const newTranscript: TranscriptData = {
-        id: (mockTranscripts.length + 1).toString(),
-        studentId: "2019" + Math.floor(1000 + Math.random() * 9000).toString(),
-        studentName: "New Student",
-        department: "Computer Engineering",
-        uploadDate: new Date().toISOString().split("T")[0],
-        status: "pending",
-        fileName: file.name,
-        fileSize: Math.round(file.size / 1024),
-      };
+  console.log(`Starting to process file: ${file.name} (type: ${file.type})`);
 
-      // Add to mock transcripts
-      mockTranscripts = [newTranscript, ...mockTranscripts];
+  // Check file type
+  const fileType = file.name.split(".").pop()?.toLowerCase();
 
-      resolve(newTranscript);
-    }, 1500);
+  // If CSV file, use the CSV parser
+  if (fileType === "csv") {
+    try {
+      console.log("Processing as CSV file");
+      const parsedTranscripts = await parseTranscriptCSV(file);
+
+      // Return the first transcript for compatibility with existing code
+      if (parsedTranscripts.length > 0) {
+        console.log(
+          `CSV processing successful, ${parsedTranscripts.length} records created`
+        );
+        return parsedTranscripts[0];
+      } else {
+        throw new Error("No valid records found in CSV file");
+      }
+    } catch (error) {
+      console.error("Error parsing CSV:", error);
+      throw new Error(
+        `Failed to parse CSV file: ${
+          error instanceof Error ? error.message : "Unknown error"
+        }`
+      );
+    }
+  }
+
+  console.log("Processing as PDF file");
+  // For PDF files or if CSV parsing failed, use the original implementation
+  return new Promise((resolve, reject) => {
+    try {
+      setTimeout(() => {
+        const newTranscript: TranscriptData = {
+          id: `pdf_${new Date().getTime()}`,
+          studentId:
+            "2019" + Math.floor(1000 + Math.random() * 9000).toString(),
+          studentName: "New Student",
+          department: "Computer Engineering",
+          uploadDate: new Date().toISOString().split("T")[0],
+          status: "pending",
+          fileName: file.name,
+          fileSize: Math.round(file.size / 1024),
+        };
+
+        // Create a copy of the current mock data and add the new transcripts
+        const updatedMockTranscripts = [...mockTranscripts, newTranscript];
+
+        // Update the mock data
+        console.log("Previous mockTranscripts count:", mockTranscripts.length);
+        mockTranscripts = updatedMockTranscripts;
+        console.log("Updated mockTranscripts count:", mockTranscripts.length);
+
+        console.log("PDF processing successful");
+        resolve(newTranscript);
+      }, 1500);
+    } catch (error) {
+      console.error("Error processing PDF:", error);
+      reject(
+        new Error(
+          `Failed to process PDF file: ${
+            error instanceof Error ? error.message : "Unknown error"
+          }`
+        )
+      );
+    }
   });
 };
 
 // Function to delete transcript (simulated API call)
 export const deleteTranscript = async (id: string): Promise<boolean> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       mockTranscripts = mockTranscripts.filter(
@@ -360,8 +701,7 @@ export const deleteTranscript = async (id: string): Promise<boolean> => {
 export const processTranscript = async (
   id: string
 ): Promise<TranscriptData> => {
-  // Simulating API delay
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     setTimeout(() => {
       const index = mockTranscripts.findIndex(
         (transcript) => transcript.id === id
@@ -375,7 +715,7 @@ export const processTranscript = async (
 
         resolve(mockTranscripts[index]);
       } else {
-        throw new Error("Transcript not found");
+        reject(new Error("Transcript not found"));
       }
     }, 1000);
   });
@@ -386,10 +726,53 @@ export const getDashboardStats = async (): Promise<{
   graduatesCount: number;
   graduationDate: string;
 }> => {
-  // Simulating API delay
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockDashboardStats);
     }, 500);
   });
+};
+
+// Function to get exportable students who are eligible for graduation
+export const getEligibleGraduates = async (): Promise<TranscriptData[]> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      // Filter only processed transcripts which represent eligible graduates
+      const eligibleGraduates = mockTranscripts.filter(
+        (transcript) => transcript.status === "processed"
+      );
+      resolve(eligibleGraduates);
+    }, 500);
+  });
+};
+
+// Function to export eligible graduates as CSV
+export const exportEligibleGraduatesCSV = async (): Promise<string> => {
+  const graduates = await getEligibleGraduates();
+
+  // Create CSV header
+  const csvHeader = "Student ID,Student Name,Department,Upload Date,Status\n";
+
+  // Create CSV rows
+  const csvRows = graduates
+    .map(
+      (graduate) =>
+        `${graduate.studentId},${graduate.studentName},${graduate.department},${graduate.uploadDate},${graduate.status}`
+    )
+    .join("\n");
+
+  // Combine header and rows
+  return csvHeader + csvRows;
+};
+
+// Function to export eligible graduates as PDF
+export const exportEligibleGraduatesPDF = async (): Promise<Blob> => {
+  // In a real implementation, this would use a PDF library like pdfmake or jspdf
+  const graduates = await getEligibleGraduates();
+
+  // Mock PDF content creation (would be replaced with actual PDF generation)
+  const mockPdfContent = JSON.stringify(graduates, null, 2);
+
+  // Return a blob that represents a PDF file
+  return new Blob([mockPdfContent], { type: "application/pdf" });
 };

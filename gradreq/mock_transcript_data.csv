@@ -1,0 +1,64 @@
+StudentID,CourseCode,CourseName,Credit,Grade,Semester
+20180101,CENG101,Introduction to Computer Engineering,4,AA,2018-2019 Fall
+20180101,MATH151,Calculus I for Engineers,4,BA,2018-2019 Fall
+20180101,PHYS101,Physics I,4,BB,2018-2019 Fall
+20180101,ENG101,English I,3,AA,2018-2019 Fall
+20180101,CENG102,Data Structures,4,AA,2018-2019 Spring
+20180101,MATH152,Calculus II for Engineers,4,CB,2018-2019 Spring
+20180101,PHYS102,Physics II,4,BA,2018-2019 Spring
+20180101,CHEM101,General Chemistry,4,CC,2018-2019 Spring
+20180102,CENG101,Introduction to Computer Engineering,4,BA,2018-2019 Fall
+20180102,MATH151,Calculus I for Engineers,4,CC,2018-2019 Fall
+20180102,PHYS101,Physics I,4,AA,2018-2019 Fall
+20180102,CENG102,Data Structures,4,BB,2018-2019 Spring
+20180102,MATH152,Calculus II for Engineers,4,FF,2018-2019 Spring
+20180102,CENG211,Discrete Mathematics,3,AA,2019-2020 Fall
+20180102,CENG222,Logic Design,4,BA,2019-2020 Spring
+20190203,EE100,Introduction to Electrical Engineering,3,AA,2019-2020 Fall
+20190203,MATH151,Calculus I for Engineers,4,AA,2019-2020 Fall
+20190203,PHYS101,Physics I,4,AA,2019-2020 Fall
+20190203,EE102,Circuit Theory I,4,BA,2019-2020 Spring
+20190203,MATH152,Calculus II for Engineers,4,BB,2019-2020 Spring
+20190203,EE201,Circuit Theory II,4,AA,2020-2021 Fall
+20190203,EE203,Electromagnetic Field Theory,4,CB,2020-2021 Spring
+20190304,ME101,Introduction to Mechanical Engineering,3,BB,2019-2020 Fall
+20190304,MATH151,Calculus I for Engineers,4,CB,2019-2020 Fall
+20190304,ME103,Technical Drawing,3,AA,2019-2020 Fall
+20190304,ME201,Statics,3,BA,2019-2020 Spring
+20190304,ME202,Dynamics,3,CC,2020-2021 Fall
+20190304,ME204,Thermodynamics I,4,DD,2020-2021 Spring
+20200405,CHEM101,General Chemistry,4,AA,2020-2021 Fall
+20200405,BIO101,Introduction to Biology,4,BA,2020-2021 Fall
+20200405,MATH101,Calculus I,4,AA,2020-2021 Fall
+20200405,CHEM102,Organic Chemistry I,4,BB,2020-2021 Spring
+20200405,BIO102,Cell Biology,4,AA,2020-2021 Spring
+20200405,MBG201,Genetics,4,BA,2021-2022 Fall
+20200506,ARCH101,Introduction to Architecture,3,BB,2020-2021 Fall
+20200506,ARCH103,Basic Design Studio I,5,AA,2020-2021 Fall
+20200506,MATH117,Mathematics for Architects,3,CB,2020-2021 Fall
+20200506,ARCH102,Architectural Drawing,3,BA,2020-2021 Spring
+20200506,ARCH104,Basic Design Studio II,5,AA,2020-2021 Spring
+20200506,ARCH201,Architectural Design I,6,BB,2021-2022 Fall
+20210607,CENG101,Introduction to Computer Engineering,4,FF,2021-2022 Fall
+20210607,MATH151,Calculus I for Engineers,4,DC,2021-2022 Fall
+20210607,CENG101,Introduction to Computer Engineering,4,CC,2021-2022 Spring (Repeat)
+20210607,ENG101,English I,3,AA,2021-2022 Fall
+20210607,TURK101,Turkish Language I,2,AA,2021-2022 Fall
+20210607,CENG102,Data Structures,4,BA,2021-2022 Spring
+20210708,PHYS101,Physics I,4,AA,2021-2022 Fall
+20210708,PHYS102,Physics II,4,AA,2021-2022 Spring
+20210708,PHYS201,Modern Physics,4,BA,2022-2023 Fall
+20210708,PHYS202,Quantum Mechanics I,4,BB,2022-2023 Spring
+20210708,PHYS301,Electrodynamics I,4,AA,2023-2024 Fall
+20210708,PHYS305,Statistical Physics,4,AA,2023-2024 Fall
+20220809,MATH101,Calculus I,4,DD,2022-2023 Fall
+20220809,MATH102,Calculus II,4,CC,2022-2023 Spring
+20220809,MATH201,Linear Algebra,4,BA,2023-2024 Fall
+20220809,MATH202,Differential Equations,4,AA,2023-2024 Spring
+20220809,STAT201,Probability and Statistics,3,BB,2023-2024 Spring
+20220910,CENG101,Introduction to Computer Engineering,4,BA,2022-2023 Fall
+20220910,CENG102,Data Structures,4,BB,2022-2023 Spring
+20220910,CENG211,Discrete Mathematics,3,AA,2023-2024 Fall
+20220910,CENG222,Logic Design,4,CB,2023-2024 Spring
+20220910,CENG232,Object Oriented Programming,4,AA,2023-2024 Spring
+20220910,IE301,Operations Research I,3,BA,2024-2025 Fall

@@ -36,4 +36,5 @@ export interface TranscriptData {
   status: "pending" | "processed" | "rejected";
   fileName?: string;
   fileSize?: number;
+  metaInfo?: string;
 }
