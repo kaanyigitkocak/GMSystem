@@ -1,10 +1,10 @@
-// filepath: /Users/eraykocabozdogan/Desktop/Eray/github/shut/GMSystem/gradreq/src/features/deansOffice/pages/FileUploadPage.tsx
 import { useState, useRef } from 'react';
 import {
   Box,
   Typography,
   Paper,
   Button,
+  Grid,
   List,
   ListItem,
   ListItemText,
@@ -17,11 +17,14 @@ import {
   Chip,
   CircularProgress,
   Card,
-  CardContent
+  CardContent,
+  Stack,
+  Badge
 } from '@mui/material';
 import {
   CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
+  InsertDriveFile as FileIcon,
   CheckCircle as CheckCircleIcon,
   Sync as SyncIcon,
   Warning as WarningIcon,
@@ -317,8 +320,8 @@ const FileUploadPage = () => {
           <Typography variant="h6" gutterBottom>
             File Validation Summary
           </Typography>
-          <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
-            <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
+          <Grid container spacing={2}>
+            <Grid item xs={12} md={6}>
               <Typography variant="body2">
                 <strong>Valid Files:</strong> {validationSummary.validFiles} of {validationSummary.validFiles + validationSummary.invalidFiles}
               </Typography>
@@ -328,8 +331,8 @@ const FileUploadPage = () => {
               <Typography variant="body2">
                 <strong>Eligible for Ranking:</strong> {validationSummary.eligibleStudents} students
               </Typography>
-            </Box>
-            <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
+            </Grid>
+            <Grid item xs={12} md={6}>
               {validationSummary.duplicateStudents && (
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
                   <WarningIcon color="warning" fontSize="small" sx={{ mr: 1 }} />
@@ -346,13 +349,13 @@ const FileUploadPage = () => {
                   </Typography>
                 </Box>
               )}
-            </Box>
-          </Box>
+            </Grid>
+          </Grid>
         </Paper>
       )}
       
-      <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
-        <Box gridColumn={{ xs: 'span 12', md: 'span 7' }}>
+      <Grid container spacing={3}>
+        <Grid item xs={12} md={7}>
           <Paper 
             sx={{ 
               p: 3, 
@@ -400,9 +403,9 @@ const FileUploadPage = () => {
               Multiple files can be uploaded simultaneously
             </Typography>
           </Paper>
-        </Box>
+        </Grid>
         
-        <Box gridColumn={{ xs: 'span 12', md: 'span 5' }}>
+        <Grid item xs={12} md={5}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -431,9 +434,9 @@ const FileUploadPage = () => {
               </Alert>
             </CardContent>
           </Card>
-        </Box>
+        </Grid>
         
-        <Box gridColumn="span 12">
+        <Grid item xs={12}>
           <Paper sx={{ p: 0, mt: 2 }}>
             <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Typography variant="h6">
@@ -510,8 +513,8 @@ const FileUploadPage = () => {
               </List>
             )}
           </Paper>
-        </Box>
-      </Box>
+        </Grid>
+      </Grid>
     </DeansOfficeDashboardLayout>
   );
 };

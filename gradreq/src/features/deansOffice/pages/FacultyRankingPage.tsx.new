@@ -12,6 +12,7 @@ import {
   TablePagination,
   TableSortLabel,
   Button,
+  Grid,
   Card,
   CardContent,
   Divider,
@@ -19,14 +20,17 @@ import {
   AlertTitle,
   TextField,
   InputAdornment,
+  IconButton,
   Chip,
-  Tooltip,
-  CircularProgress
+  Badge,
+  Tooltip
 } from '@mui/material';
 import {
   Search as SearchIcon,
   FileDownload as FileDownloadIcon,
   Refresh as RefreshIcon,
+  FilterList as FilterListIcon,
+  WarningAmber as WarningIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
 import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
@@ -125,7 +129,7 @@ const FacultyRankingPage = () => {
   };
   
   // Handle pagination
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
   
@@ -197,14 +201,44 @@ const FacultyRankingPage = () => {
       }
       
       setIsLoading(false);
+      setSearchQuery('');
+      setSelectedFaculty(null);
+      setPage(0);
     }, 1500);
   };
   
-  // Export functionality
-  const handleExportRankings = () => {
-    alert('Ranking data exported successfully!');
+  // Download ranking as CSV
+  const downloadRankingCsv = () => {
+    if (filteredData.length === 0) {
+      setError('No data to export');
+      return;
+    }
+    
+    const headers = ['Rank', 'Student ID', 'Name', 'Department', 'Faculty', 'GPA', 'Credits'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...sortedData.map(student => [
+        student.rank,
+        student.studentId,
+        `"${student.name}"`,
+        `"${student.department}"`,
+        `"${student.faculty}"`,
+        student.gpa,
+        student.credits
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `faculty_ranking_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
-
+  
   return (
     <DeansOfficeDashboardLayout>
       <Box sx={{ mb: 4 }}>
@@ -212,7 +246,7 @@ const FacultyRankingPage = () => {
           Faculty Ranking
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          View and manage consolidated faculty-wide student rankings
+          Students ranked by GPA across all departments
         </Typography>
       </Box>
       
@@ -231,11 +265,10 @@ const FacultyRankingPage = () => {
       {/* Warning alerts */}
       {warnings.length > 0 && (
         <Alert 
-          severity="warning" 
+          severity="warning"
           sx={{ mb: 3 }}
-          onClose={() => setWarnings([])}
         >
-          <AlertTitle>Warnings</AlertTitle>
+          <AlertTitle>Ranking Notices</AlertTitle>
           <ul style={{ margin: 0, paddingLeft: '1.5rem' }}>
             {warnings.map((warning, index) => (
               <li key={index}>{warning}</li>
@@ -244,50 +277,66 @@ const FacultyRankingPage = () => {
         </Alert>
       )}
       
-      <Paper sx={{ p: 2, mb: 3 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-          <TextField
-            label="Search Students"
-            variant="outlined"
-            size="small"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position="start">
-                  <SearchIcon fontSize="small" />
-                </InputAdornment>
-              ),
-            }}
-            sx={{ width: { xs: '100%', sm: '50%', md: '30%' } }}
-          />
-          
-          <Box sx={{ display: 'flex', gap: 1 }}>
-            <Button
-              variant="outlined"
-              startIcon={<RefreshIcon />}
-              onClick={refreshRanking}
-              disabled={isLoading}
-            >
-              {isLoading ? 'Refreshing...' : 'Refresh'}
-            </Button>
+      <Grid container spacing={3}>
+        <Grid item xs={12} lg={9}>
+          <Paper sx={{ mb: 3 }}>
+            <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Box sx={{ width: '100%', maxWidth: 500 }}>
+                <TextField
+                  fullWidth
+                  placeholder="Search by name, ID or department"
+                  variant="outlined"
+                  size="small"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position="start">
+                        <SearchIcon />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+              
+              <Box sx={{ display: 'flex', gap: 1 }}>
+                {selectedFaculty && (
+                  <Chip 
+                    label={`Faculty: ${selectedFaculty}`} 
+                    onDelete={() => setSelectedFaculty(null)} 
+                    color="primary"
+                  />
+                )}
+                
+                <IconButton 
+                  color="primary" 
+                  onClick={() => {
+                    // Toggle faculty filter dropdown
+                  }}
+                >
+                  <FilterListIcon />
+                </IconButton>
+                
+                <Button
+                  startIcon={<FileDownloadIcon />}
+                  onClick={downloadRankingCsv}
+                  disabled={isLoading || filteredData.length === 0}
+                >
+                  Export
+                </Button>
+                
+                <Button
+                  startIcon={isLoading ? <CircularProgress size={20} /> : <RefreshIcon />}
+                  onClick={refreshRanking}
+                  disabled={isLoading}
+                >
+                  Refresh
+                </Button>
+              </Box>
+            </Box>
             
-            <Button
-              variant="contained"
-              startIcon={<FileDownloadIcon />}
-              onClick={handleExportRankings}
-            >
-              Export to CSV
-            </Button>
-          </Box>
-        </Box>
-      </Paper>
-      
-      <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
-        <Box gridColumn={{ xs: 'span 12', lg: 'span 9' }}>
-          <Paper sx={{ width: '100%', overflow: 'hidden' }}>
-            <TableContainer sx={{ maxHeight: 600 }}>
-              <Table stickyHeader aria-label="faculty ranking table">
+            <TableContainer>
+              <Table>
                 <TableHead>
                   <TableRow>
                     <TableCell>
@@ -409,9 +458,9 @@ const FacultyRankingPage = () => {
               onRowsPerPageChange={handleChangeRowsPerPage}
             />
           </Paper>
-        </Box>
+        </Grid>
         
-        <Box gridColumn={{ xs: 'span 12', lg: 'span 3' }}>
+        <Grid item xs={12} lg={3}>
           <Card>
             <CardContent>
               <Typography variant="h6" gutterBottom>
@@ -478,8 +527,8 @@ const FacultyRankingPage = () => {
               </Alert>
             </CardContent>
           </Card>
-        </Box>
-      </Box>
+        </Grid>
+      </Grid>
     </DeansOfficeDashboardLayout>
   );
 };

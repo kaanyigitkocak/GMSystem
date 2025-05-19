@@ -19,6 +19,7 @@ import {
   AlertTitle,
   TextField,
   InputAdornment,
+  IconButton,
   Chip,
   Tooltip,
   CircularProgress
@@ -27,6 +28,8 @@ import {
   Search as SearchIcon,
   FileDownload as FileDownloadIcon,
   Refresh as RefreshIcon,
+  FilterList as FilterListIcon,
+  Warning as WarningIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
 import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
@@ -125,7 +128,7 @@ const FacultyRankingPage = () => {
   };
   
   // Handle pagination
-  const handleChangePage = (_event: unknown, newPage: number) => {
+  const handleChangePage = (event: unknown, newPage: number) => {
     setPage(newPage);
   };
   

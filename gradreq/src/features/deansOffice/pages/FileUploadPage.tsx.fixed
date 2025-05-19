@@ -5,6 +5,7 @@ import {
   Typography,
   Paper,
   Button,
+  Grid,
   List,
   ListItem,
   ListItemText,
@@ -22,6 +23,7 @@ import {
 import {
   CloudUpload as CloudUploadIcon,
   Delete as DeleteIcon,
+  InsertDriveFile as FileIcon,
   CheckCircle as CheckCircleIcon,
   Sync as SyncIcon,
   Warning as WarningIcon,
