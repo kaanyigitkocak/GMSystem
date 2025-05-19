@@ -30,55 +30,8 @@ import {
   Info as InfoIcon
 } from '@mui/icons-material';
 import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
-
-// Types
-interface StudentRanking {
-  id: string;
-  rank: number;
-  studentId: string;
-  name: string;
-  department: string;
-  faculty: string;
-  gpa: number;
-  credits: number;
-  duplicateRecords?: boolean;
-  graduationEligible: boolean;
-}
-
-interface RankingMetadata {
-  totalStudents: number;
-  eligibleStudents: number;
-  hasDuplicates: boolean;
-  mixedGraduationStatus: boolean;
-  lastUpdated: Date;
-}
-
-// Sample data
-const sampleStudentRankings: StudentRanking[] = [
-  { id: '1', rank: 1, studentId: '220202101', name: 'Ali Yılmaz', department: 'Computer Engineering', faculty: 'Engineering', gpa: 3.98, credits: 144, duplicateRecords: false, graduationEligible: true },
-  { id: '2', rank: 2, studentId: '220202056', name: 'Ayşe Kaya', department: 'Computer Engineering', faculty: 'Engineering', gpa: 3.97, credits: 148, duplicateRecords: false, graduationEligible: true },
-  { id: '3', rank: 3, studentId: '210201089', name: 'Mehmet Demir', department: 'Electrical Engineering', faculty: 'Engineering', gpa: 3.95, credits: 152, duplicateRecords: true, graduationEligible: true },
-  { id: '4', rank: 4, studentId: '210305062', name: 'Zeynep Yıldız', department: 'Physics', faculty: 'Science', gpa: 3.93, credits: 138, duplicateRecords: false, graduationEligible: true },
-  { id: '5', rank: 5, studentId: '220401023', name: 'Mustafa Şahin', department: 'Architecture', faculty: 'Architecture', gpa: 3.91, credits: 160, duplicateRecords: false, graduationEligible: true },
-  { id: '6', rank: 6, studentId: '210301045', name: 'Fatma Çelik', department: 'Chemistry', faculty: 'Science', gpa: 3.89, credits: 136, duplicateRecords: false, graduationEligible: true },
-  { id: '7', rank: 7, studentId: '220205078', name: 'Ahmet Aksoy', department: 'Mechanical Engineering', faculty: 'Engineering', gpa: 3.88, credits: 142, duplicateRecords: false, graduationEligible: true },
-  { id: '8', rank: 8, studentId: '210208091', name: 'Sema Yılmaz', department: 'Civil Engineering', faculty: 'Engineering', gpa: 3.86, credits: 146, duplicateRecords: true, graduationEligible: true },
-  { id: '9', rank: 9, studentId: '220301012', name: 'Emre Koç', department: 'Mathematics', faculty: 'Science', gpa: 3.85, credits: 134, duplicateRecords: false, graduationEligible: true },
-  { id: '10', rank: 10, studentId: '210204067', name: 'Elif Şahin', department: 'Industrial Design', faculty: 'Architecture', gpa: 3.84, credits: 150, duplicateRecords: false, graduationEligible: true },
-  { id: '11', rank: 11, studentId: '220203045', name: 'Burak Demir', department: 'Bioengineering', faculty: 'Engineering', gpa: 3.83, credits: 140, duplicateRecords: false, graduationEligible: true },
-  { id: '12', rank: 12, studentId: '210307034', name: 'Gizem Yılmaz', department: 'Molecular Biology', faculty: 'Science', gpa: 3.82, credits: 138, duplicateRecords: false, graduationEligible: true },
-  { id: '13', rank: 13, studentId: '220207089', name: 'Oğuz Kaya', department: 'Materials Engineering', faculty: 'Engineering', gpa: 3.80, credits: 144, duplicateRecords: false, graduationEligible: true },
-  { id: '14', rank: 14, studentId: '210401032', name: 'Ceren Arslan', department: 'Urban Planning', faculty: 'Architecture', gpa: 3.79, credits: 156, duplicateRecords: false, graduationEligible: true },
-  { id: '15', rank: 15, studentId: '220302056', name: 'Onur Öztürk', department: 'Physics', faculty: 'Science', gpa: 3.78, credits: 132, duplicateRecords: false, graduationEligible: true },
-];
-
-const mockRankingMetadata: RankingMetadata = {
-  totalStudents: 42,
-  eligibleStudents: 15,
-  hasDuplicates: true,
-  mixedGraduationStatus: true,
-  lastUpdated: new Date('2025-05-15T14:30:00')
-};
+import type { StudentRanking, RankingMetadata } from '../services/deansOfficeService';
+import { getFacultyRankings } from '../services/deansOfficeService';
 
 type Order = 'asc' | 'desc';
 
@@ -89,12 +42,32 @@ const FacultyRankingPage = () => {
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFaculty, setSelectedFaculty] = useState<string | null>(null);
-  const [rankingMetadata, setRankingMetadata] = useState<RankingMetadata | null>(mockRankingMetadata);
+  const [rankingMetadata, setRankingMetadata] = useState<RankingMetadata | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
   
-  // Simulate data loading and warnings generation
+  // Load data from service when component mounts
+  useEffect(() => {
+    const loadFacultyRankings = async () => {
+      setIsLoading(true);
+      try {
+        const result = await getFacultyRankings();
+        setStudentRankings(result.rankings);
+        setRankingMetadata(result.metadata);
+      } catch (err) {
+        setError('Failed to load ranking data. Please try again later.');
+        console.error('Error loading faculty rankings:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadFacultyRankings();
+  }, []);
+  
+  // Generate warnings based on metadata
   useEffect(() => {
     const newWarnings: string[] = [];
     
@@ -135,7 +108,7 @@ const FacultyRankingPage = () => {
   };
   
   // Filter and sort data
-  const filteredData = sampleStudentRankings.filter(student => {
+  const filteredData = studentRankings.filter((student) => {
     const matchesSearch = searchQuery === '' || 
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.studentId.includes(searchQuery) ||
@@ -172,37 +145,54 @@ const FacultyRankingPage = () => {
   const paginatedData = sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
   // Faculty filter options
-  const faculties = Array.from(new Set(sampleStudentRankings.map(student => student.faculty)));
+  const faculties = Array.from(new Set(studentRankings.map(student => student.faculty)));
   
   // Generate a fresh ranking
-  const refreshRanking = () => {
+  const refreshRanking = async () => {
     setIsLoading(true);
     
-    // Simulate API call or data processing
-    setTimeout(() => {
-      // Random chance of having no eligible students for error demonstration
-      const noEligibleStudents = Math.random() < 0.2;
-      
-      if (noEligibleStudents) {
-        setRankingMetadata({
-          ...mockRankingMetadata,
-          eligibleStudents: 0,
-          lastUpdated: new Date()
-        });
-      } else {
-        setRankingMetadata({
-          ...mockRankingMetadata,
-          lastUpdated: new Date()
-        });
-      }
-      
+    try {
+      const result = await getFacultyRankings();
+      setStudentRankings(result.rankings);
+      setRankingMetadata(result.metadata);
+    } catch (err) {
+      setError('Failed to refresh ranking data. Please try again later.');
+      console.error('Error refreshing faculty rankings:', err);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
   
   // Export functionality
   const handleExportRankings = () => {
-    alert('Ranking data exported successfully!');
+    if (filteredData.length === 0) {
+      setError('No data to export');
+      return;
+    }
+    
+    const headers = ['Rank', 'Student ID', 'Name', 'Department', 'Faculty', 'GPA', 'Credits'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...sortedData.map(student => [
+        student.rank,
+        student.studentId,
+        `"${student.name}"`,
+        `"${student.department}"`,
+        `"${student.faculty}"`,
+        student.gpa,
+        student.credits
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `faculty_ranking_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
   };
 
   return (

@@ -30,27 +30,8 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
-
-type FileStatus = 'valid' | 'invalid' | 'pending';
-
-interface UploadedFile {
-  id: string;
-  name: string;
-  size: number;
-  department: string;
-  uploaded: Date;
-  status: FileStatus;
-  issues?: string[];
-}
-
-interface ValidationSummary {
-  validFiles: number;
-  invalidFiles: number;
-  totalStudents: number;
-  eligibleStudents: number;
-  duplicateStudents: boolean;
-  mixedGraduationStatus: boolean;
-}
+import type { FileStatus, UploadedFile, ValidationSummary } from '../services/deansOfficeService';
+import { processCSVFiles, generateValidationSummary } from '../services/deansOfficeService';
 
 const FileUploadPage = () => {
   const [files, setFiles] = useState<UploadedFile[]>([]);
@@ -101,54 +82,21 @@ const FileUploadPage = () => {
       return;
     }
     
-    // Map files to our data structure with validation simulation
-    const newFiles = csvFiles.map(file => {
-      // Extract department name from filename (assuming format like "department_ranking.csv")
-      const departmentName = file.name.split('_')[0] || 'Unknown';
-      
-      // Simulate random validation to demonstrate functionality
-      // In a real app, this would be based on actual file content validation
-      const randomValue = Math.random();
-      let fileStatus: FileStatus = 'valid';
-      let issues: string[] = [];
-      
-      if (randomValue < 0.3) {
-        fileStatus = 'invalid';
-        issues = ['Invalid file format', 'Missing required columns'];
-      }
-      
-      return {
-        id: `file-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`,
-        name: file.name,
-        size: file.size,
-        department: departmentName.charAt(0).toUpperCase() + departmentName.slice(1),
-        uploaded: new Date(),
-        status: fileStatus,
-        issues
-      };
-    });
+    // Use the service to process the files
+    const newFiles = processCSVFiles(csvFiles);
     
     setFiles(prev => [...prev, ...newFiles]);
     
     // Count invalid files
     const invalidFileCount = newFiles.filter(file => file.status === 'invalid').length;
     
-    // Update validation summary
-    const hasInvalidFiles = invalidFileCount > 0;
-    
-    // Generate random validation summary for demo
-    setValidationSummary({
-      validFiles: newFiles.length - invalidFileCount,
-      invalidFiles: invalidFileCount,
-      totalStudents: Math.floor(Math.random() * 100) + 50,
-      eligibleStudents: Math.floor(Math.random() * 50) + 20,
-      duplicateStudents: Math.random() > 0.5,
-      mixedGraduationStatus: Math.random() > 0.4
-    });
+    // Update validation summary using the service
+    const summary = generateValidationSummary(newFiles);
+    setValidationSummary(summary);
     
     // Set warnings based on validation
     const newWarnings: string[] = [];
-    if (hasInvalidFiles) {
+    if (invalidFileCount > 0) {
       newWarnings.push(`${invalidFileCount} of ${newFiles.length} files have format issues`);
     }
     
