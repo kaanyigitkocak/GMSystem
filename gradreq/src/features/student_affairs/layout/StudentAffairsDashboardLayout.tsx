@@ -24,22 +24,24 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
+  CloudUpload as CloudUploadIcon,
   FormatListNumbered as FormatListNumberedIcon,
   Notifications as NotificationsIcon,
   Logout as LogoutIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  FileUpload as FileUploadIcon
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useAuth } from '../../../features/auth/contexts/AuthContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 
 const drawerWidth = 240;
 
-interface DeansOfficeDashboardLayoutProps {
+interface StudentAffairsDashboardLayoutProps {
   children: ReactNode;
 }
 
-const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProps) => {
+const StudentAffairsDashboardLayout = ({ children }: StudentAffairsDashboardLayoutProps) => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
@@ -52,8 +54,10 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
   const pathname = window.location.pathname;
 
   const navItems = [
-    { path: '/deansoffice', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/deansoffice/faculty-ranking', icon: <FormatListNumberedIcon />, label: 'Faculty Ranking' },
+    { path: '/student_affairs', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
+    { path: '/student_affairs/determine_certificates', icon: <FormatListNumberedIcon />, label: 'Determine Certificates', exact: false },
+    { path: '/student_affairs/ranking_lists', icon: <CloudUploadIcon />, label: 'Generate University Ranking Lists', exact: false },
+    { path: '/student_affairs/upload_graduation_decisions', icon: <FileUploadIcon />, label: 'Upload Graduation Decisions', exact: false },
   ];
 
   const isActive = (path: string, exact = false) => {
@@ -240,7 +244,7 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
             </IconButton>
             
             <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              Dean's Office Panel
+              Student Affairs Panel
             </Typography>
             
             <Box sx={{ display: 'flex' }}>
@@ -250,7 +254,7 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
                   onClick={handleNotificationsOpen}
                   aria-label="show notifications"
                 >
-                  <Badge badgeContent={2} color="error">
+                  <Badge badgeContent={3} color="error">
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
@@ -279,11 +283,15 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
                 <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">Department ranking file uploaded from Computer Engineering</Typography>
+                  <Typography variant="body2">New graduation request from John Doe</Typography>
                 </MenuItem>
                 <Divider />
                 <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">New faculty ranking published</Typography>
+                  <Typography variant="body2">Transcript uploaded for Jane Smith</Typography>
+                </MenuItem>
+                <Divider />
+                <MenuItem sx={{ py: 1, px: 2 }}>
+                  <Typography variant="body2">Disengagement certificate confirmed</Typography>
                 </MenuItem>
                 <Divider />
                 <MenuItem 
@@ -293,6 +301,8 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
                     color: 'primary.main',
                     fontWeight: 500,
                   }}
+                  component={RouterLink}
+                  to="/student_affairs/notifications"
                   onClick={handleNotificationsClose}
                 >
                   View all notifications
@@ -351,4 +361,4 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
   );
 };
 
-export default DeansOfficeDashboardLayout;
+export default StudentAffairsDashboardLayout; 

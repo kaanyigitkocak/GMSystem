@@ -3,7 +3,6 @@ import { lazy, Suspense } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import theme from '../core/styles/theme';
 import { useAuth } from '../features/auth/contexts/AuthContext';
-import { UserType } from '../features/auth/types';
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -23,11 +22,13 @@ const TranscriptProcessingPage = lazy(() => import('../features/secretary/pages/
 const DepartmentRankingPage = lazy(() => import('../features/secretary/pages/DepartmentRankingPage'));
 const NotificationsPage = lazy(() => import('../features/secretary/pages/NotificationsPage'));
 
-// Dean's Office pages
-const DeansOfficeDashboard = lazy(() => import('../features/deansOffice/pages/DeansOfficeDashboardPage'));
-const DeansOfficeDashboardLayout = lazy(() => import('../features/deansOffice/layout/DeansOfficeDashboardLayout'));
-const FileUploadPage = lazy(() => import('../features/deansOffice/pages/FileUploadPage'));
-const FacultyRankingPage = lazy(() => import('../features/deansOffice/pages/FacultyRankingPage'));
+// Student Affairs pages
+const StudentAffairsDashboard = lazy(() => import('../features/student_affairs/pages/StudentAffairsDashboardPage'));
+const StudentAffairsDashboardLayout = lazy(() => import('../features/student_affairs/layout/StudentAffairsDashboardLayout'));
+const NotificationsPage1 = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
+const DetermineCertificatesPage = lazy(() => import('../features/student_affairs/pages/DetermineCertificatesPage'));
+const GenerateUniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/GenerateUniversityRankingsPage'));
+const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
 
 // Loading component - positioned fixed to cover the whole screen
 const LoadingComponent = () => (
@@ -74,9 +75,9 @@ const DashboardRouter = () => {
   if (user.role === 'secretary') {
     return <Navigate to="/secretary" replace />;
   }
-  
-  if (user.role === 'deans_office') {
-    return <Navigate to="/deansoffice" replace />;
+
+  if (user.role === 'student_affairs') {
+    return <Navigate to="/student_affairs" replace />;
   }
   
   // Later we'll add other roles
@@ -155,33 +156,25 @@ const AppRoutes = () => {
           element={<ProtectedRoute element={<NotificationsPage />} />} 
         />
         
-        {/* Dean's Office Dashboard routes */}
-        <Route path="/deansoffice" element={<ProtectedRoute element={<DeansOfficeDashboard />} />} />
+        {/* Student Affairs Dashboard routes */}
+        <Route path="/student_affairs" element={<ProtectedRoute element={<StudentAffairsDashboard />} />} />
         <Route 
-          path="/deansoffice/file-upload" 
-          element={
-            <ProtectedRoute 
-              element={
-                <DeansOfficeDashboardLayout>
-                  <FileUploadPage />
-                </DeansOfficeDashboardLayout>
-              } 
-            />
-          } 
+          path="/student_affairs/notifications" 
+          element={<ProtectedRoute element={<NotificationsPage1 />} />} 
         />
         <Route 
-          path="/deansoffice/faculty-ranking" 
-          element={
-            <ProtectedRoute 
-              element={
-                <DeansOfficeDashboardLayout>
-                  <FacultyRankingPage />
-                </DeansOfficeDashboardLayout>
-              } 
-            />
-          } 
+          path="/student_affairs/determine_certificates" 
+          element={<ProtectedRoute element={<DetermineCertificatesPage />} />} 
         />
-        
+        <Route 
+          path="/student_affairs/ranking_lists" 
+          element={<ProtectedRoute element={<GenerateUniversityRankingsPage />} />} 
+        />
+        <Route 
+          path="/student_affairs/upload_graduation_decisions" 
+          element={<ProtectedRoute element={<UploadGraduationDecisionsPage />} />} 
+        />
+
         {/* Redirect root to appropriate dashboard or login */}
         <Route path="/" element={<DashboardRouter />} />
         

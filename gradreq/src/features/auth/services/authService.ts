@@ -56,20 +56,10 @@ const MOCK_USERS = [
     },
   },
   {
-    email: "deansoffice@example.com",
-    password: "deansoffice123",
-    user: {
-      id: "5",
-      email: "deansoffice@example.com",
-      role: UserType.DEANS_OFFICE,
-      name: "Dean's Office",
-    },
-  },
-  {
     email: "affairs@example.com",
     password: "affairs123",
     user: {
-      id: "6",
+      id: "5",
       email: "affairs@example.com",
       role: UserType.STUDENT_AFFAIRS,
       name: "Test Student Affairs",
@@ -79,7 +69,7 @@ const MOCK_USERS = [
     email: "admin@example.com",
     password: "admin123",
     user: {
-      id: "7",
+      id: "6",
       email: "admin@example.com",
       role: UserType.ADMIN,
       name: "Test Admin",
