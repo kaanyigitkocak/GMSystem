@@ -32,16 +32,21 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     // Check for stored token on mount
     const storedToken = localStorage.getItem('authToken');
     if (storedToken) {
+      console.log('Found stored token, validating...');
       // Validate the token with our service function
       const verifyToken = async () => {
         try {
           const userData = await validateToken(storedToken);
+          console.log('Token validated successfully, user:', userData);
           setUser(userData);
           setToken(storedToken);
         } catch (error) {
           console.error('Token validation failed', error);
+          // Clear invalid auth data
           localStorage.removeItem('authToken');
           localStorage.removeItem('authUser');
+          setUser(null);
+          setToken(null);
         }
       };
       
@@ -51,17 +56,26 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const login = async (email: string, password: string) => {
     try {
+      console.log(`Attempting login for: ${email}`);
       // Use our auth service to log in
       const { user: userData, token: authToken } = await loginUser(email, password);
-      
-      setUser(userData);
-      setToken(authToken);
+      console.log('Login successful, user:', userData);
+      console.log('Generated token:', authToken);
       
       // Store token and user in localStorage for persistence
       localStorage.setItem('authToken', authToken);
       localStorage.setItem('authUser', JSON.stringify(userData));
+      
+      // Update state after successful storage
+      setUser(userData);
+      setToken(authToken);
     } catch (error) {
       console.error('Login failed:', error);
+      // Clean up any potentially corrupted data
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
+      setUser(null);
+      setToken(null);
       throw error;
     }
   };

@@ -121,20 +121,38 @@ export const validateToken = async (token: string): Promise<User> => {
   // In a real app, this would validate the token with the server
   // For mock purposes, we'll just check if it starts with our prefix
   if (!token || !token.startsWith("mock-jwt-token-")) {
+    console.error("Invalid token format:", token);
     throw new Error("Invalid token");
   }
 
-  // Extract user ID from token (in a real app, this would be decoded from JWT)
-  const tokenParts = token.split("-");
-  const userId = tokenParts[2];
+  try {
+    // Extract user ID from token (in a real app, this would be decoded from JWT)
+    // Token format is: mock-jwt-token-userId-timestamp
+    const tokenParts = token.split("-");
+    if (tokenParts.length < 4) {
+      console.error("Invalid token parts:", tokenParts);
+      throw new Error("Invalid token format");
+    }
 
-  const matchedUser = MOCK_USERS.find((user) => user.user.id === userId);
+    const userId = tokenParts[2];
+    console.log("Extracted userId:", userId);
 
-  if (!matchedUser) {
-    throw new Error("User not found");
+    const matchedUser = MOCK_USERS.find((user) => user.user.id === userId);
+
+    if (!matchedUser) {
+      console.error("No user found for ID:", userId);
+      console.log(
+        "Available users:",
+        MOCK_USERS.map((u) => ({ id: u.user.id, email: u.user.email }))
+      );
+      throw new Error("User not found");
+    }
+
+    return matchedUser.user;
+  } catch (error) {
+    console.error("Token validation error:", error);
+    throw error;
   }
-
-  return matchedUser.user;
 };
 
 // Registration API service functions

@@ -29,6 +29,13 @@ const DeansOfficeDashboardLayout = lazy(() => import('../features/deansOffice/la
 const FileUploadPage = lazy(() => import('../features/deansOffice/pages/FileUploadPage'));
 const FacultyRankingPage = lazy(() => import('../features/deansOffice/pages/FacultyRankingPage'));
 
+// Student Affairs pages
+const StudentAffairsDashboard = lazy(() => import('../features/student_affairs/pages/StudentAffairsDashboardPage'));
+const StudentAffairsDashboardLayout = lazy(() => import('../features/student_affairs/layout/StudentAffairsDashboardLayout'));
+const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
+const UniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/UniversityRankingsPage'));
+const StudentAffairsNotificationsPage = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
+
 // Loading component - positioned fixed to cover the whole screen
 const LoadingComponent = () => (
   <Box
@@ -67,20 +74,18 @@ const DashboardRouter = () => {
     return <Navigate to="/login" replace />;
   }
   
-  if (user.role === 'student') {
-    return <Navigate to="/student" replace />;
+  switch (user.role) {
+    case UserType.STUDENT:
+      return <Navigate to="/student" replace />;
+    case UserType.SECRETARY:
+      return <Navigate to="/secretary" replace />;
+    case UserType.DEANS_OFFICE:
+      return <Navigate to="/deansoffice" replace />;
+    case UserType.STUDENT_AFFAIRS:
+      return <Navigate to="/student-affairs" replace />;
+    default:
+      return <Navigate to="/login" replace />;
   }
-  
-  if (user.role === 'secretary') {
-    return <Navigate to="/secretary" replace />;
-  }
-  
-  if (user.role === 'deans_office') {
-    return <Navigate to="/deansoffice" replace />;
-  }
-  
-  // Later we'll add other roles
-  return <Navigate to="/login" replace />;
 };
 
 const AppRoutes = () => {
@@ -177,6 +182,45 @@ const AppRoutes = () => {
                 <DeansOfficeDashboardLayout>
                   <FacultyRankingPage />
                 </DeansOfficeDashboardLayout>
+              } 
+            />
+          } 
+        />
+
+        {/* Student Affairs Dashboard routes */}
+        <Route path="/student-affairs" element={<ProtectedRoute element={<StudentAffairsDashboard />} />} />
+        <Route 
+          path="/student-affairs/upload-graduation-decisions" 
+          element={
+            <ProtectedRoute 
+              element={
+                <StudentAffairsDashboardLayout>
+                  <UploadGraduationDecisionsPage />
+                </StudentAffairsDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/student-affairs/university-rankings" 
+          element={
+            <ProtectedRoute 
+              element={
+                <StudentAffairsDashboardLayout>
+                  <UniversityRankingsPage />
+                </StudentAffairsDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/student-affairs/notifications" 
+          element={
+            <ProtectedRoute 
+              element={
+                <StudentAffairsDashboardLayout>
+                  <StudentAffairsNotificationsPage />
+                </StudentAffairsDashboardLayout>
               } 
             />
           } 

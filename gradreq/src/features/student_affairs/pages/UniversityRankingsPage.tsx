@@ -1,8 +1,9 @@
 import { useState, useEffect } from 'react';
-import {
-  Box,
+import { 
+  Box, 
+  Paper, 
   Typography,
-  Paper,
+  Button,
   Table,
   TableBody,
   TableCell,
@@ -11,15 +12,13 @@ import {
   TableRow,
   TablePagination,
   TableSortLabel,
-  Button,
+  TextField,
+  InputAdornment,
   Card,
   CardContent,
   Divider,
   Alert,
   AlertTitle,
-  TextField,
-  InputAdornment,
-  IconButton,
   Chip,
   Tooltip,
   CircularProgress
@@ -28,13 +27,13 @@ import {
   Search as SearchIcon,
   FileDownload as FileDownloadIcon,
   Refresh as RefreshIcon,
-  FilterList as FilterListIcon,
-  Warning as WarningIcon,
   Info as InfoIcon
 } from '@mui/icons-material';
-import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
+import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
+import { getUniversityRankings } from '../services/studentAffairsService';
+import { useNavigate } from 'react-router-dom';
 
-// Types
+// Define types for university rankings
 interface StudentRanking {
   id: string;
   rank: number;
@@ -56,48 +55,81 @@ interface RankingMetadata {
   lastUpdated: Date;
 }
 
-// Sample data
-const sampleStudentRankings: StudentRanking[] = [
-  { id: '1', rank: 1, studentId: '220202101', name: 'Ali Yılmaz', department: 'Computer Engineering', faculty: 'Engineering', gpa: 3.98, credits: 144, duplicateRecords: false, graduationEligible: true },
-  { id: '2', rank: 2, studentId: '220202056', name: 'Ayşe Kaya', department: 'Computer Engineering', faculty: 'Engineering', gpa: 3.97, credits: 148, duplicateRecords: false, graduationEligible: true },
-  { id: '3', rank: 3, studentId: '210201089', name: 'Mehmet Demir', department: 'Electrical Engineering', faculty: 'Engineering', gpa: 3.95, credits: 152, duplicateRecords: true, graduationEligible: true },
-  { id: '4', rank: 4, studentId: '210305062', name: 'Zeynep Yıldız', department: 'Physics', faculty: 'Science', gpa: 3.93, credits: 138, duplicateRecords: false, graduationEligible: true },
-  { id: '5', rank: 5, studentId: '220401023', name: 'Mustafa Şahin', department: 'Architecture', faculty: 'Architecture', gpa: 3.91, credits: 160, duplicateRecords: false, graduationEligible: true },
-  { id: '6', rank: 6, studentId: '210301045', name: 'Fatma Çelik', department: 'Chemistry', faculty: 'Science', gpa: 3.89, credits: 136, duplicateRecords: false, graduationEligible: true },
-  { id: '7', rank: 7, studentId: '220205078', name: 'Ahmet Aksoy', department: 'Mechanical Engineering', faculty: 'Engineering', gpa: 3.88, credits: 142, duplicateRecords: false, graduationEligible: true },
-  { id: '8', rank: 8, studentId: '210208091', name: 'Sema Yılmaz', department: 'Civil Engineering', faculty: 'Engineering', gpa: 3.86, credits: 146, duplicateRecords: true, graduationEligible: true },
-  { id: '9', rank: 9, studentId: '220301012', name: 'Emre Koç', department: 'Mathematics', faculty: 'Science', gpa: 3.85, credits: 134, duplicateRecords: false, graduationEligible: true },
-  { id: '10', rank: 10, studentId: '210204067', name: 'Elif Şahin', department: 'Industrial Design', faculty: 'Architecture', gpa: 3.84, credits: 150, duplicateRecords: false, graduationEligible: true },
-  { id: '11', rank: 11, studentId: '220203045', name: 'Burak Demir', department: 'Bioengineering', faculty: 'Engineering', gpa: 3.83, credits: 140, duplicateRecords: false, graduationEligible: true },
-  { id: '12', rank: 12, studentId: '210307034', name: 'Gizem Yılmaz', department: 'Molecular Biology', faculty: 'Science', gpa: 3.82, credits: 138, duplicateRecords: false, graduationEligible: true },
-  { id: '13', rank: 13, studentId: '220207089', name: 'Oğuz Kaya', department: 'Materials Engineering', faculty: 'Engineering', gpa: 3.80, credits: 144, duplicateRecords: false, graduationEligible: true },
-  { id: '14', rank: 14, studentId: '210401032', name: 'Ceren Arslan', department: 'Urban Planning', faculty: 'Architecture', gpa: 3.79, credits: 156, duplicateRecords: false, graduationEligible: true },
-  { id: '15', rank: 15, studentId: '220302056', name: 'Onur Öztürk', department: 'Physics', faculty: 'Science', gpa: 3.78, credits: 132, duplicateRecords: false, graduationEligible: true },
-];
-
-const mockRankingMetadata: RankingMetadata = {
-  totalStudents: 42,
-  eligibleStudents: 15,
-  hasDuplicates: true,
-  mixedGraduationStatus: true,
-  lastUpdated: new Date('2025-05-15T14:30:00')
-};
-
 type Order = 'asc' | 'desc';
 
-const FacultyRankingPage = () => {
+const UniversityRankingsPage = () => {
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof StudentRanking>('gpa');
   const [page, setPage] = useState(0);
   const [rowsPerPage, setRowsPerPage] = useState(10);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFaculty, setSelectedFaculty] = useState<string | null>(null);
-  const [rankingMetadata, setRankingMetadata] = useState<RankingMetadata | null>(mockRankingMetadata);
+  const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+  const [rankingMetadata, setRankingMetadata] = useState<RankingMetadata | null>(null);
   const [warnings, setWarnings] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
+  const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
   
-  // Simulate data loading and warnings generation
+  const navigate = useNavigate();
+
+  // Load data from service when component mounts
+  useEffect(() => {
+    const loadUniversityRankings = async () => {
+      setIsLoading(true);
+      try {
+        // Get university rankings data
+        const rawRankings = await getUniversityRankings();
+        
+        // Transform the data to match our StudentRanking interface
+        const transformedRankings: StudentRanking[] = [];
+        let totalStudents = 0;
+        
+        // Process each department's rankings
+        rawRankings.forEach(dept => {
+          dept.students.forEach(student => {
+            totalStudents++;
+            transformedRankings.push({
+              id: student.id,
+              rank: student.rank,
+              studentId: `2020${dept.id}${student.id.padStart(3, '0')}`, // Generate a student ID
+              name: student.name,
+              department: dept.department,
+              faculty: dept.faculty,
+              gpa: student.gpa,
+              credits: Math.floor(Math.random() * 30) + 120, // Random credits between 120-150
+              duplicateRecords: Math.random() > 0.9, // 10% chance of duplicate records
+              graduationEligible: student.gpa >= 2.0 // Eligible if GPA >= 2.0
+            });
+          });
+        });
+        
+        // Sort by rank
+        transformedRankings.sort((a, b) => a.rank - b.rank);
+        
+        // Create metadata
+        const metadata: RankingMetadata = {
+          totalStudents,
+          eligibleStudents: transformedRankings.filter(s => s.graduationEligible).length,
+          hasDuplicates: transformedRankings.some(s => s.duplicateRecords),
+          mixedGraduationStatus: transformedRankings.some(s => !s.graduationEligible),
+          lastUpdated: new Date()
+        };
+        
+        setStudentRankings(transformedRankings);
+        setRankingMetadata(metadata);
+      } catch (err) {
+        setError('Failed to load university ranking data. Please try again later.');
+        console.error('Error loading university rankings:', err);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    
+    loadUniversityRankings();
+  }, []);
+  
+  // Generate warnings based on metadata
   useEffect(() => {
     const newWarnings: string[] = [];
     
@@ -128,7 +160,7 @@ const FacultyRankingPage = () => {
   };
   
   // Handle pagination
-  const handleChangePage = (event: unknown, newPage: number) => {
+  const handleChangePage = (_event: unknown, newPage: number) => {
     setPage(newPage);
   };
   
@@ -138,15 +170,16 @@ const FacultyRankingPage = () => {
   };
   
   // Filter and sort data
-  const filteredData = sampleStudentRankings.filter(student => {
+  const filteredData = studentRankings.filter((student) => {
     const matchesSearch = searchQuery === '' || 
       student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       student.studentId.includes(searchQuery) ||
       student.department.toLowerCase().includes(searchQuery.toLowerCase());
       
     const matchesFaculty = selectedFaculty === null || student.faculty === selectedFaculty;
+    const matchesDepartment = selectedDepartment === null || student.department === selectedDepartment;
     
-    return matchesSearch && matchesFaculty;
+    return matchesSearch && matchesFaculty && matchesDepartment;
   });
   
   const sortedData = [...filteredData].sort((a, b) => {
@@ -174,48 +207,120 @@ const FacultyRankingPage = () => {
   // Pagination
   const paginatedData = sortedData.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
 
-  // Faculty filter options
-  const faculties = Array.from(new Set(sampleStudentRankings.map(student => student.faculty)));
+  // Faculty and department filter options
+  const faculties = Array.from(new Set(studentRankings.map(student => student.faculty)));
+  const departments = Array.from(new Set(studentRankings
+    .filter(student => selectedFaculty === null || student.faculty === selectedFaculty)
+    .map(student => student.department)));
   
   // Generate a fresh ranking
-  const refreshRanking = () => {
+  const refreshRanking = async () => {
     setIsLoading(true);
     
-    // Simulate API call or data processing
-    setTimeout(() => {
-      // Random chance of having no eligible students for error demonstration
-      const noEligibleStudents = Math.random() < 0.2;
+    try {
+      // Get university rankings data
+      const rawRankings = await getUniversityRankings();
       
-      if (noEligibleStudents) {
-        setRankingMetadata({
-          ...mockRankingMetadata,
-          eligibleStudents: 0,
-          lastUpdated: new Date()
-        });
-      } else {
-        setRankingMetadata({
-          ...mockRankingMetadata,
-          lastUpdated: new Date()
-        });
-      }
+      // Transform the data to match our StudentRanking interface
+      const transformedRankings: StudentRanking[] = [];
+      let totalStudents = 0;
       
+      // Process each department's rankings
+      rawRankings.forEach(dept => {
+        dept.students.forEach(student => {
+          totalStudents++;
+          transformedRankings.push({
+            id: student.id,
+            rank: student.rank,
+            studentId: `2020${dept.id}${student.id.padStart(3, '0')}`,
+            name: student.name,
+            department: dept.department,
+            faculty: dept.faculty,
+            gpa: student.gpa,
+            credits: Math.floor(Math.random() * 30) + 120,
+            duplicateRecords: Math.random() > 0.9,
+            graduationEligible: student.gpa >= 2.0
+          });
+        });
+      });
+      
+      // Sort by rank
+      transformedRankings.sort((a, b) => a.rank - b.rank);
+      
+      // Create metadata
+      const metadata: RankingMetadata = {
+        totalStudents,
+        eligibleStudents: transformedRankings.filter(s => s.graduationEligible).length,
+        hasDuplicates: transformedRankings.some(s => s.duplicateRecords),
+        mixedGraduationStatus: transformedRankings.some(s => !s.graduationEligible),
+        lastUpdated: new Date()
+      };
+      
+      setStudentRankings(transformedRankings);
+      setRankingMetadata(metadata);
+    } catch (err) {
+      setError('Failed to refresh ranking data. Please try again later.');
+      console.error('Error refreshing university rankings:', err);
+    } finally {
       setIsLoading(false);
-    }, 1500);
+    }
   };
   
   // Export functionality
   const handleExportRankings = () => {
-    alert('Ranking data exported successfully!');
+    if (filteredData.length === 0) {
+      setError('No data to export');
+      return;
+    }
+    
+    const headers = ['Rank', 'Student ID', 'Name', 'Department', 'Faculty', 'GPA', 'Credits', 'Graduation Eligible'];
+    
+    const csvContent = [
+      headers.join(','),
+      ...sortedData.map(student => [
+        student.rank,
+        student.studentId,
+        `"${student.name}"`,
+        `"${student.department}"`,
+        `"${student.faculty}"`,
+        student.gpa,
+        student.credits,
+        student.graduationEligible ? 'Yes' : 'No'
+      ].join(','))
+    ].join('\n');
+    
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `university_rankings_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  // Approve all students
+  const handleApproveAll = () => {
+    // Here we would make an API call to approve all students
+    // For now, we'll just show a success message
+    setWarnings([]);
+    setError(null);
+    alert('All students have been approved for graduation');
+  };
+
+  // View student transcript
+  const handleViewTranscript = (studentId: string) => {
+    navigate(`/student-affairs/transcripts/${studentId}`);
   };
 
   return (
-    <DeansOfficeDashboardLayout>
+    <StudentAffairsDashboardLayout>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Faculty Ranking
+          University Rankings
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          View and manage consolidated faculty-wide student rankings
+          View and manage university-wide student rankings for graduation
         </Typography>
       </Box>
       
@@ -277,6 +382,14 @@ const FacultyRankingPage = () => {
             
             <Button
               variant="contained"
+              color="success"
+              onClick={handleApproveAll}
+            >
+              Approve All
+            </Button>
+            
+            <Button
+              variant="contained"
               startIcon={<FileDownloadIcon />}
               onClick={handleExportRankings}
             >
@@ -290,7 +403,7 @@ const FacultyRankingPage = () => {
         <Box gridColumn={{ xs: 'span 12', lg: 'span 9' }}>
           <Paper sx={{ width: '100%', overflow: 'hidden' }}>
             <TableContainer sx={{ maxHeight: 600 }}>
-              <Table stickyHeader aria-label="faculty ranking table">
+              <Table stickyHeader aria-label="university ranking table">
                 <TableHead>
                   <TableRow>
                     <TableCell>
@@ -356,6 +469,18 @@ const FacultyRankingPage = () => {
                         Credits
                       </TableSortLabel>
                     </TableCell>
+                    <TableCell>
+                      <TableSortLabel
+                        active={orderBy === 'graduationEligible'}
+                        direction={orderBy === 'graduationEligible' ? order : 'asc'}
+                        onClick={() => handleRequestSort('graduationEligible')}
+                      >
+                        Status
+                      </TableSortLabel>
+                    </TableCell>
+                    <TableCell>
+                      Actions
+                    </TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -378,11 +503,27 @@ const FacultyRankingPage = () => {
                         <TableCell>{student.faculty}</TableCell>
                         <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
                         <TableCell align="right">{student.credits}</TableCell>
+                        <TableCell>
+                          <Chip 
+                            label={student.graduationEligible ? "Eligible" : "Not Eligible"} 
+                            color={student.graduationEligible ? "success" : "error"}
+                            size="small"
+                          />
+                        </TableCell>
+                        <TableCell>
+                          <Button
+                            variant="outlined"
+                            size="small"
+                            onClick={() => handleViewTranscript(student.studentId)}
+                          >
+                            View Transcript
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))
                   ) : isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                         <CircularProgress size={40} />
                         <Typography variant="body2" sx={{ mt: 2 }}>
                           Loading ranking data...
@@ -391,7 +532,7 @@ const FacultyRankingPage = () => {
                     </TableRow>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={7} align="center">
+                      <TableCell colSpan={9} align="center">
                         <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                           No ranking data found
                         </Typography>
@@ -444,7 +585,7 @@ const FacultyRankingPage = () => {
                   {rankingMetadata.mixedGraduationStatus && (
                     <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 2 }}>
                       <Typography variant="caption">
-                        Only students meeting graduation criteria are included in the ranking
+                        Some students don't meet graduation criteria
                       </Typography>
                     </Alert>
                   )}
@@ -455,7 +596,7 @@ const FacultyRankingPage = () => {
                 Filter by Faculty
               </Typography>
               
-              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mb: 2 }}>
                 {faculties.map(faculty => (
                   <Chip
                     key={faculty}
@@ -473,6 +614,29 @@ const FacultyRankingPage = () => {
                   />
                 )}
               </Box>
+
+              <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+                Filter by Department
+              </Typography>
+              
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+                {departments.map(department => (
+                  <Chip
+                    key={department}
+                    label={department}
+                    onClick={() => setSelectedDepartment(department)}
+                    variant={selectedDepartment === department ? 'filled' : 'outlined'}
+                    color={selectedDepartment === department ? 'primary' : 'default'}
+                  />
+                ))}
+                {selectedDepartment && (
+                  <Chip
+                    label="Clear"
+                    onClick={() => setSelectedDepartment(null)}
+                    variant="outlined"
+                  />
+                )}
+              </Box>
               
               <Alert severity="info" sx={{ mt: 3 }}>
                 <Typography variant="caption">
@@ -483,8 +647,8 @@ const FacultyRankingPage = () => {
           </Card>
         </Box>
       </Box>
-    </DeansOfficeDashboardLayout>
+    </StudentAffairsDashboardLayout>
   );
 };
 
-export default FacultyRankingPage;
+export default UniversityRankingsPage;
