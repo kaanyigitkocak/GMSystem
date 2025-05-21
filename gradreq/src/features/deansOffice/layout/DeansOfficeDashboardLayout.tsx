@@ -54,6 +54,7 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
   const navItems = [
     { path: '/deansoffice', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
     { path: '/deansoffice/faculty-ranking', icon: <FormatListNumberedIcon />, label: 'Faculty Ranking' },
+    { path: '/deansoffice/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
 
   const isActive = (path: string, exact = false) => {

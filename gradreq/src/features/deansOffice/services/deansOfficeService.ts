@@ -1,4 +1,3 @@
-
 // Types
 export interface StudentRanking {
   id: string;
@@ -53,21 +52,17 @@ export interface FileValidationResult {
 
 // Sample data for student rankings
 export const sampleStudentRankings: StudentRanking[] = [
-  { id: '1', rank: 1, studentId: '220202101', name: 'Ali Yılmaz', department: 'Computer Engineering', faculty: 'Engineering', gpa: 3.98, credits: 144, duplicateRecords: false, graduationEligible: true },
-  { id: '2', rank: 2, studentId: '220202056', name: 'Ayşe Kaya', department: 'Computer Engineering', faculty: 'Engineering', gpa: 3.97, credits: 148, duplicateRecords: false, graduationEligible: true },
-  { id: '3', rank: 3, studentId: '210201089', name: 'Mehmet Demir', department: 'Electrical Engineering', faculty: 'Engineering', gpa: 3.95, credits: 152, duplicateRecords: true, graduationEligible: true },
-  { id: '4', rank: 4, studentId: '210305062', name: 'Zeynep Yıldız', department: 'Physics', faculty: 'Science', gpa: 3.93, credits: 138, duplicateRecords: false, graduationEligible: true },
-  { id: '5', rank: 5, studentId: '220401023', name: 'Mustafa Şahin', department: 'Architecture', faculty: 'Architecture', gpa: 3.91, credits: 160, duplicateRecords: false, graduationEligible: true },
-  { id: '6', rank: 6, studentId: '210301045', name: 'Fatma Çelik', department: 'Chemistry', faculty: 'Science', gpa: 3.89, credits: 136, duplicateRecords: false, graduationEligible: true },
-  { id: '7', rank: 7, studentId: '220205078', name: 'Ahmet Aksoy', department: 'Mechanical Engineering', faculty: 'Engineering', gpa: 3.88, credits: 142, duplicateRecords: false, graduationEligible: true },
-  { id: '8', rank: 8, studentId: '210208091', name: 'Sema Yılmaz', department: 'Civil Engineering', faculty: 'Engineering', gpa: 3.86, credits: 146, duplicateRecords: true, graduationEligible: true },
-  { id: '9', rank: 9, studentId: '220301012', name: 'Emre Koç', department: 'Mathematics', faculty: 'Science', gpa: 3.85, credits: 134, duplicateRecords: false, graduationEligible: true },
-  { id: '10', rank: 10, studentId: '210204067', name: 'Elif Şahin', department: 'Industrial Design', faculty: 'Architecture', gpa: 3.84, credits: 150, duplicateRecords: false, graduationEligible: true },
-  { id: '11', rank: 11, studentId: '220203045', name: 'Burak Demir', department: 'Bioengineering', faculty: 'Engineering', gpa: 3.83, credits: 140, duplicateRecords: false, graduationEligible: true },
-  { id: '12', rank: 12, studentId: '210307034', name: 'Gizem Yılmaz', department: 'Molecular Biology', faculty: 'Science', gpa: 3.82, credits: 138, duplicateRecords: false, graduationEligible: true },
-  { id: '13', rank: 13, studentId: '220207089', name: 'Oğuz Kaya', department: 'Materials Engineering', faculty: 'Engineering', gpa: 3.80, credits: 144, duplicateRecords: false, graduationEligible: true },
-  { id: '14', rank: 14, studentId: '210401032', name: 'Ceren Arslan', department: 'Urban Planning', faculty: 'Architecture', gpa: 3.79, credits: 156, duplicateRecords: false, graduationEligible: true },
-  { id: '15', rank: 15, studentId: '220302056', name: 'Onur Öztürk', department: 'Physics', faculty: 'Science', gpa: 3.78, credits: 132, duplicateRecords: false, graduationEligible: true },
+  { id: '1', rank: 1, studentId: '20201001', name: 'Jane Smith', department: 'Computer Engineering', faculty: 'Faculty of Engineering', gpa: 3.95, credits: 149, duplicateRecords: false, graduationEligible: true },
+  { id: '2', rank: 2, studentId: '20202001', name: 'Lisa Wang', department: 'Electronics and Communication Engineering', faculty: 'Faculty of Engineering', gpa: 3.92, credits: 146, duplicateRecords: false, graduationEligible: true },
+  { id: '3', rank: 3, studentId: '20202002', name: 'Tom Harris', department: 'Electronics and Communication Engineering', faculty: 'Faculty of Engineering', gpa: 3.85, credits: 144, duplicateRecords: false, graduationEligible: true },
+  { id: '4', rank: 4, studentId: '20201002', name: 'John Doe', department: 'Computer Engineering', faculty: 'Faculty of Engineering', gpa: 3.75, credits: 140, duplicateRecords: false, graduationEligible: true },
+  { id: '5', rank: 5, studentId: '20201003', name: 'Alex Brown', department: 'Computer Engineering', faculty: 'Faculty of Engineering', gpa: 3.70, credits: 130, duplicateRecords: false, graduationEligible: true },
+  { id: '6', rank: 6, studentId: '20201004', name: 'Sarah Johnson', department: 'Computer Engineering', faculty: 'Faculty of Engineering', gpa: 3.65, credits: 140, duplicateRecords: false, graduationEligible: true },
+  { id: '7', rank: 7, studentId: '20201005', name: 'David Lee', department: 'Computer Engineering', faculty: 'Faculty of Engineering', gpa: 3.60, credits: 148, duplicateRecords: false, graduationEligible: true },
+  { id: '8', rank: 8, studentId: '20203001', name: 'Emily Davis', department: 'Physics', faculty: 'Faculty of Science', gpa: 3.45, credits: 138, duplicateRecords: false, graduationEligible: true },
+  { id: '9', rank: 9, studentId: '20203002', name: 'Mark Thompson', department: 'Physics', faculty: 'Faculty of Science', gpa: 3.40, credits: 138, duplicateRecords: false, graduationEligible: true },
+  { id: '10', rank: 10, studentId: '20202003', name: 'Robert Johnson', department: 'Electronics and Communication Engineering', faculty: 'Faculty of Engineering', gpa: 2.85, credits: 148, duplicateRecords: false, graduationEligible: true },
+  { id: '11', rank: 11, studentId: '20201002', name: 'John Doe', department: 'Electronics and Communication Engineering', faculty: 'Faculty of Engineering', gpa: 3.80, credits: 140, duplicateRecords: false, graduationEligible: true },
 ];
 
 // Sample metadata for ranking

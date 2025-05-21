@@ -116,44 +116,29 @@ export const useFacultyRanking = () => {
       return;
     }
     setIsLoading(true);
-    // Keep existing file processing warnings, but clear previous ranking errors/warnings
-    // setError(null); // Don't clear file processing errors
-    // setWarning(null); // Don't clear file processing warnings
 
     let recordsToRank = [...batchProcessingResult.validRecords];
-    const studentGpaMap = new Map<string, { totalGpa: number; count: number; record: StudentRecord }>();
-
-    recordsToRank.forEach(record => {
-      const existing = studentGpaMap.get(record.id);
-      if (existing) {
-        existing.totalGpa += record.gpa;
-        existing.count += 1;
-      } else {
-        studentGpaMap.set(record.id, { totalGpa: record.gpa, count: 1, record: { ...record } });
-      }
+    
+    // Sort by GPA
+    recordsToRank.sort((a, b) => b.gpa - a.gpa);
+    
+    // Assign ranks after sorting
+    recordsToRank.forEach((student, index) => {
+      student.rank = index + 1;
     });
 
-    const uniqueRankedStudents: StudentRecord[] = Array.from(studentGpaMap.values()).map(entry => ({
-      ...entry.record,
-      gpa: entry.totalGpa / entry.count,
-    })).sort((a, b) => b.gpa - a.gpa);
-
     const rankingWarnings: string[] = [];
-    if (batchProcessingResult.hasDuplicates) {
-      rankingWarnings.push("Duplicate student entries were merged by averaging their GPAs.");
-    }
     if (batchProcessingResult.overallMessage?.includes("Non-eligible students")) {
-        rankingWarnings.push("Only eligible students are included in the ranking.");
+      rankingWarnings.push("Only eligible students are included in the ranking.");
     }
-    if (uniqueRankedStudents.length === 0) {
-        rankingWarnings.push("No students to display in the ranking after processing.");
+    if (recordsToRank.length === 0) {
+      rankingWarnings.push("No students to display in the ranking after processing.");
     }
-
 
     setFacultyRanking({
-      rankedStudents: uniqueRankedStudents,
+      rankedStudents: recordsToRank,
       warnings: rankingWarnings,
-      errors: [],
+      errors: []
     });
     setIsLoading(false);
   }, [batchProcessingResult]);

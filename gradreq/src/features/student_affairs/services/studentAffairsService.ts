@@ -217,17 +217,17 @@ const mockStudentRankings: Record<string, StudentRanking[]> = {
       graduationDate: "2023-06-15",
       ranking: 3,
     },
-  ],
-  "Mechanical Engineering": [
     {
       id: "9",
-      studentId: "20190051",
-      studentName: "Mark Williams",
-      department: "Mechanical Engineering",
-      gpa: 3.79,
+      studentId: "20190045",
+      studentName: "John Doe",
+      department: "Electrical Engineering",
+      gpa: 3.78,
       graduationDate: "2023-06-15",
-      ranking: 1,
+      ranking: 4,
     },
+  ],
+  "Mechanical Engineering": [
     {
       id: "10",
       studentId: "20190087",

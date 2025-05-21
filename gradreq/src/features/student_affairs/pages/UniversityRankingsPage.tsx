@@ -90,28 +90,33 @@ const UniversityRankingsPage = () => {
           dept.students.forEach(student => {
             totalStudents++;
             transformedRankings.push({
-              id: student.id,
+              id: `${dept.id}-${student.id}`, // Make ID unique by combining dept and student IDs
               rank: student.rank,
-              studentId: `2020${dept.id}${student.id.padStart(3, '0')}`, // Generate a student ID
+              studentId: `2020${dept.id}${student.id.padStart(3, '0')}`,
               name: student.name,
               department: dept.department,
               faculty: dept.faculty,
               gpa: student.gpa,
-              credits: Math.floor(Math.random() * 30) + 120, // Random credits between 120-150
-              duplicateRecords: Math.random() > 0.9, // 10% chance of duplicate records
-              graduationEligible: student.gpa >= 2.0 // Eligible if GPA >= 2.0
+              credits: Math.floor(Math.random() * 30) + 120,
+              duplicateRecords: false, // Remove duplicate flag since we're not merging
+              graduationEligible: student.gpa >= 2.0
             });
           });
         });
         
-        // Sort by rank
-        transformedRankings.sort((a, b) => a.rank - b.rank);
+        // Sort by GPA
+        transformedRankings.sort((a, b) => b.gpa - a.gpa);
+        
+        // Assign ranks after sorting
+        transformedRankings.forEach((student, index) => {
+          student.rank = index + 1;
+        });
         
         // Create metadata
         const metadata: RankingMetadata = {
           totalStudents,
           eligibleStudents: transformedRankings.filter(s => s.graduationEligible).length,
-          hasDuplicates: transformedRankings.some(s => s.duplicateRecords),
+          hasDuplicates: false, // Remove duplicate flag since we're not merging
           mixedGraduationStatus: transformedRankings.some(s => !s.graduationEligible),
           lastUpdated: new Date()
         };
@@ -134,10 +139,6 @@ const UniversityRankingsPage = () => {
     const newWarnings: string[] = [];
     
     if (rankingMetadata) {
-      if (rankingMetadata.hasDuplicates) {
-        newWarnings.push('Duplicate student records merged from different departments');
-      }
-      
       if (rankingMetadata.mixedGraduationStatus) {
         newWarnings.push('Some students did not meet graduation criteria and were excluded');
       }
@@ -230,7 +231,7 @@ const UniversityRankingsPage = () => {
         dept.students.forEach(student => {
           totalStudents++;
           transformedRankings.push({
-            id: student.id,
+            id: `${dept.id}-${student.id}`, // Make ID unique by combining dept and student IDs
             rank: student.rank,
             studentId: `2020${dept.id}${student.id.padStart(3, '0')}`,
             name: student.name,
@@ -238,20 +239,25 @@ const UniversityRankingsPage = () => {
             faculty: dept.faculty,
             gpa: student.gpa,
             credits: Math.floor(Math.random() * 30) + 120,
-            duplicateRecords: Math.random() > 0.9,
+            duplicateRecords: false, // Remove duplicate flag since we're not merging
             graduationEligible: student.gpa >= 2.0
           });
         });
       });
       
-      // Sort by rank
-      transformedRankings.sort((a, b) => a.rank - b.rank);
+      // Sort by GPA
+      transformedRankings.sort((a, b) => b.gpa - a.gpa);
+      
+      // Assign ranks after sorting
+      transformedRankings.forEach((student, index) => {
+        student.rank = index + 1;
+      });
       
       // Create metadata
       const metadata: RankingMetadata = {
         totalStudents,
         eligibleStudents: transformedRankings.filter(s => s.graduationEligible).length,
-        hasDuplicates: transformedRankings.some(s => s.duplicateRecords),
+        hasDuplicates: false, // Remove duplicate flag since we're not merging
         mixedGraduationStatus: transformedRankings.some(s => !s.graduationEligible),
         lastUpdated: new Date()
       };
@@ -492,11 +498,6 @@ const UniversityRankingsPage = () => {
                         <TableCell>
                           <Box sx={{ display: 'flex', alignItems: 'center' }}>
                             {student.name}
-                            {student.duplicateRecords && (
-                              <Tooltip title="Records merged from multiple departments">
-                                <InfoIcon color="warning" fontSize="small" sx={{ ml: 1 }} />
-                              </Tooltip>
-                            )}
                           </Box>
                         </TableCell>
                         <TableCell>{student.department}</TableCell>
@@ -573,14 +574,6 @@ const UniversityRankingsPage = () => {
                       {rankingMetadata.eligibleStudents} eligible of {rankingMetadata.totalStudents} total
                     </Typography>
                   </Box>
-                  
-                  {rankingMetadata.hasDuplicates && (
-                    <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 2 }}>
-                      <Typography variant="caption">
-                        Students appearing in multiple department files have been merged
-                      </Typography>
-                    </Alert>
-                  )}
                   
                   {rankingMetadata.mixedGraduationStatus && (
                     <Alert severity="info" icon={<InfoIcon />} sx={{ mb: 2 }}>

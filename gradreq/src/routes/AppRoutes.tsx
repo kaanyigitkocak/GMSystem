@@ -15,6 +15,7 @@ const TranscriptPage = lazy(() => import('../features/student/pages/TranscriptPa
 const GraduationRequirementsPage = lazy(() => import('../features/student/pages/GraduationRequirementsPage'));
 const ManualCheckPage = lazy(() => import('../features/student/pages/ManualCheckPage'));
 const DisengagementCertificatesPage = lazy(() => import('../features/student/pages/DisengagementCertificatesPage'));
+const StudentNotificationsPage = lazy(() => import('../features/student/pages/NotificationsPage'));
 
 // Secretary pages
 const SecretaryDashboard = lazy(() => import('../features/secretary/pages/SecretaryDashboardPage'));
@@ -28,6 +29,7 @@ const DeansOfficeDashboard = lazy(() => import('../features/deansOffice/pages/De
 const DeansOfficeDashboardLayout = lazy(() => import('../features/deansOffice/layout/DeansOfficeDashboardLayout'));
 const FileUploadPage = lazy(() => import('../features/deansOffice/pages/FileUploadPage'));
 const FacultyRankingPage = lazy(() => import('../features/deansOffice/pages/FacultyRankingPage'));
+const DeansOfficeNotificationsPage = lazy(() => import('../features/deansOffice/pages/NotificationsPage'));
 
 // Student Affairs pages
 const StudentAffairsDashboard = lazy(() => import('../features/student_affairs/pages/StudentAffairsDashboardPage'));
@@ -144,6 +146,14 @@ const AppRoutes = () => {
             />
           } 
         />
+        <Route
+          path="/student/notifications"
+          element={
+            <ProtectedRoute
+              element={<StudentNotificationsPage />}
+            />
+          }
+        />
         
         {/* Secretary Dashboard routes */}
         <Route path="/secretary" element={<ProtectedRoute element={<SecretaryDashboard />} />} />
@@ -185,6 +195,16 @@ const AppRoutes = () => {
               } 
             />
           } 
+        />
+        <Route
+          path="/deansoffice/notifications"
+          element={
+            <ProtectedRoute
+              element={
+                <DeansOfficeNotificationsPage />
+              }
+            />
+          }
         />
 
         {/* Student Affairs Dashboard routes */}

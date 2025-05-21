@@ -22,7 +22,7 @@ import {
   Delete as DeleteIcon,
   MarkEmailRead as MarkEmailReadIcon
 } from '@mui/icons-material';
-import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
+import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
 import { getNotifications, markNotificationAsRead } from '../../../shared/services/notificationsService';
 import type { Notification } from '../../../shared/components/NotificationsPanel';
 
@@ -34,7 +34,7 @@ const NotificationsPage = () => {
   useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const data = await getNotifications('secretary');
+        const data = await getNotifications('deans_office');
         setNotifications(data);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -55,14 +55,14 @@ const NotificationsPage = () => {
         notification.id === id ? { ...notification, read: true } : notification
       )
     );
-    markNotificationAsRead('secretary', id);
+    markNotificationAsRead('deans_office', id);
   };
 
   const handleMarkAllAsRead = () => {
     setNotifications(
       notifications.map((notification) => ({ ...notification, read: true }))
     );
-    notifications.forEach(n => markNotificationAsRead('secretary', n.id));
+    notifications.forEach(n => markNotificationAsRead('deans_office', n.id));
   };
 
   const handleDelete = (id: string) => {
@@ -90,7 +90,7 @@ const NotificationsPage = () => {
         : notifications.filter(n => n.read);
 
   return (
-    <SecretaryDashboardLayout>
+    <DeansOfficeDashboardLayout>
       <Box sx={{ mb: 4 }}>
         <Paper sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -196,7 +196,7 @@ const NotificationsPage = () => {
           </List>
         </Paper>
       </Box>
-    </SecretaryDashboardLayout>
+    </DeansOfficeDashboardLayout>
   );
 };
 
