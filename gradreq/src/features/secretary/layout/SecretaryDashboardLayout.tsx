@@ -56,7 +56,6 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
     { path: '/secretary', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
     { path: '/secretary/transcripts', icon: <CloudUploadIcon />, label: 'Transcript Processing' },
     { path: '/secretary/ranking', icon: <FormatListNumberedIcon />, label: 'Department Ranking' },
-    { path: '/secretary/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
 
   const isActive = (path: string, exact = false) => {

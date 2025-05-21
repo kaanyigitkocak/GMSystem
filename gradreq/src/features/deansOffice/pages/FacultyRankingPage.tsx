@@ -26,7 +26,9 @@ import {
 import {
   Search as SearchIcon,
   FileDownload as FileDownloadIcon,
-  Refresh as RefreshIcon
+  Refresh as RefreshIcon,
+  Check as CheckIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
 import type { StudentRanking, RankingMetadata } from '../services/deansOfficeService';
@@ -35,6 +37,11 @@ import { faculties } from '../../../shared/faculties';
 
 // Sıralama tipi
 type Order = 'asc' | 'desc';
+
+// Add approval status type
+interface ApprovalStatus {
+  [studentId: string]: 'approved' | 'disapproved' | undefined;
+}
 
 const FacultyRankingPage = () => {
   // State'ler
@@ -48,6 +55,7 @@ const FacultyRankingPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>({});
 
   // Sadece Mühendislik Fakültesi
   const facultyName = 'Faculty of Engineering';
@@ -85,6 +93,12 @@ const FacultyRankingPage = () => {
 
   // Sıralama
   const sorted = [...filtered].sort((a, b) => {
+    const aStatus = approvalStatus[a.id];
+    const bStatus = approvalStatus[b.id];
+    if (aStatus === 'approved' && bStatus !== 'approved') return -1;
+    if (aStatus !== 'approved' && bStatus === 'approved') return 1;
+    if (aStatus === 'disapproved' && bStatus !== 'disapproved') return 1;
+    if (aStatus !== 'disapproved' && bStatus === 'disapproved') return -1;
     if (orderBy === 'rank') return order === 'asc' ? a.rank - b.rank : b.rank - a.rank;
     if (orderBy === 'gpa') return order === 'asc' ? a.gpa - b.gpa : b.gpa - a.gpa;
     if (orderBy === 'credits') return order === 'asc' ? a.credits - b.credits : b.credits - a.credits;
@@ -142,6 +156,14 @@ const FacultyRankingPage = () => {
     setPage(0);
   };
 
+  // Approve/disapprove handlers
+  const handleApprove = (studentId: string) => {
+    setApprovalStatus(prev => ({ ...prev, [studentId]: 'approved' }));
+  };
+  const handleDisapprove = (studentId: string) => {
+    setApprovalStatus(prev => ({ ...prev, [studentId]: 'disapproved' }));
+  };
+
   return (
     <DeansOfficeDashboardLayout>
       {/* Error message */}
@@ -151,6 +173,52 @@ const FacultyRankingPage = () => {
           {error}
         </Alert>
       )}
+
+      {/* Ranking Info card - now at the top */}
+      <Card sx={{ width: '100%', mb: 2, boxShadow: 1 }}>
+        <CardContent>
+          <Typography variant="h6" gutterBottom>Ranking Information</Typography>
+          <Divider sx={{ mb: 2 }} />
+          {rankingMetadata && (
+            <Box sx={{ mb: 2 }}>
+              <Typography variant="subtitle2" color="text.secondary">
+                Students Ranked
+              </Typography>
+              <Typography variant="body1">
+                {rankingMetadata.eligibleStudents} / {rankingMetadata.totalStudents}
+              </Typography>
+            </Box>
+          )}
+          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
+            Filter by Department
+          </Typography>
+          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
+            {departments.map(dept => (
+              <Chip
+                key={dept}
+                label={dept}
+                onClick={() => setSelectedDepartment(dept)}
+                variant={selectedDepartment === dept ? 'filled' : 'outlined'}
+                color={selectedDepartment === dept ? 'primary' : 'default'}
+              />
+            ))}
+            {selectedDepartment && (
+              <Chip
+                label="Clear"
+                onClick={() => setSelectedDepartment('')}
+                variant="outlined"
+              />
+            )}
+          </Box>
+          {rankingMetadata && (
+            <Alert severity="info" sx={{ mt: 3 }}>
+              <Typography variant="caption">
+                Last updated: {rankingMetadata.lastUpdated.toLocaleDateString()} {rankingMetadata.lastUpdated.toLocaleTimeString()}
+              </Typography>
+            </Alert>
+          )}
+        </CardContent>
+      </Card>
 
       {/* Filters and buttons */}
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', mb: 2, mt: 1 }}>
@@ -262,13 +330,13 @@ const FacultyRankingPage = () => {
                     Credits
                   </TableSortLabel>
                 </TableCell>
-                <TableCell>Action</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {isLoading ? (
                 <TableRow>
-                  <TableCell colSpan={8} align="center" sx={{ py: 4 }}>
+                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
                     <CircularProgress size={40} />
                     <Typography variant="body2" sx={{ mt: 2 }}>
                       Loading...
@@ -276,25 +344,60 @@ const FacultyRankingPage = () => {
                   </TableCell>
                 </TableRow>
               ) : paginated.length > 0 ? (
-                paginated.map(student => (
-                  <TableRow key={student.id} hover>
-                    <TableCell>{student.rank}</TableCell>
-                    <TableCell>{student.studentId}</TableCell>
-                    <TableCell>{student.name}</TableCell>
-                    <TableCell>{student.department}</TableCell>
-                    <TableCell>{student.faculty}</TableCell>
-                    <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
-                    <TableCell align="right">{student.credits}</TableCell>
-                    <TableCell>
-                      <Button size="small" variant="outlined" onClick={() => {}}>
-                        Transcript
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))
+                paginated.map(student => {
+                  const status = approvalStatus[student.id];
+                  return (
+                    <TableRow
+                      key={student.id}
+                      hover
+                      sx={
+                        status === 'approved'
+                          ? { backgroundColor: 'rgba(56, 142, 60, 0.12)' }
+                          : status === 'disapproved'
+                          ? { backgroundColor: 'rgba(211, 47, 47, 0.12)' }
+                          : {}
+                      }
+                    >
+                      <TableCell>{student.rank}</TableCell>
+                      <TableCell>{student.studentId}</TableCell>
+                      <TableCell>{student.name}</TableCell>
+                      <TableCell>{student.department}</TableCell>
+                      <TableCell>{student.faculty}</TableCell>
+                      <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
+                      <TableCell align="right">{student.credits}</TableCell>
+                      <TableCell>
+                        <Button size="small" variant="outlined" onClick={() => {}}>
+                          Transcript
+                        </Button>
+                      </TableCell>
+                      <TableCell>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                          <Button
+                            size="small"
+                            color="success"
+                            onClick={() => handleApprove(student.id)}
+                            startIcon={<CheckIcon />}
+                            disabled={status === 'approved'}
+                          >
+                            Approve
+                          </Button>
+                          <Button
+                            size="small"
+                            color="error"
+                            onClick={() => handleDisapprove(student.id)}
+                            startIcon={<CloseIcon />}
+                            disabled={status === 'disapproved'}
+                          >
+                            Disapprove
+                          </Button>
+                        </Box>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
               ) : (
                 <TableRow>
-                  <TableCell colSpan={8} align="center">
+                  <TableCell colSpan={9} align="center">
                     <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                       No records found.
                     </Typography>
@@ -314,52 +417,6 @@ const FacultyRankingPage = () => {
           onRowsPerPageChange={handleChangeRowsPerPage}
         />
       </Paper>
-
-      {/* Ranking Info card */}
-      <Card sx={{ width: '100%', mt: 2, boxShadow: 1 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Ranking Information</Typography>
-          <Divider sx={{ mb: 2 }} />
-          {rankingMetadata && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Students Ranked
-              </Typography>
-              <Typography variant="body1">
-                {rankingMetadata.eligibleStudents} / {rankingMetadata.totalStudents}
-              </Typography>
-            </Box>
-          )}
-          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-            Filter by Department
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {departments.map(dept => (
-              <Chip
-                key={dept}
-                label={dept}
-                onClick={() => setSelectedDepartment(dept)}
-                variant={selectedDepartment === dept ? 'filled' : 'outlined'}
-                color={selectedDepartment === dept ? 'primary' : 'default'}
-              />
-            ))}
-            {selectedDepartment && (
-              <Chip
-                label="Clear"
-                onClick={() => setSelectedDepartment('')}
-                variant="outlined"
-              />
-            )}
-          </Box>
-          {rankingMetadata && (
-            <Alert severity="info" sx={{ mt: 3 }}>
-              <Typography variant="caption">
-                Last updated: {rankingMetadata.lastUpdated.toLocaleDateString()} {rankingMetadata.lastUpdated.toLocaleTimeString()}
-              </Typography>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
     </DeansOfficeDashboardLayout>
   );
 };

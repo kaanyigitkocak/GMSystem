@@ -29,7 +29,6 @@ import {
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
-  GetApp as DownloadIcon,
   Error as ErrorIcon
 } from '@mui/icons-material';
 import { useGraduationRequirements } from '../hooks/useGraduationRequirements';
@@ -101,13 +100,6 @@ const GraduationRequirementsPage = () => {
         <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', mb: 3 }}>
           <Typography variant="h5" gutterBottom>Graduation Requirements</Typography>
           <Box>
-            <Button 
-              variant="outlined" 
-              startIcon={<DownloadIcon />}
-              sx={{ mr: 1 }}
-            >
-              Download PDF
-            </Button>
             <Button 
               variant="outlined" 
               color="error"
@@ -273,7 +265,7 @@ const GraduationRequirementsPage = () => {
         <DialogTitle>Report Missing Files</DialogTitle>
         <DialogContent>
           <Typography variant="body2" paragraph sx={{ mt: 1 }}>
-            Please describe the issue with your graduation requirement files and we'll notify your advisor.
+            Please describe the missing files or documents for your graduation requirements and we'll notify your advisor.
           </Typography>
           <TextField
             autoFocus

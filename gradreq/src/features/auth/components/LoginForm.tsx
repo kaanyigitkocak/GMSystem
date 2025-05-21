@@ -54,27 +54,20 @@ const LoginForm = ({ onForgotPasswordClick, onRegisterClick }: LoginFormProps) =
       const storedUser = localStorage.getItem('authUser');
       if (storedUser) {
         const user = JSON.parse(storedUser);
-        switch (user.role) {
-          case UserType.STUDENT:
-            navigate('/student');
-            break;
-          case UserType.SECRETARY:
-            navigate('/secretary');
-            break;
-          case UserType.ADVISOR:
-            navigate('/advisor');
-            break;
-          case UserType.DEANS_OFFICE:
-            navigate('/deans-office');
-            break;
-          case UserType.STUDENT_AFFAIRS:
-            navigate('/student-affairs');
-            break;
-          case UserType.ADMIN:
-            navigate('/admin');
-            break;
-          default:
-            navigate('/dashboard');
+        if (user.role === 'student') {
+          navigate('/student');
+        } else if (user.role === 'secretary') {
+          navigate('/secretary');
+        } else if (user.role === 'advisor') {
+          navigate('/advisor');
+        } else if (user.role === 'deans_office') {
+          navigate('/deans-office');
+        } else if (user.role === 'student_affairs') {
+          navigate('/student-affairs');
+        } else if (user.role === 'admin') {
+          navigate('/admin');
+        } else {
+          navigate('/dashboard');
         }
       }
     } catch (err) {

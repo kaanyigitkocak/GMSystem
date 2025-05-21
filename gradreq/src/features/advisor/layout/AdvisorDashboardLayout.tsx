@@ -1,4 +1,4 @@
-import { ReactNode } from 'react';
+import { Outlet } from 'react-router-dom';
 import {
   Box,
   AppBar,
@@ -27,11 +27,7 @@ import { useAuth } from '../../auth/contexts/AuthContext';
 
 const drawerWidth = 240;
 
-interface AdvisorDashboardLayoutProps {
-  children: ReactNode;
-}
-
-const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
+const AdvisorDashboardLayout = () => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -51,17 +47,16 @@ const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
   };
 
   const menuItems = [
-    { text: 'Genel Bakış', icon: <DashboardIcon />, path: '/advisor' },
-    { text: 'Öğrenci Listem', icon: <GroupIcon />, path: '/advisor/students' },
-    { text: 'Transkript İnceleme', icon: <SchoolIcon />, path: '/advisor/transcripts' },
-    { text: 'Dilekçe Oluştur', icon: <AssignmentIcon />, path: '/advisor/petition' },
+    { text: 'Dashboard', icon: <DashboardIcon />, path: '/advisor' },
+    { text: 'My Students', icon: <GroupIcon />, path: '/advisor/my-students' },
+    { text: 'Manual Check Requests', icon: <SchoolIcon />, path: '/advisor/manual-check-requests' },
   ];
 
   const drawer = (
     <>
       <Toolbar>
         <Typography variant="h6" noWrap component="div">
-          Advisor Paneli
+          Advisor Panel
         </Typography>
       </Toolbar>
       <Divider />
@@ -82,7 +77,7 @@ const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
             <ListItemIcon>
               <LogoutIcon />
             </ListItemIcon>
-            <ListItemText primary="Çıkış Yap" />
+            <ListItemText primary="Logout" />
           </ListItemButton>
         </ListItem>
       </List>
@@ -157,7 +152,7 @@ const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
           mt: 8,
         }}
       >
-        {children}
+        <Outlet />
       </Box>
     </Box>
   );

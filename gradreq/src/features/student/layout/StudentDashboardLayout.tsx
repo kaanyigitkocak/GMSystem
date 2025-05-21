@@ -30,7 +30,6 @@ import {
   Dashboard as DashboardIcon,
   Close as CloseIcon,
   Notifications as NotificationsIcon,
-  Email as EmailIcon,
   Upload as UploadIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../features/auth/contexts/AuthContext';
@@ -48,7 +47,6 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
   // Menu anchor states
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
-  const [messagesAnchor, setMessagesAnchor] = useState<null | HTMLElement>(null);
   
   // Current active path for highlighting navigation
   const pathname = window.location.pathname;
@@ -70,14 +68,6 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
     setNotificationsAnchor(null);
   };
   
-  const handleMessagesOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setMessagesAnchor(event.currentTarget);
-  };
-  
-  const handleMessagesClose = () => {
-    setMessagesAnchor(null);
-  };
-  
   const handleLogout = () => {
     handleProfileMenuClose();
     logout();
@@ -96,7 +86,7 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
     { path: '/student/requirements', icon: <SchoolIcon />, label: 'Graduation Requirements' },
     { path: '/student/manual-check', icon: <CheckCircleIcon />, label: 'Manual Check' },
     { path: '/student/disengagement', icon: <UploadIcon />, label: 'Disengagement Certificates' },
-    { path: '/student/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
+    { path: '/student/notifications', icon: <NotificationsIcon />, label: 'Notifications' }
   ];
   
   // Check if a navigation item is active
@@ -261,17 +251,6 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
                 </Badge>
               </IconButton>
               
-              {/* Messages Button */}
-              <IconButton 
-                color="inherit" 
-                sx={{ ml: 1 }}
-                onClick={handleMessagesOpen}
-              >
-                <Badge badgeContent={2} color="primary">
-                  <EmailIcon />
-                </Badge>
-              </IconButton>
-              
               <Typography variant="body2" sx={{ ml: 2, mr: 1, display: { xs: 'none', sm: 'block' } }}>
                 {user?.name || 'Student'} 
               </Typography>
@@ -342,45 +321,13 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
                   <Typography variant="caption" color="text.secondary">2 days ago</Typography>
                 </Box>
               </MenuItem>
-              <MenuItem sx={{ justifyContent: 'center' }}>
+              <MenuItem 
+                sx={{ justifyContent: 'center' }}
+                component={RouterLink}
+                to="/student/notifications"
+                onClick={handleNotificationsClose}
+              >
                 <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>View All Notifications</Typography>
-              </MenuItem>
-            </Menu>
-            
-            {/* Messages Menu */}
-            <Menu
-              anchorEl={messagesAnchor}
-              open={Boolean(messagesAnchor)}
-              onClose={handleMessagesClose}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-              PaperProps={{
-                sx: { width: 320, maxHeight: 400 }
-              }}
-            >
-              <MenuItem sx={{ bgcolor: '#f9f9f9' }}>
-                <Box sx={{ width: '100%' }}>
-                  <Typography variant="subtitle2" fontWeight={600}>Messages</Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem>
-                <Box>
-                  <Typography variant="body2" fontWeight={500}>Advisor: Prof. Smith</Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    Please review your graduation status and get back to me...
-                  </Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem>
-                <Box>
-                  <Typography variant="body2" fontWeight={500}>Student Affairs</Typography>
-                  <Typography variant="caption" color="text.secondary" noWrap>
-                    Your graduation requirements have been updated...
-                  </Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem sx={{ justifyContent: 'center' }}>
-                <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>View All Messages</Typography>
               </MenuItem>
             </Menu>
           </Toolbar>

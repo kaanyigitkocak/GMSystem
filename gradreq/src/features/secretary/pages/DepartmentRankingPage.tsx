@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Box,
   Paper,
@@ -10,11 +10,6 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Alert,
   IconButton,
   Dialog,
@@ -22,40 +17,114 @@ import {
   DialogContent,
   DialogActions,
   Snackbar,
-  CircularProgress
+  CircularProgress,
+  Chip,
+  Divider
 } from '@mui/material';
-import type { SelectChangeEvent } from '@mui/material';
 import {
-  ArrowUpward as ArrowUpwardIcon,
-  ArrowDownward as ArrowDownwardIcon,
   Print as PrintIcon,
   FileDownload as FileDownloadIcon,
-  Edit as EditIcon,
-  Delete as DeleteIcon
+  Visibility as VisibilityIcon,
+  Check as CheckIcon,
+  Cancel as CancelIcon
 } from '@mui/icons-material';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { getStudentRankings, updateStudentRanking, reorderStudentRankings } from '../services/secretaryService';
 import type { StudentRanking } from '../types';
-import { useAuth } from '../../auth/contexts/AuthContext';
+
+// Updated StudentRanking type to include status
+interface ExtendedStudentRanking extends StudentRanking {
+  status: 'Pending' | 'Approved' | 'Rejected';
+}
+
+// Mock interface for student transcript data
+interface StudentTranscript {
+  studentId: string;
+  studentName: string;
+  department: string;
+  gpa: number;
+  credits: number;
+  courses: Array<{
+    courseCode: string;
+    courseName: string;
+    credit: number;
+    grade: string;
+    semester: string;
+  }>;
+}
 
 const DepartmentRankingPage = () => {
-  const { user } = useAuth();
-  const department = user?.department || 'Department';
-  const [students, setStudents] = useState<StudentRanking[]>([]);
-  const [openEditDialog, setOpenEditDialog] = useState(false);
-  const [currentStudent, setCurrentStudent] = useState<StudentRanking | null>(null);
+  // Fixed department for the secretary
+  const departmentName = "Test Department";
+  
+  // Mock student data for testing
+  const mockStudents: ExtendedStudentRanking[] = [
+    {
+      id: '1',
+      studentId: '2019510001',
+      studentName: 'Ahmet Yılmaz',
+      department: departmentName,
+      gpa: 3.82,
+      graduationDate: '2024-06-15',
+      ranking: 1,
+      status: 'Pending'
+    },
+    {
+      id: '2',
+      studentId: '2019510042',
+      studentName: 'Ayşe Demir',
+      department: departmentName,
+      gpa: 3.75,
+      graduationDate: '2024-06-15',
+      ranking: 2,
+      status: 'Pending'
+    },
+    {
+      id: '3',
+      studentId: '2019510036',
+      studentName: 'Mehmet Kaya',
+      department: departmentName,
+      gpa: 3.65,
+      graduationDate: '2024-06-15',
+      ranking: 3,
+      status: 'Pending'
+    },
+    {
+      id: '4',
+      studentId: '2019510078',
+      studentName: 'Zeynep Şahin',
+      department: departmentName,
+      gpa: 3.58,
+      graduationDate: '2024-06-15',
+      ranking: 4,
+      status: 'Pending'
+    }
+  ];
+
+  const [students, setStudents] = useState<ExtendedStudentRanking[]>(mockStudents);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false); // Changed to false since we're using mock data
+  
+  // New state for transcript dialog
+  const [openTranscriptDialog, setOpenTranscriptDialog] = useState(false);
+  const [currentTranscript, setCurrentTranscript] = useState<StudentTranscript | null>(null);
+  const [currentStudentId, setCurrentStudentId] = useState<string>('');
 
-  // Fetch student rankings on mount
+  // Comment out or remove the useEffect that fetches student rankings since we're using mock data
+  /*
   useEffect(() => {
     const fetchStudentRankings = async () => {
       setLoading(true);
       try {
-        const data = await getStudentRankings(department);
-        setStudents(data);
+        const data = await getStudentRankings(departmentName);
+        const studentsWithStatus = data.map(student => ({
+          ...student,
+          status: 'Pending' as const
+        }));
+        setStudents(studentsWithStatus);
       } catch (error) {
         console.error('Error fetching student rankings:', error);
         setSnackbarMessage('Failed to load student rankings');
@@ -64,105 +133,182 @@ const DepartmentRankingPage = () => {
         setLoading(false);
       }
     };
+
     fetchStudentRankings();
-  }, [department]);
+  }, []);
+  */
 
-  // Handle edit student
-  const handleEditClick = (student: StudentRanking) => {
-    setCurrentStudent({...student});
-    setOpenEditDialog(true);
-  };
-
-  // Handle close edit dialog
-  const handleCloseEditDialog = () => {
-    setOpenEditDialog(false);
-    setCurrentStudent(null);
-  };
-
-  // Handle save student
-  const handleSaveStudent = async () => {
-    if (!currentStudent) return;
+  // Handle view transcript
+  const handleViewTranscript = (student: ExtendedStudentRanking) => {
+    const mockTranscript: StudentTranscript = {
+      studentId: student.studentId,
+      studentName: student.studentName,
+      department: student.department,
+      gpa: student.gpa,
+      credits: Math.floor(Math.random() * 50) + 100, 
+      courses: [
+        {
+          courseCode: 'CENG101',
+          courseName: 'Introduction to Computer Engineering',
+          credit: 4,
+          grade: 'AA',
+          semester: 'Fall 2020'
+        },
+        {
+          courseCode: 'MATH101',
+          courseName: 'Calculus I',
+          credit: 4,
+          grade: 'BA',
+          semester: 'Fall 2020'
+        },
+        {
+          courseCode: 'PHYS101',
+          courseName: 'Physics I',
+          credit: 4,
+          grade: 'BB',
+          semester: 'Fall 2020'
+        },
+        {
+          courseCode: 'CENG102',
+          courseName: 'Data Structures',
+          credit: 4,
+          grade: 'AA',
+          semester: 'Spring 2021'
+        },
+        {
+          courseCode: 'MATH102',
+          courseName: 'Calculus II',
+          credit: 4,
+          grade: 'CB',
+          semester: 'Spring 2021'
+        }
+      ]
+    };
     
-    try {
-      setLoading(true);
-      const updatedStudent = await updateStudentRanking(currentStudent);
-      
-      setStudents(students.map(student => 
-        student.id === updatedStudent.id ? updatedStudent : student
-      ));
-      
-      setSnackbarMessage('Student information updated successfully');
-      setSnackbarOpen(true);
-    } catch (error) {
-      console.error('Error updating student:', error);
-      setSnackbarMessage('Failed to update student information');
-      setSnackbarOpen(true);
-    } finally {
-      setLoading(false);
-      handleCloseEditDialog();
-    }
+    setCurrentTranscript(mockTranscript);
+    setCurrentStudentId(student.id);
+    setOpenTranscriptDialog(true);
   };
 
-  // Handle move student up
-  const handleMoveUp = async (id: string) => {
-    const index = students.findIndex(student => student.id === id);
-    if (index <= 0) return;
+  const handleCloseTranscriptDialog = () => {
+    setOpenTranscriptDialog(false);
+    setCurrentTranscript(null);
+    setCurrentStudentId('');
+  };
+
+  const handleRejectStudent = () => {
+    if (!currentStudentId) return;
     
-    try {
-      const newStudents = [...students];
-      const temp = newStudents[index - 1].ranking;
-      newStudents[index - 1].ranking = newStudents[index].ranking;
-      newStudents[index].ranking = temp;
-      
-      // Swap positions
-      [newStudents[index - 1], newStudents[index]] = [newStudents[index], newStudents[index - 1]];
-      
-      // Update the rankings on the server
-      await reorderStudentRankings(newStudents);
-      
-      setStudents(newStudents);
-    } catch (error) {
-      console.error('Error reordering students:', error);
-      setSnackbarMessage('Failed to reorder students');
-      setSnackbarOpen(true);
-    }
-  };
-
-  // Handle move student down
-  const handleMoveDown = async (id: string) => {
-    const index = students.findIndex(student => student.id === id);
-    if (index >= students.length - 1) return;
+    setStudents(prevStudents => 
+      prevStudents.map(student => 
+        student.id === currentStudentId 
+          ? { ...student, status: 'Rejected' as const } 
+          : student
+      )
+    );
     
-    try {
-      const newStudents = [...students];
-      const temp = newStudents[index + 1].ranking;
-      newStudents[index + 1].ranking = newStudents[index].ranking;
-      newStudents[index].ranking = temp;
-      
-      // Swap positions
-      [newStudents[index + 1], newStudents[index]] = [newStudents[index], newStudents[index + 1]];
-      
-      // Update the rankings on the server
-      await reorderStudentRankings(newStudents);
-      
-      setStudents(newStudents);
-    } catch (error) {
-      console.error('Error reordering students:', error);
-      setSnackbarMessage('Failed to reorder students');
-      setSnackbarOpen(true);
-    }
+    setSnackbarMessage(`Student has been rejected from graduation`);
+    setSnackbarOpen(true);
+    handleCloseTranscriptDialog();
   };
 
-  // Handle generate PDF
+  const handleApproveStudent = () => {
+    if (!currentStudentId) return;
+    
+    setStudents(prevStudents => 
+      prevStudents.map(student => 
+        student.id === currentStudentId 
+          ? { ...student, status: 'Approved' as const } 
+          : student
+      )
+    );
+    
+    setSnackbarMessage(`Student has been approved for graduation`);
+    setSnackbarOpen(true);
+    handleCloseTranscriptDialog();
+  };
+
+  const handleApproveAll = () => {
+    setStudents(prevStudents => 
+      prevStudents.map(student => ({ ...student, status: 'Approved' as const }))
+    );
+    
+    setSnackbarMessage(`All ${students.length} students have been approved for graduation`);
+    setSnackbarOpen(true);
+  };
+
   const handleGeneratePDF = () => {
+    const doc = new jsPDF();
+    doc.text(`${departmentName} - Graduation Ranking`, 14, 16);
+
+    const tableColumn = ["Rank", "Student ID", "Öğrenci Adı", "GPA", "Mezuniyet Tarihi", "Durum"]; // Turkish headers
+    const tableRows: (string | number)[][] = [];
+
+    students.forEach(student => {
+      const studentData = [
+        student.ranking,
+        student.studentId,
+        student.studentName, // Assume student names might have Turkish characters
+        student.gpa.toFixed(2),
+        student.graduationDate,
+        student.status
+      ];
+      tableRows.push(studentData);
+    });
+
+    // Try using a standard font that might have better UTF-8 support for autotable
+    autoTable(doc, { 
+      head: [tableColumn], 
+      body: tableRows, 
+      startY: 20,
+      styles: { font: "helvetica", fontStyle: "normal" }, // Added font style
+      headStyles: { fontStyle: 'bold'}
+    });
+    doc.save(`${departmentName.toLowerCase().replace(/\s+/g, '-')}-ranking.pdf`);
     setSnackbarMessage('Ranking PDF generated successfully');
     setSnackbarOpen(true);
   };
 
-  // Handle export to Excel
-  const handleExportExcel = () => {
-    setSnackbarMessage('Ranking exported to Excel successfully');
+  const handleExportCSV = () => {
+    const headers = ["Rank", "Student ID", "Student Name", "GPA", "Graduation Date", "Status"];
+    const csvRows = [
+      headers.join(','), // header row
+      ...students.map(student => 
+        [
+          student.ranking,
+          student.studentId,
+          student.studentName,
+          student.gpa.toFixed(2),
+          student.graduationDate,
+          student.status
+        ].join(',')
+      )
+    ];
+
+    const csvString = csvRows.join('\n');
+    const blob = new Blob([csvString], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `${departmentName.toLowerCase().replace(/\s+/g, '-')}-ranking.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+
+    setSnackbarMessage('Ranking exported to CSV successfully');
     setSnackbarOpen(true);
+  };
+
+  const getStatusChipColor = (status: string) => {
+    switch (status) {
+      case 'Approved':
+        return 'success';
+      case 'Rejected':
+        return 'error';
+      default:
+        return 'default';
+    }
   };
 
   return (
@@ -170,40 +316,43 @@ const DepartmentRankingPage = () => {
       <Box sx={{ mb: 4 }}>
         <Paper sx={{ p: 3, mb: 3 }}>
           <Typography variant="h5" gutterBottom fontWeight="bold">
-            Department Ranking
+            {departmentName} Ranking
           </Typography>
           <Typography variant="body1" paragraph color="text.secondary">
-            Create and manage department graduation ranking lists. You can reorder students,
+            Create and manage department graduation ranking lists. You can approve or reject students,
             export the ranking to various formats, and print graduation certificates.
           </Typography>
           
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
-            <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 240, py: 2, px: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
-              {department}
-            </Typography>
-            
-            <Box sx={{ display: 'flex', gap: 1, ml: 'auto', mt: { xs: 2, md: 0 } }}>
-              <Button
-                variant="outlined"
-                startIcon={<PrintIcon />}
-                onClick={handleGeneratePDF}
-                disabled={loading || students.length === 0}
-              >
-                Generate PDF
-              </Button>
-              <Button
-                variant="outlined"
-                startIcon={<FileDownloadIcon />}
-                onClick={handleExportExcel}
-                disabled={loading || students.length === 0}
-              >
-                Export to Excel
-              </Button>
-            </Box>
+          <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'flex-end' }}>
+            <Button
+              variant="contained"
+              color="success"
+              startIcon={<CheckIcon />}
+              onClick={handleApproveAll}
+              disabled={loading || students.length === 0}
+            >
+              Approve All
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<PrintIcon />}
+              onClick={handleGeneratePDF}
+              disabled={loading || students.length === 0}
+            >
+              Generate PDF
+            </Button>
+            <Button
+              variant="outlined"
+              startIcon={<FileDownloadIcon />}
+              onClick={handleExportCSV} // Renamed from handleExportExcel
+              disabled={loading || students.length === 0}
+            >
+              Export to CSV
+            </Button>
           </Box>
           
           <Alert severity="info" sx={{ mb: 3 }}>
-            The ranking is automatically calculated based on student GPA. You can manually adjust the ranking by using the up/down arrows.
+            Review student transcripts and approve or reject their graduation status.
           </Alert>
           
           {loading ? (
@@ -224,6 +373,7 @@ const DepartmentRankingPage = () => {
                     <TableCell>Student Name</TableCell>
                     <TableCell>GPA</TableCell>
                     <TableCell>Graduation Date</TableCell>
+                    <TableCell>Status</TableCell>
                     <TableCell align="center">Actions</TableCell>
                   </TableRow>
                 </TableHead>
@@ -235,33 +385,22 @@ const DepartmentRankingPage = () => {
                       <TableCell>{student.studentName}</TableCell>
                       <TableCell>{student.gpa.toFixed(2)}</TableCell>
                       <TableCell>{student.graduationDate}</TableCell>
+                      <TableCell>
+                        <Chip 
+                          label={student.status} 
+                          color={getStatusChipColor(student.status) as any}
+                          size="small"
+                        />
+                      </TableCell>
                       <TableCell align="center">
-                        <Box sx={{ display: 'flex', justifyContent: 'center', gap: 1 }}>
-                          <IconButton 
-                            size="small" 
-                            color="primary" 
-                            onClick={() => handleMoveUp(student.id)}
-                            disabled={student.ranking === 1 || loading}
-                          >
-                            <ArrowUpwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            color="primary" 
-                            onClick={() => handleMoveDown(student.id)}
-                            disabled={student.ranking === students.length || loading}
-                          >
-                            <ArrowDownwardIcon fontSize="small" />
-                          </IconButton>
-                          <IconButton 
-                            size="small" 
-                            color="primary"
-                            onClick={() => handleEditClick(student)}
-                            disabled={loading}
-                          >
-                            <EditIcon fontSize="small" />
-                          </IconButton>
-                        </Box>
+                        <IconButton 
+                          size="small" 
+                          color="info"
+                          onClick={() => handleViewTranscript(student)}
+                          disabled={loading}
+                        >
+                          <VisibilityIcon fontSize="small" />
+                        </IconButton>
                       </TableCell>
                     </TableRow>
                   ))}
@@ -272,57 +411,99 @@ const DepartmentRankingPage = () => {
         </Paper>
       </Box>
       
-      {/* Edit Student Dialog */}
-      <Dialog open={openEditDialog} onClose={handleCloseEditDialog} maxWidth="sm" fullWidth>
-        <DialogTitle>Edit Student Information</DialogTitle>
-        <DialogContent>
-          <Box sx={{ pt: 1 }}>
-            <TextField
-              margin="dense"
-              label="Student ID"
-              fullWidth
-              variant="outlined"
-              value={currentStudent?.studentId || ''}
-              onChange={(e) => setCurrentStudent(curr => curr ? {...curr, studentId: e.target.value} : null)}
-              sx={{ mb: 2 }}
+      {/* View Transcript Dialog */}
+      <Dialog open={openTranscriptDialog} onClose={handleCloseTranscriptDialog} maxWidth="md" fullWidth>
+        <DialogTitle sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant="h6">Student Transcript</Typography>
+          {currentTranscript && (
+            <Chip 
+              label={`GPA: ${currentTranscript.gpa.toFixed(2)}`}
+              color="primary"
+              sx={{ fontWeight: 'bold' }}
             />
-            <TextField
-              margin="dense"
-              label="Student Name"
-              fullWidth
-              variant="outlined"
-              value={currentStudent?.studentName || ''}
-              onChange={(e) => setCurrentStudent(curr => curr ? {...curr, studentName: e.target.value} : null)}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="dense"
-              label="GPA"
-              fullWidth
-              variant="outlined"
-              type="number"
-              inputProps={{ min: 0, max: 4, step: 0.01 }}
-              value={currentStudent?.gpa || 0}
-              onChange={(e) => setCurrentStudent(curr => curr ? {...curr, gpa: parseFloat(e.target.value)} : null)}
-              sx={{ mb: 2 }}
-            />
-            <TextField
-              margin="dense"
-              label="Graduation Date"
-              fullWidth
-              variant="outlined"
-              type="date"
-              InputLabelProps={{ shrink: true }}
-              value={currentStudent?.graduationDate || ''}
-              onChange={(e) => setCurrentStudent(curr => curr ? {...curr, graduationDate: e.target.value} : null)}
-            />
-          </Box>
+          )}
+        </DialogTitle>
+        <DialogContent dividers>
+          {currentTranscript ? (
+            <Box>
+              <Box sx={{ mb: 3 }}>
+                <Typography variant="subtitle1" gutterBottom>
+                  Student: {currentTranscript.studentName} ({currentTranscript.studentId})
+                </Typography>
+                <Typography variant="subtitle2" color="text.secondary">
+                  Department: {currentTranscript.department}
+                </Typography>
+                <Typography variant="body2" color="text.secondary">
+                  Total Credits: {currentTranscript.credits}
+                </Typography>
+              </Box>
+              
+              <Divider sx={{ mb: 2 }} />
+              
+              <Typography variant="h6" gutterBottom>
+                Course List
+              </Typography>
+              
+              <TableContainer component={Paper} variant="outlined">
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Course Code</TableCell>
+                      <TableCell>Course Name</TableCell>
+                      <TableCell align="center">Credits</TableCell>
+                      <TableCell align="center">Grade</TableCell>
+                      <TableCell>Semester</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {currentTranscript.courses.map((course, index) => (
+                      <TableRow key={index}>
+                        <TableCell>{course.courseCode}</TableCell>
+                        <TableCell>{course.courseName}</TableCell>
+                        <TableCell align="center">{course.credit}</TableCell>
+                        <TableCell align="center">
+                          <Chip
+                            label={course.grade}
+                            size="small"
+                            color={
+                              course.grade === 'AA' || course.grade === 'BA' ? 'success' :
+                              course.grade === 'BB' || course.grade === 'CB' ? 'primary' :
+                              course.grade === 'CC' || course.grade === 'DC' ? 'warning' :
+                              'error'
+                            }
+                          />
+                        </TableCell>
+                        <TableCell>{course.semester}</TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Box>
+          ) : (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
+              <CircularProgress />
+            </Box>
+          )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleCloseEditDialog} disabled={loading}>Cancel</Button>
-          <Button onClick={handleSaveStudent} variant="contained" disabled={loading}>
-            {loading ? <CircularProgress size={24} /> : 'Save'}
+          <Button 
+            variant="outlined" 
+            color="error" 
+            startIcon={<CancelIcon />} 
+            onClick={handleRejectStudent}
+          >
+            Reject
           </Button>
+          <Button 
+            variant="contained" 
+            color="success" 
+            startIcon={<CheckIcon />} 
+            onClick={handleApproveStudent}
+          >
+            Approve
+          </Button>
+          <Button onClick={handleCloseTranscriptDialog}>Close</Button>
         </DialogActions>
       </Dialog>
       

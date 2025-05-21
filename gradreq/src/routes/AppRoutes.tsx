@@ -4,6 +4,7 @@ import { Box, CircularProgress, Typography } from '@mui/material';
 import theme from '../core/styles/theme';
 import { useAuth } from '../features/auth/contexts/AuthContext';
 import { UserType } from '../features/auth/types';
+import AdvisorDashboardLayout from '../features/advisor/layout/AdvisorDashboardLayout';
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -37,6 +38,11 @@ const StudentAffairsDashboardLayout = lazy(() => import('../features/student_aff
 const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
 const UniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/UniversityRankingsPage'));
 const StudentAffairsNotificationsPage = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
+
+// Advisor pages
+import AdvisorDashboardPage from '../features/advisor/pages/AdvisorDashboardPage';
+import MyStudentsPage from '../features/advisor/pages/MyStudentsPage';
+import ManualCheckRequestsPage from '../features/advisor/pages/ManualCheckRequestsPage';
 
 // Loading component - positioned fixed to cover the whole screen
 const LoadingComponent = () => (
@@ -146,28 +152,56 @@ const AppRoutes = () => {
             />
           } 
         />
-        <Route
-          path="/student/notifications"
+        <Route 
+          path="/student/notifications" 
           element={
-            <ProtectedRoute
-              element={<StudentNotificationsPage />}
+            <ProtectedRoute 
+              element={
+                <StudentDashboardLayout>
+                  <StudentNotificationsPage />
+                </StudentDashboardLayout>
+              } 
             />
-          }
+          } 
         />
         
         {/* Secretary Dashboard routes */}
         <Route path="/secretary" element={<ProtectedRoute element={<SecretaryDashboard />} />} />
         <Route 
           path="/secretary/transcripts" 
-          element={<ProtectedRoute element={<TranscriptProcessingPage />} />} 
+          element={
+            <ProtectedRoute 
+              element={
+                <SecretaryDashboardLayout>
+                  <TranscriptProcessingPage />
+                </SecretaryDashboardLayout>
+              } 
+            />
+          } 
         />
         <Route 
           path="/secretary/ranking" 
-          element={<ProtectedRoute element={<DepartmentRankingPage />} />} 
+          element={
+            <ProtectedRoute 
+              element={
+                <SecretaryDashboardLayout>
+                  <DepartmentRankingPage />
+                </SecretaryDashboardLayout>
+              } 
+            />
+          } 
         />
         <Route 
           path="/secretary/notifications" 
-          element={<ProtectedRoute element={<NotificationsPage />} />} 
+          element={
+            <ProtectedRoute 
+              element={
+                <SecretaryDashboardLayout>
+                  <NotificationsPage />
+                </SecretaryDashboardLayout>
+              } 
+            />
+          } 
         />
         
         {/* Dean's Office Dashboard routes */}
@@ -245,6 +279,13 @@ const AppRoutes = () => {
             />
           } 
         />
+        
+        {/* Advisor Dashboard routes */}
+        <Route path="/advisor" element={<ProtectedRoute element={<AdvisorDashboardLayout />} />}>
+          <Route index element={<AdvisorDashboardPage />} />
+          <Route path="my-students" element={<MyStudentsPage />} />
+          <Route path="manual-check-requests" element={<ManualCheckRequestsPage />} />
+        </Route>
         
         {/* Redirect root to appropriate dashboard or login */}
         <Route path="/" element={<DashboardRouter />} />

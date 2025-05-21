@@ -10,36 +10,66 @@ import {
   ListItem, 
   ListItemText, 
   Button,
-  Divider
+  Divider,
+  Alert
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
-import AdvisorDashboardLayout from '../layout/AdvisorDashboardLayout';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+
+const mockStats = {
+  totalStudents: 24,
+  pendingGraduation: 3,
+  manualCheckRequests: 2,
+};
+
+const mockAlerts = [
+  { id: 1, message: 'Petition deadline: May 30, 2025' },
+  { id: 2, message: 'Student John Doe is at risk of not graduating' },
+];
+
+const mockNotifications = [
+  { id: 1, title: 'Graduation approval pending', detail: '3 students are waiting for your approval.' },
+  { id: 2, title: 'Manual check request', detail: 'A new manual check request has been submitted.' },
+];
 
 const AdvisorDashboardPage = () => {
-  const pendingRequests = [
-    { id: 1, studentName: 'Ahmet Yılmaz', requestType: 'Transkript İncelemesi', date: '15.08.2023' },
-    { id: 2, studentName: 'Ayşe Kaya', requestType: 'Dilekçe', date: '17.08.2023' },
-    { id: 3, studentName: 'Mehmet Demir', requestType: 'Mezuniyet İncelemesi', date: '20.08.2023' },
-  ];
+  const navigate = useNavigate();
+  const [stats] = useState(mockStats);
+  const [alerts] = useState(mockAlerts);
+  const [notifications] = useState(mockNotifications);
 
-  const upcomingMeetings = [
-    { id: 1, studentName: 'Zeynep Öztürk', topic: 'Ders Seçimi', date: '25.08.2023', time: '14:00' },
-    { id: 2, studentName: 'Can Yıldız', topic: 'Staj Danışmanlığı', date: '26.08.2023', time: '10:30' },
+  const pendingRequests = [
+    { id: 1, studentName: 'Ahmet Yilmaz', requestType: 'Transcript Review', date: '2023-08-15' },
+    { id: 2, studentName: 'Ayse Kaya', requestType: 'Petition', date: '2023-08-17' },
+    { id: 3, studentName: 'Mehmet Demir', requestType: 'Graduation Review', date: '2023-08-20' },
   ];
 
   return (
-    <AdvisorDashboardLayout>
+    <>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
-          Danışman Paneli
+          Advisor Dashboard
         </Typography>
-        <Typography variant="body1" color="text.secondary">
-          Öğrencileriniz ve inceleme bekleyen taleplerinize genel bakış.
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          Welcome, you can manage your students' graduation process and view important updates here.
         </Typography>
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <strong>Tip:</strong> Use the sidebar to quickly access your students, review manual check requests, and send petitions.
+        </Alert>
       </Box>
-
       <Grid container spacing={3}>
-        {/* İstatistikler */}
+        {/* Example Announcement */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Announcement
+            </Typography>
+            <Typography>
+              The graduation review period for Spring 2025 has started. Please check your students' status and approve eligible candidates.
+            </Typography>
+          </Paper>
+        </Grid>
+        {/* Statistics */}
         <Grid item xs={12} md={4}>
           <Paper
             elevation={2}
@@ -53,9 +83,9 @@ const AdvisorDashboardPage = () => {
             }}
           >
             <Typography variant="h3" color="primary" gutterBottom>
-              42
+              {stats.totalStudents}
             </Typography>
-            <Typography variant="body1">Danışmanlık Verilen Öğrenci</Typography>
+            <Typography variant="body1">Total Students</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
@@ -71,9 +101,9 @@ const AdvisorDashboardPage = () => {
             }}
           >
             <Typography variant="h3" color="warning.main" gutterBottom>
-              3
+              {stats.pendingGraduation}
             </Typography>
-            <Typography variant="body1">Bekleyen Talep</Typography>
+            <Typography variant="body1">Pending Graduation</Typography>
           </Paper>
         </Grid>
         <Grid item xs={12} md={4}>
@@ -89,22 +119,17 @@ const AdvisorDashboardPage = () => {
             }}
           >
             <Typography variant="h3" color="success.main" gutterBottom>
-              2
+              {stats.manualCheckRequests}
             </Typography>
-            <Typography variant="body1">Planlanan Görüşme</Typography>
+            <Typography variant="body1">Manual Check Requests</Typography>
           </Paper>
         </Grid>
 
-        {/* Bekleyen Talepler */}
+        {/* Pending Requests */}
         <Grid item xs={12} md={6}>
           <Card>
             <CardHeader 
-              title="Bekleyen Talepler" 
-              action={
-                <Button component={RouterLink} to="/advisor/requests" size="small">
-                  Tümünü Gör
-                </Button>
-              }
+              title="Pending Requests" 
             />
             <CardContent>
               <List>
@@ -113,10 +138,10 @@ const AdvisorDashboardPage = () => {
                     <ListItem>
                       <ListItemText
                         primary={`${request.studentName} - ${request.requestType}`}
-                        secondary={`Talep Tarihi: ${request.date}`}
+                        secondary={`Request Date: ${request.date}`}
                       />
                       <Button variant="outlined" size="small">
-                        İncele
+                        Review
                       </Button>
                     </ListItem>
                     {index < pendingRequests.length - 1 && <Divider />}
@@ -127,89 +152,44 @@ const AdvisorDashboardPage = () => {
           </Card>
         </Grid>
 
-        {/* Planlanan Görüşmeler */}
+        {/* Alerts */}
         <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Alerts
+            </Typography>
+            <Box sx={{ mb: 2 }}>
+              {alerts.map(alert => (
+                <Alert key={alert.id} severity="warning" sx={{ mb: 1 }}>{alert.message}</Alert>
+              ))}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 2 }}>
+              <Button variant="contained" onClick={() => navigate('/advisor/my-students')}>My Students</Button>
+              <Button variant="contained" onClick={() => navigate('/advisor/manual-check-requests')}>Manual Check Requests</Button>
+              <Button variant="contained" color="secondary" onClick={() => navigate('/advisor/petition-management')}>Petition Management</Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Recent Notifications & Tasks */}
+        <Grid item xs={12}>
           <Card>
             <CardHeader 
-              title="Planlanan Görüşmeler" 
-              action={
-                <Button component={RouterLink} to="/advisor/meetings" size="small">
-                  Tümünü Gör
-                </Button>
-              }
+              title="Recent Notifications & Tasks" 
             />
             <CardContent>
               <List>
-                {upcomingMeetings.map((meeting, index) => (
-                  <Box key={meeting.id}>
-                    <ListItem>
-                      <ListItemText
-                        primary={`${meeting.studentName} - ${meeting.topic}`}
-                        secondary={`Tarih: ${meeting.date} Saat: ${meeting.time}`}
-                      />
-                      <Button variant="outlined" size="small">
-                        Detaylar
-                      </Button>
-                    </ListItem>
-                    {index < upcomingMeetings.length - 1 && <Divider />}
-                  </Box>
+                {notifications.map(n => (
+                  <ListItem key={n.id} divider>
+                    <ListItemText primary={n.title} secondary={n.detail} />
+                  </ListItem>
                 ))}
               </List>
             </CardContent>
           </Card>
         </Grid>
-
-        {/* Hızlı Erişim */}
-        <Grid item xs={12}>
-          <Paper sx={{ p: 2 }}>
-            <Typography variant="h6" gutterBottom>
-              Hızlı Erişim
-            </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={6} md={3}>
-                <Button 
-                  component={RouterLink} 
-                  to="/advisor/students" 
-                  variant="contained" 
-                  fullWidth
-                >
-                  Öğrenci Listesi
-                </Button>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <Button 
-                  component={RouterLink} 
-                  to="/advisor/transcripts" 
-                  variant="contained" 
-                  fullWidth
-                >
-                  Transkript İnceleme
-                </Button>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <Button 
-                  component={RouterLink} 
-                  to="/advisor/petition" 
-                  variant="contained" 
-                  fullWidth
-                >
-                  Dilekçe Oluştur
-                </Button>
-              </Grid>
-              <Grid item xs={6} md={3}>
-                <Button 
-                  variant="contained" 
-                  fullWidth
-                  color="secondary"
-                >
-                  Destek Talebi
-                </Button>
-              </Grid>
-            </Grid>
-          </Paper>
-        </Grid>
       </Grid>
-    </AdvisorDashboardLayout>
+    </>
   );
 };
 

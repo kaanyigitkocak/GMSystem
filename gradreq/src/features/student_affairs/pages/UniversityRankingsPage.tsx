@@ -27,7 +27,9 @@ import {
   Search as SearchIcon,
   FileDownload as FileDownloadIcon,
   Refresh as RefreshIcon,
-  Info as InfoIcon
+  Info as InfoIcon,
+  Check as CheckIcon,
+  Close as CloseIcon
 } from '@mui/icons-material';
 import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
 import { getUniversityRankings } from '../services/studentAffairsService';
@@ -57,6 +59,11 @@ interface RankingMetadata {
 
 type Order = 'asc' | 'desc';
 
+// Add approval status type
+interface ApprovalStatus {
+  [studentId: string]: 'approved' | 'disapproved' | undefined;
+}
+
 const UniversityRankingsPage = () => {
   const [order, setOrder] = useState<Order>('desc');
   const [orderBy, setOrderBy] = useState<keyof StudentRanking>('gpa');
@@ -70,6 +77,7 @@ const UniversityRankingsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
+  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>({});
   
   const navigate = useNavigate();
 
@@ -183,26 +191,29 @@ const UniversityRankingsPage = () => {
     return matchesSearch && matchesFaculty && matchesDepartment;
   });
   
+  // Approve/disapprove handlers
+  const handleApprove = (studentId: string) => {
+    setApprovalStatus(prev => ({ ...prev, [studentId]: 'approved' }));
+  };
+  const handleDisapprove = (studentId: string) => {
+    setApprovalStatus(prev => ({ ...prev, [studentId]: 'disapproved' }));
+  };
+
+  // Sort: approved first, then normal, then disapproved
   const sortedData = [...filteredData].sort((a, b) => {
-    if (orderBy === 'rank') {
-      return order === 'asc' ? a.rank - b.rank : b.rank - a.rank;
-    }
-    
-    if (orderBy === 'gpa') {
-      return order === 'asc' ? a.gpa - b.gpa : b.gpa - a.gpa;
-    }
-    
-    if (orderBy === 'credits') {
-      return order === 'asc' ? a.credits - b.credits : b.credits - a.credits;
-    }
-    
-    // String comparison for other fields
-    const aValue = a[orderBy] as string;
-    const bValue = b[orderBy] as string;
-    
-    return order === 'asc'
-      ? aValue.localeCompare(bValue)
-      : bValue.localeCompare(aValue);
+    const aStatus = approvalStatus[a.id];
+    const bStatus = approvalStatus[b.id];
+    if (aStatus === 'approved' && bStatus !== 'approved') return -1;
+    if (aStatus !== 'approved' && bStatus === 'approved') return 1;
+    if (aStatus === 'disapproved' && bStatus !== 'disapproved') return 1;
+    if (aStatus !== 'disapproved' && bStatus === 'disapproved') return -1;
+    // fallback to original sort
+    if (orderBy === 'rank') return order === 'asc' ? a.rank - b.rank : b.rank - a.rank;
+    if (orderBy === 'gpa') return order === 'asc' ? a.gpa - b.gpa : b.gpa - a.gpa;
+    if (orderBy === 'credits') return order === 'asc' ? a.credits - b.credits : b.credits - a.credits;
+    const aVal = a[orderBy] as string;
+    const bVal = b[orderBy] as string;
+    return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
   });
   
   // Pagination
@@ -491,40 +502,75 @@ const UniversityRankingsPage = () => {
                 </TableHead>
                 <TableBody>
                   {paginatedData.length > 0 ? (
-                    paginatedData.map((student) => (
-                      <TableRow key={student.id} hover>
-                        <TableCell>{student.rank}</TableCell>
-                        <TableCell>{student.studentId}</TableCell>
-                        <TableCell>
-                          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                            {student.name}
-                          </Box>
-                        </TableCell>
-                        <TableCell>{student.department}</TableCell>
-                        <TableCell>{student.faculty}</TableCell>
-                        <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
-                        <TableCell align="right">{student.credits}</TableCell>
-                        <TableCell>
-                          <Chip 
-                            label={student.graduationEligible ? "Eligible" : "Not Eligible"} 
-                            color={student.graduationEligible ? "success" : "error"}
-                            size="small"
-                          />
-                        </TableCell>
-                        <TableCell>
-                          <Button
-                            variant="outlined"
-                            size="small"
-                            onClick={() => handleViewTranscript(student.studentId)}
-                          >
-                            View Transcript
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    ))
+                    paginatedData.map((student) => {
+                      const status = approvalStatus[student.id];
+                      return (
+                        <TableRow
+                          key={student.id}
+                          hover
+                          sx={
+                            status === 'approved'
+                              ? { backgroundColor: 'rgba(56, 142, 60, 0.12)' }
+                              : status === 'disapproved'
+                              ? { backgroundColor: 'rgba(211, 47, 47, 0.12)' }
+                              : {}
+                          }
+                        >
+                          <TableCell>{student.rank}</TableCell>
+                          <TableCell>{student.studentId}</TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              {student.name}
+                            </Box>
+                          </TableCell>
+                          <TableCell>{student.department}</TableCell>
+                          <TableCell>{student.faculty}</TableCell>
+                          <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
+                          <TableCell align="right">{student.credits}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={student.graduationEligible ? "Eligible" : "Not Eligible"} 
+                              color={student.graduationEligible ? "success" : "error"}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell>
+                            <Button
+                              variant="outlined"
+                              size="small"
+                              onClick={() => handleViewTranscript(student.studentId)}
+                            >
+                              View Transcript
+                            </Button>
+                          </TableCell>
+                          <TableCell>
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                              <Button
+                                size="small"
+                                color="success"
+                                onClick={() => handleApprove(student.id)}
+                                startIcon={<CheckIcon />}
+                                disabled={status === 'approved'}
+                              >
+                                Approve
+                              </Button>
+                              <Button
+                                size="small"
+                                color="error"
+                                onClick={() => handleDisapprove(student.id)}
+                                startIcon={<CloseIcon />}
+                                disabled={status === 'disapproved'}
+                              >
+                                Disapprove
+                              </Button>
+                            </Box>
+                          </TableCell>
+                        </TableRow>
+                      );
+                    })
                   ) : isLoading ? (
                     <TableRow>
-                      <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
+                      <TableCell colSpan={10} align="center" sx={{ py: 4 }}>
                         <CircularProgress size={40} />
                         <Typography variant="body2" sx={{ mt: 2 }}>
                           Loading ranking data...
@@ -533,7 +579,7 @@ const UniversityRankingsPage = () => {
                     </TableRow>
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={9} align="center">
+                      <TableCell colSpan={10} align="center">
                         <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
                           No ranking data found
                         </Typography>

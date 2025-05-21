@@ -17,7 +17,7 @@ export const getGraduationProgressData = async () => {
   await new Promise((resolve) => setTimeout(resolve, 300));
 
   return {
-    activeStep: 2, // 0-indexed, so this is "Disconnection Procedures"
+    activeStep: 0, // 0-indexed, so this is "Disconnection Procedures"
     steps: [
       {
         label: "Application & Academic Assessment",

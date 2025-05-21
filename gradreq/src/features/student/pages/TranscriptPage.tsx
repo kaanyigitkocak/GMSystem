@@ -25,6 +25,8 @@ import {
   Error as ErrorIcon,
 } from '@mui/icons-material';
 import { useTranscript } from '../hooks/useTranscript';
+import jsPDF from 'jspdf';
+import autoTable from 'jspdf-autotable';
 
 const TranscriptPage = () => {
   const { 
@@ -56,6 +58,76 @@ const TranscriptPage = () => {
       setSnackbarOpen(true);
       setMessage('');
     }
+  };
+
+  // Function to generate PDF
+  const generatePDF = () => {
+    if (!data) return;
+
+    const { studentInfo, courses, gpa } = data;
+    
+    // Create a new PDF document
+    const doc = new jsPDF();
+    
+    // Add university logo and header
+    doc.setFontSize(18);
+    doc.setTextColor(204, 0, 0);
+    doc.text('Izmir Institute of Technology', 105, 20, { align: 'center' });
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text('Academic Transcript', 105, 30, { align: 'center' });
+    
+    // Add student information
+    doc.setFontSize(12);
+    doc.text(`Student Name: ${studentInfo.name}`, 20, 45);
+    doc.text(`Student ID: ${studentInfo.id}`, 20, 52);
+    doc.text(`Department: ${studentInfo.department}`, 20, 59);
+    doc.text(`GPA: ${gpa}`, 20, 66);
+    doc.text(`Date: ${new Date().toLocaleDateString()}`, 20, 73);
+    
+    // Create table for courses
+    const tableColumn = ["Course Code", "Course Name", "Credits", "Grade", "Semester"];
+    const tableRows = courses.map(course => [
+      course.id,
+      course.name,
+      course.credits,
+      course.grade,
+      course.semester
+    ]);
+    
+    // Add the table to the PDF
+    autoTable(doc, {
+      head: [tableColumn],
+      body: tableRows,
+      startY: 80,
+      theme: 'grid',
+      styles: {
+        fontSize: 10,
+        cellPadding: 3,
+        lineWidth: 0.1,
+        lineColor: [0, 0, 0]
+      },
+      headStyles: {
+        fillColor: [204, 0, 0],
+        textColor: [255, 255, 255],
+        fontStyle: 'bold'
+      },
+      alternateRowStyles: {
+        fillColor: [245, 245, 245]
+      }
+    });
+    
+    // Add footer
+    const pageCount = (doc as any).internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+      doc.setPage(i);
+      doc.setFontSize(8);
+      doc.text('This is an unofficial transcript. The official transcript can be requested from the Student Affairs Office.', 105, doc.internal.pageSize.height - 10, { align: 'center' });
+      doc.text(`Page ${i} of ${pageCount}`, 105, doc.internal.pageSize.height - 5, { align: 'center' });
+    }
+    
+    // Save the PDF
+    doc.save(`Transcript_${studentInfo.id}.pdf`);
   };
   
   // Loading state
@@ -97,6 +169,7 @@ const TranscriptPage = () => {
               variant="outlined" 
               startIcon={<DownloadIcon />}
               sx={{ mr: 1 }}
+              onClick={generatePDF}
             >
               Download PDF
             </Button>
