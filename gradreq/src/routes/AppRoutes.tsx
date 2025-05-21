@@ -2,7 +2,71 @@ import { Routes, Route, Navigate } from 'react-router-dom';
 import { lazy, Suspense } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import theme from '../core/styles/theme';
-import { useAuth } from '../features/auth/contexts/AuthContext';
+import { useAut        <Route path="/student-affairs/notifications" 
+          element={
+            <ProtectedRoute 
+              element={
+                <StudentAffairsDashboardLayout>
+                  <StudentAffairsNotificationsPage />
+                </StudentAffairsDashboardLayout>
+              } 
+            />
+          } 
+        />
+
+        {/* Advisor Dashboard routes */}
+        <Route path="/advisor" element={<ProtectedRoute element={<AdvisorDashboardPage />} />} />
+        <Route 
+          path="/advisor/students" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <MyStudentsPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/advisor/students/:studentId" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <StudentDetailPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/advisor/petitions" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <PetitionManagementPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/advisor/manual-check" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <ManualCheckRequestsPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        
+        {/* Redirect root to appropriate dashboard or login */}
+        <Route path="/" element={<DashboardRouter />} />eatures/auth/contexts/AuthContext';
 import { UserType } from '../features/auth/types';
 
 // Lazy load pages for better performance
@@ -15,7 +79,22 @@ const TranscriptPage = lazy(() => import('../features/student/pages/TranscriptPa
 const GraduationRequirementsPage = lazy(() => import('../features/student/pages/GraduationRequirementsPage'));
 const ManualCheckPage = lazy(() => import('../features/student/pages/ManualCheckPage'));
 const DisengagementCertificatesPage = lazy(() => import('../features/student/pages/DisengagementCertificatesPage'));
-const StudentNotificationsPage = lazy(() => import('../features/student/pages/NotificationsPage'));
+
+// Advisor pages
+const AdvisorDashboardPage = lazy(() => import('../features/advisor/pages/AdvisorDashboardPage'));
+const AdvisorDashboardLayout = lazy(() => import('../features/advisor/layout/AdvisorDashboardLayout'));
+const MyStudentsPage = lazy(() => import('../features/advisor/pages/MyStudentsPage'));
+const PetitionManagementPage = lazy(() => import('../features/advisor/pages/PetitionManagementPage'));
+const ManualCheckRequestsPage = lazy(() => import('../features/advisor/pages/ManualCheckRequestsPage'));
+const StudentDetailPage = lazy(() => import('../features/advisor/pages/StudentDetailPage'));
+
+// Advisor pages
+const AdvisorDashboardPage = lazy(() => import('../features/advisor/pages/AdvisorDashboardPage'));
+const AdvisorDashboardLayout = lazy(() => import('../features/advisor/layout/AdvisorDashboardLayout'));
+const MyStudentsPage = lazy(() => import('../features/advisor/pages/MyStudentsPage'));
+const PetitionManagementPage = lazy(() => import('../features/advisor/pages/PetitionManagementPage'));
+const ManualCheckRequestsPage = lazy(() => import('../features/advisor/pages/ManualCheckRequestsPage'));
+const StudentDetailPage = lazy(() => import('../features/advisor/pages/StudentDetailPage'));
 
 // Secretary pages
 const SecretaryDashboard = lazy(() => import('../features/secretary/pages/SecretaryDashboardPage'));
@@ -29,7 +108,6 @@ const DeansOfficeDashboard = lazy(() => import('../features/deansOffice/pages/De
 const DeansOfficeDashboardLayout = lazy(() => import('../features/deansOffice/layout/DeansOfficeDashboardLayout'));
 const FileUploadPage = lazy(() => import('../features/deansOffice/pages/FileUploadPage'));
 const FacultyRankingPage = lazy(() => import('../features/deansOffice/pages/FacultyRankingPage'));
-const DeansOfficeNotificationsPage = lazy(() => import('../features/deansOffice/pages/NotificationsPage'));
 
 // Student Affairs pages
 const StudentAffairsDashboard = lazy(() => import('../features/student_affairs/pages/StudentAffairsDashboardPage'));
@@ -85,6 +163,8 @@ const DashboardRouter = () => {
       return <Navigate to="/deansoffice" replace />;
     case UserType.STUDENT_AFFAIRS:
       return <Navigate to="/student-affairs" replace />;
+    case UserType.ADVISOR:
+      return <Navigate to="/advisor" replace />;
     default:
       return <Navigate to="/login" replace />;
   }
@@ -146,14 +226,6 @@ const AppRoutes = () => {
             />
           } 
         />
-        <Route
-          path="/student/notifications"
-          element={
-            <ProtectedRoute
-              element={<StudentNotificationsPage />}
-            />
-          }
-        />
         
         {/* Secretary Dashboard routes */}
         <Route path="/secretary" element={<ProtectedRoute element={<SecretaryDashboard />} />} />
@@ -196,16 +268,6 @@ const AppRoutes = () => {
             />
           } 
         />
-        <Route
-          path="/deansoffice/notifications"
-          element={
-            <ProtectedRoute
-              element={
-                <DeansOfficeNotificationsPage />
-              }
-            />
-          }
-        />
 
         {/* Student Affairs Dashboard routes */}
         <Route path="/student-affairs" element={<ProtectedRoute element={<StudentAffairsDashboard />} />} />
@@ -241,6 +303,57 @@ const AppRoutes = () => {
                 <StudentAffairsDashboardLayout>
                   <StudentAffairsNotificationsPage />
                 </StudentAffairsDashboardLayout>
+              } 
+            />
+          } 
+        />
+        
+        {/* Advisor Dashboard routes */}
+        <Route path="/advisor" element={<ProtectedRoute element={<AdvisorDashboardPage />} />} />
+        <Route 
+          path="/advisor/students" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <MyStudentsPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/advisor/students/:studentId" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <StudentDetailPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/advisor/petitions" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <PetitionManagementPage />
+                </AdvisorDashboardLayout>
+              } 
+            />
+          } 
+        />
+        <Route 
+          path="/advisor/manual-check" 
+          element={
+            <ProtectedRoute 
+              element={
+                <AdvisorDashboardLayout>
+                  <ManualCheckRequestsPage />
+                </AdvisorDashboardLayout>
               } 
             />
           } 
