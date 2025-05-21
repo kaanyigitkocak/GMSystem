@@ -1,0 +1,105 @@
+import { useState, useEffect } from "react";
+import {
+  getGraduationProgressData,
+  getDisconnectionProcedures,
+} from "../services/graduationService";
+import type {
+  GraduationStep,
+  DisconnectionItem,
+} from "../services/graduationService";
+
+interface GraduationProgressData {
+  activeStep: number;
+  steps: GraduationStep[];
+  isLoading: boolean;
+  error: Error | null;
+}
+
+interface DisconnectionProceduresData {
+  items: DisconnectionItem[];
+  isLoading: boolean;
+  error: Error | null;
+}
+
+export const useGraduationProgress = () => {
+  const [progressData, setProgressData] = useState<GraduationProgressData>({
+    activeStep: 0,
+    steps: [],
+    isLoading: true,
+    error: null,
+  });
+
+  const [disconnectionData, setDisconnectionData] =
+    useState<DisconnectionProceduresData>({
+      items: [],
+      isLoading: true,
+      error: null,
+    });
+
+  useEffect(() => {
+    const fetchProgressData = async () => {
+      try {
+        const data = await getGraduationProgressData();
+        setProgressData({
+          activeStep: data.activeStep,
+          steps: data.steps,
+          isLoading: false,
+          error: null,
+        });
+      } catch (error) {
+        setProgressData((prev) => ({
+          ...prev,
+          isLoading: false,
+          error:
+            error instanceof Error
+              ? error
+              : new Error("Unknown error occurred"),
+        }));
+      }
+    };
+
+    fetchProgressData();
+  }, []);
+
+  useEffect(() => {
+    // Only fetch disconnection data if we're at that step
+    if (
+      progressData.activeStep === 2 &&
+      !disconnectionData.items.length &&
+      !disconnectionData.error
+    ) {
+      const fetchDisconnectionData = async () => {
+        try {
+          const items = await getDisconnectionProcedures();
+          setDisconnectionData({
+            items,
+            isLoading: false,
+            error: null,
+          });
+        } catch (error) {
+          setDisconnectionData((prev) => ({
+            ...prev,
+            isLoading: false,
+            error:
+              error instanceof Error
+                ? error
+                : new Error("Unknown error occurred"),
+          }));
+        }
+      };
+
+      fetchDisconnectionData();
+    }
+  }, [
+    progressData.activeStep,
+    disconnectionData.items.length,
+    disconnectionData.error,
+  ]);
+
+  return {
+    ...progressData,
+    disconnectionProcedures: disconnectionData.items,
+    isDisconnectionLoading: disconnectionData.isLoading,
+    disconnectionError: disconnectionData.error,
+  };
+};

@@ -1,0 +1,6 @@
+/Users/yigit/Projects/GradReq/GradProject/tests/StarterProject.Application.Tests/obj/Debug/net8.0/StarterProject.Application.Tests.csproj.AssemblyReference.cache
+/Users/yigit/Projects/GradReq/GradProject/tests/StarterProject.Application.Tests/obj/Debug/net8.0/StarterProject.Application.Tests.GeneratedMSBuildEditorConfig.editorconfig
+/Users/yigit/Projects/GradReq/GradProject/tests/StarterProject.Application.Tests/obj/Debug/net8.0/StarterProject.Application.Tests.AssemblyInfoInputs.cache
+/Users/yigit/Projects/GradReq/GradProject/tests/StarterProject.Application.Tests/obj/Debug/net8.0/StarterProject.Application.Tests.AssemblyInfo.cs
+/Users/yigit/Projects/GradReq/GradProject/tests/StarterProject.Application.Tests/obj/Debug/net8.0/StarterProject.Application.Tests.csproj.CoreCompileInputs.cache
+/Users/yigit/Projects/GradReq/GradProject/tests/StarterProject.Application.Tests/obj/Debug/net8.0/StarterProject.Application.Tests.sourcelink.json
