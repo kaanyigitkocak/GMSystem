@@ -39,7 +39,7 @@ const mockNotifications: Notification[] = [
 ];
 
 // Get all notifications
-export const getNotifications = async (): Promise<Notification[]> => {
+export const getNotificationsMock = async (): Promise<Notification[]> => {
   // Simulate API call
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -49,7 +49,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
 };
 
 // Mark notification as read
-export const markNotificationAsRead = async (id: string): Promise<void> => {
+export const markNotificationAsReadMock = async (id: string): Promise<void> => {
   // Simulate API call
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -63,7 +63,7 @@ export const markNotificationAsRead = async (id: string): Promise<void> => {
 };
 
 // Mark all notifications as read
-export const markAllNotificationsAsRead = async (): Promise<void> => {
+export const markAllNotificationsAsReadMock = async (): Promise<void> => {
   // Simulate API call
   return new Promise((resolve) => {
     setTimeout(() => {
@@ -76,7 +76,7 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
 };
 
 // Delete notification
-export const deleteNotification = async (id: string): Promise<void> => {
+export const deleteNotificationMock = async (id: string): Promise<void> => {
   // Simulate API call
   return new Promise((resolve) => {
     setTimeout(() => {

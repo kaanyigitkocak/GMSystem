@@ -32,7 +32,7 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import type { StudentRanking } from '../types';
+import type { StudentRanking } from '../services/types';
 
 // Updated StudentRanking type to include status
 interface ExtendedStudentRanking extends StudentRanking {

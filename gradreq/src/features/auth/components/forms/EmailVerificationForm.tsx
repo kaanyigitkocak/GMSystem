@@ -8,7 +8,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { validateEmail } from '../../types';
-import { sendVerificationEmail } from '../../services/authService';
+import { sendVerificationEmail } from '../../services';
 
 interface EmailVerificationFormProps {
   initialEmail: string;

@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { Close } from '@mui/icons-material';
 import theme from '../../../core/styles/theme';
-import { registerUser } from '../services/authService';
+import { registerUser } from '../services';
 
 // Import shared types and constants
 import { RegisterStage, UserType } from '../types';

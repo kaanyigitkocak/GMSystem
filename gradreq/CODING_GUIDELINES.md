@@ -1,4 +1,3 @@
-```markdown
 # GMS (Graduation Management System) - Kodlama Yönergeleri
 
 Bu doküman, GMS projesinde tutarlı, okunabilir, bakımı kolay ve modüler kod yazmak için uyulması gereken temel kuralları ve en iyi uygulamaları içerir. "Cursor" AI kod asistanı da dahil olmak üzere tüm geliştiricilerin bu yönergelere uyması beklenir.
@@ -20,8 +19,9 @@ Bu doküman, GMS projesinde tutarlı, okunabilir, bakımı kolay ve modüler kod
 ## 3. İsimlendirme Kuralları
 
 - **Klasörler:** `kebab-case` (örn: `auth-components`, `student-panel`) veya `camelCase` (örn: `authComponents`). Proje genelinde birini seçip tutarlı olun. (Öneri: `kebab-case`)
-- **TypeScript Dosyaları (`.ts`):** `camelCase.ts` (örn: `authService.ts`, `validationUtils.ts`).
-- **React Bileşen Dosyaları (`.tsx`):** `PascalCase.tsx` (örn: `LoginForm.tsx`, `StudentDashboardPage.tsx`).
+- **Genel Servisler:** `services/` altında gruplanır (örn: `apiService.ts`, `notificationService.ts`).
+- **TypeScript Dosyaları (`.ts`):** `camelCase.ts` (örn: `exampleService.ts`, `validationUtils.ts`).
+- **React Komponentleri (`.tsx`):** `PascalCase.tsx` (örn: `UserProfile.tsx`, `Header.tsx`).
 - **CSS/Stil Dosyaları:** `ComponentName.module.css` (CSS Modülleri için) veya `kebab-case.css`.
 - **Değişkenler ve Fonksiyonlar:** `camelCase` (örn: `userName`, `calculateGpa`).
 - **Sabitler (Constants):** `UPPER_SNAKE_CASE` (örn: `MAX_LOGIN_ATTEMPTS`).
@@ -104,4 +104,7 @@ Bu doküman, GMS projesinde tutarlı, okunabilir, bakımı kolay ve modüler kod
 - Geliştiricilerin IDE'lerinde bu araçları aktif etmesi ve commit öncesi kodlarını lint edip formatlaması beklenir.
 
 Bu yönergeler, projenin geliştirme sürecinde kaliteyi ve tutarlılığı sağlamak için bir başlangıç noktasıdır. Proje geliştikçe ve ihtiyaçlar değiştikçe bu yönergeler güncellenebilir.
+
+```
+
 ```

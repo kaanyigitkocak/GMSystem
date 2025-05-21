@@ -38,9 +38,10 @@ import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
 import { 
   getTranscripts, 
   uploadTranscript, 
-  deleteTranscript
-} from '../services/secretaryService';
-import type { TranscriptData } from '../types';
+  deleteTranscript,
+  processTranscript,
+} from '../services';
+import type { TranscriptData } from '../services/types';
 
 /**
  * Extended type definitions for transcript conflict handling
@@ -429,7 +430,8 @@ const TranscriptProcessingPage = () => {
         department: chosenEntry.department,
         uploadDate: new Date().toISOString().split('T')[0],
         status: "pending", // We'll keep using the existing status values for now
-        fileName: originalConflict.fileName,
+        fileName: originalConflict.fileName || '',
+        fileSize: 0, // Added fileSize to satisfy TranscriptData type
         // In a real implementation, we'd include more data from the chosen entry
       };
       

@@ -32,8 +32,8 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { getNotifications, getGraduationRequests, getDashboardStats } from '../services/secretaryService';
-import type { Notification, GraduationRequest } from '../types';
+import { getNotifications, getGraduationRequests, getDashboardStats } from '../services';
+import type { Notification, GraduationRequest } from '../services/types';
 
 const SecretaryDashboardPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);

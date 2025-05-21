@@ -293,7 +293,7 @@ const mockDashboardStats = {
 };
 
 // Function to fetch notifications (simulated API call)
-export const getNotifications = async (): Promise<Notification[]> => {
+export const getNotificationsMock = async (): Promise<Notification[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockNotifications);
@@ -302,7 +302,9 @@ export const getNotifications = async (): Promise<Notification[]> => {
 };
 
 // Function to fetch graduation requests (simulated API call)
-export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
+export const getGraduationRequestsMock = async (): Promise<
+  GraduationRequest[]
+> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockGraduationRequests);
@@ -311,7 +313,7 @@ export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
 };
 
 // Function to fetch student rankings by department (simulated API call)
-export const getStudentRankings = async (
+export const getStudentRankingsMock = async (
   department: string
 ): Promise<StudentRanking[]> => {
   return new Promise((resolve) => {
@@ -322,7 +324,7 @@ export const getStudentRankings = async (
 };
 
 // Function to update student ranking (simulated API call)
-export const updateStudentRanking = async (
+export const updateStudentRankingMock = async (
   student: StudentRanking
 ): Promise<StudentRanking> => {
   return new Promise((resolve) => {
@@ -334,7 +336,7 @@ export const updateStudentRanking = async (
 };
 
 // Function to reorder student rankings (simulated API call)
-export const reorderStudentRankings = async (
+export const reorderStudentRankingsMock = async (
   rankings: StudentRanking[]
 ): Promise<StudentRanking[]> => {
   return new Promise((resolve) => {
@@ -346,7 +348,7 @@ export const reorderStudentRankings = async (
 };
 
 // Function to fetch transcripts (simulated API call)
-export const getTranscripts = async (): Promise<TranscriptData[]> => {
+export const getTranscriptsMock = async (): Promise<TranscriptData[]> => {
   return new Promise((resolve) => {
     console.log("Current mockTranscripts:", mockTranscripts);
     setTimeout(() => {
@@ -573,7 +575,7 @@ const updateMockTranscripts = (newTranscripts: TranscriptData[]): void => {
 /**
  * Parses a CSV file containing transcript data
  */
-export const parseTranscriptCSV = async (
+export const parseTranscriptCSVMock = async (
   file: File
 ): Promise<TranscriptData[]> => {
   try {
@@ -613,7 +615,9 @@ export const parseTranscriptCSV = async (
 /**
  * Uploads a transcript file (PDF or CSV)
  */
-export const uploadTranscript = async (file: File): Promise<TranscriptData> => {
+export const uploadTranscriptMock = async (
+  file: File
+): Promise<TranscriptData> => {
   console.log(`Starting to process file: ${file.name} (type: ${file.type})`);
 
   // Check file type
@@ -623,7 +627,7 @@ export const uploadTranscript = async (file: File): Promise<TranscriptData> => {
   if (fileType === "csv") {
     try {
       console.log("Processing as CSV file");
-      const parsedTranscripts = await parseTranscriptCSV(file);
+      const parsedTranscripts = await parseTranscriptCSVMock(file);
 
       // Return the first transcript for compatibility with existing code
       if (parsedTranscripts.length > 0) {
@@ -686,7 +690,7 @@ export const uploadTranscript = async (file: File): Promise<TranscriptData> => {
 };
 
 // Function to delete transcript (simulated API call)
-export const deleteTranscript = async (id: string): Promise<boolean> => {
+export const deleteTranscriptMock = async (id: string): Promise<boolean> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       mockTranscripts = mockTranscripts.filter(
@@ -698,7 +702,7 @@ export const deleteTranscript = async (id: string): Promise<boolean> => {
 };
 
 // Function to process transcript (simulated API call)
-export const processTranscript = async (
+export const processTranscriptMock = async (
   id: string
 ): Promise<TranscriptData> => {
   return new Promise((resolve, reject) => {
@@ -722,7 +726,7 @@ export const processTranscript = async (
 };
 
 // Function to get dashboard statistics
-export const getDashboardStats = async (): Promise<{
+export const getDashboardStatsMock = async (): Promise<{
   graduatesCount: number;
   graduationDate: string;
 }> => {
@@ -734,7 +738,7 @@ export const getDashboardStats = async (): Promise<{
 };
 
 // Function to get exportable students who are eligible for graduation
-export const getEligibleGraduates = async (): Promise<TranscriptData[]> => {
+export const getEligibleGraduatesMock = async (): Promise<TranscriptData[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       // Filter only processed transcripts which represent eligible graduates
@@ -747,8 +751,8 @@ export const getEligibleGraduates = async (): Promise<TranscriptData[]> => {
 };
 
 // Function to export eligible graduates as CSV
-export const exportEligibleGraduatesCSV = async (): Promise<string> => {
-  const graduates = await getEligibleGraduates();
+export const exportEligibleGraduatesCSVMock = async (): Promise<string> => {
+  const graduates = await getEligibleGraduatesMock();
 
   // Create CSV header
   const csvHeader = "Student ID,Student Name,Department,Upload Date,Status\n";
@@ -766,9 +770,9 @@ export const exportEligibleGraduatesCSV = async (): Promise<string> => {
 };
 
 // Function to export eligible graduates as PDF
-export const exportEligibleGraduatesPDF = async (): Promise<Blob> => {
+export const exportEligibleGraduatesPDFMock = async (): Promise<Blob> => {
   // In a real implementation, this would use a PDF library like pdfmake or jspdf
-  const graduates = await getEligibleGraduates();
+  const graduates = await getEligibleGraduatesMock();
 
   // Mock PDF content creation (would be replaced with actual PDF generation)
   const mockPdfContent = JSON.stringify(graduates, null, 2);

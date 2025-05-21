@@ -7,7 +7,7 @@ import {
   Alert,
   CircularProgress
 } from '@mui/material';
-import { verifyCode } from '../../services/authService';
+import { verifyCode } from '../../services';
 
 interface CodeVerificationFormProps {
   email: string;

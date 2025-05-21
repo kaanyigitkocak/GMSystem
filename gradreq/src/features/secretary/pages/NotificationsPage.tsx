@@ -24,8 +24,8 @@ import {
 } from '@mui/icons-material';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { getNotifications } from '../services/secretaryService';
-import type { Notification } from '../types';
+import { getNotifications } from '../services';
+import type { Notification } from '../services/types';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
