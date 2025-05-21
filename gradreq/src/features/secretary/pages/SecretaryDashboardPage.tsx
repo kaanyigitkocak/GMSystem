@@ -15,7 +15,8 @@ import {
   Tooltip,
   LinearProgress,
   Avatar,
-  Chip
+  Chip,
+  Alert
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -41,23 +42,49 @@ const SecretaryDashboardPage = () => {
   const [graduatesCount, setGraduatesCount] = useState<number>(0);
   const [graduationDate, setGraduationDate] = useState<string>('');
   const [loading, setLoading] = useState(true);
+  const [errors, setErrors] = useState<{
+    notifications: boolean;
+    requests: boolean;
+    stats: boolean;
+  }>({
+    notifications: false,
+    requests: false,
+    stats: false
+  });
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
+      setLoading(true);
+      setErrors({
+        notifications: false,
+        requests: false,
+        stats: false
+      });
+      
       try {
-        const [notificationsData, requestsData, statsData] = await Promise.all([
-          getNotifications(),
-          getGraduationRequests(),
-          getDashboardStats()
-        ]);
+        const notificationsData = await getNotifications().catch(error => {
+          console.error('Error fetching notifications:', error);
+          setErrors(prev => ({ ...prev, notifications: true }));
+          return [];
+        });
+        
+        const requestsData = await getGraduationRequests().catch(error => {
+          console.error('Error fetching graduation requests:', error);
+          setErrors(prev => ({ ...prev, requests: true }));
+          return [];
+        });
+        
+        const statsData = await getDashboardStats().catch(error => {
+          console.error('Error fetching dashboard stats:', error);
+          setErrors(prev => ({ ...prev, stats: true }));
+          return { graduatesCount: 0, graduationDate: '' };
+        });
         
         setNotifications(notificationsData);
         setPendingRequests(requestsData);
         setGraduatesCount(statsData.graduatesCount);
         setGraduationDate(statsData.graduationDate);
-      } catch (error) {
-        console.error('Error fetching dashboard data:', error);
       } finally {
         setLoading(false);
       }
@@ -99,6 +126,14 @@ const SecretaryDashboardPage = () => {
   return (
     <SecretaryDashboardLayout>
       <Box sx={{ mb: 4 }}>
+        {(errors.notifications || errors.requests || errors.stats) && (
+          <Alert 
+            severity="error" 
+            sx={{ mb: 3 }}
+          >
+            Unable to load some dashboard data. Please try refreshing the page.
+          </Alert>
+        )}
         <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
           {/* Welcome Section */}
           <Box gridColumn="span 12">
@@ -176,68 +211,76 @@ const SecretaryDashboardPage = () => {
               Status Summary
             </Typography>
             <Paper sx={{ p: 2 }}>
-              <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
-                <Box gridColumn="span 6">
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Avatar sx={{ bgcolor: 'primary.light', mr: 2 }}>
-                      <PeopleAltIcon />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Pending Requests
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold">
-                        {pendingRequests.length}
-                      </Typography>
+              {errors.stats || errors.requests ? (
+                <Box sx={{ p: 2, textAlign: 'center' }}>
+                  <Typography variant="body2" color="error">
+                    Unable to load status data
+                  </Typography>
+                </Box>
+              ) : (
+                <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
+                  <Box gridColumn="span 6">
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar sx={{ bgcolor: 'primary.light', mr: 2 }}>
+                        <PeopleAltIcon />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Pending Requests
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {pendingRequests.length}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box gridColumn="span 6">
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                      <Avatar sx={{ bgcolor: 'info.light', mr: 2 }}>
+                        <NotificationsIcon />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Notifications
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {notifications.filter(n => !n.read).length}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box gridColumn="span 6">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar sx={{ bgcolor: 'success.light', mr: 2 }}>
+                        <SchoolIcon />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Graduates
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {graduatesCount}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Box>
+                  <Box gridColumn="span 6">
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      <Avatar sx={{ bgcolor: 'warning.light', mr: 2 }}>
+                        <CalendarMonthIcon />
+                      </Avatar>
+                      <Box>
+                        <Typography variant="body2" color="text.secondary">
+                          Graduation Date
+                        </Typography>
+                        <Typography variant="h6" fontWeight="bold">
+                          {formatGraduationDate(graduationDate)}
+                        </Typography>
+                      </Box>
                     </Box>
                   </Box>
                 </Box>
-                <Box gridColumn="span 6">
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                    <Avatar sx={{ bgcolor: 'info.light', mr: 2 }}>
-                      <NotificationsIcon />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Notifications
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold">
-                        {notifications.filter(n => !n.read).length}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-                <Box gridColumn="span 6">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar sx={{ bgcolor: 'success.light', mr: 2 }}>
-                      <SchoolIcon />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Graduates
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold">
-                        {graduatesCount}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-                <Box gridColumn="span 6">
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Avatar sx={{ bgcolor: 'warning.light', mr: 2 }}>
-                      <CalendarMonthIcon />
-                    </Avatar>
-                    <Box>
-                      <Typography variant="body2" color="text.secondary">
-                        Graduation Date
-                      </Typography>
-                      <Typography variant="h6" fontWeight="bold">
-                        {formatGraduationDate(graduationDate)}
-                      </Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
+              )}
             </Paper>
           </Box>
           
@@ -248,35 +291,44 @@ const SecretaryDashboardPage = () => {
             </Typography>
             <Paper>
               <List sx={{ p: 0 }}>
-                {notifications.slice(0, 4).map((notification, index) => (
-                  <React.Fragment key={notification.id}>
-                    <ListItem
-                      sx={{ 
-                        bgcolor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.02)',
-                        px: 2, py: 1.5 
-                      }}
-                      secondaryAction={
-                        <IconButton edge="end" aria-label="view">
-                          <ArrowForwardIcon fontSize="small" />
-                        </IconButton>
-                      }
-                    >
-                      <ListItemIcon sx={{ minWidth: 40 }}>
-                        {getNotificationIcon(notification.type)}
-                      </ListItemIcon>
-                      <ListItemText 
-                        primary={notification.title}
-                        secondary={
-                          <Typography variant="body2" color="text.secondary" noWrap>
-                            {notification.message}
-                          </Typography>
+                {errors.notifications ? (
+                  <ListItem sx={{ px: 2, py: 3 }}>
+                    <ListItemText 
+                      primary="Unable to load notifications"
+                      secondary="There was an error fetching notification data"
+                      sx={{ textAlign: 'center', color: 'error.main' }}
+                    />
+                  </ListItem>
+                ) : notifications.length > 0 ? (
+                  notifications.slice(0, 4).map((notification, index) => (
+                    <React.Fragment key={notification.id}>
+                      <ListItem
+                        sx={{ 
+                          bgcolor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.02)',
+                          px: 2, py: 1.5 
+                        }}
+                        secondaryAction={
+                          <IconButton edge="end" aria-label="view">
+                            <ArrowForwardIcon fontSize="small" />
+                          </IconButton>
                         }
-                      />
-                    </ListItem>
-                    {index < notifications.slice(0, 4).length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-                {notifications.length === 0 && (
+                      >
+                        <ListItemIcon sx={{ minWidth: 40 }}>
+                          {getNotificationIcon(notification.type)}
+                        </ListItemIcon>
+                        <ListItemText 
+                          primary={notification.title}
+                          secondary={
+                            <Typography variant="body2" color="text.secondary" noWrap>
+                              {notification.message}
+                            </Typography>
+                          }
+                        />
+                      </ListItem>
+                      {index < notifications.slice(0, 4).length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))
+                ) : (
                   <ListItem sx={{ px: 2, py: 3 }}>
                     <ListItemText 
                       primary="No notifications"
@@ -306,37 +358,46 @@ const SecretaryDashboardPage = () => {
             </Typography>
             <Paper>
               <List sx={{ p: 0 }}>
-                {pendingRequests.slice(0, 4).map((request, index) => (
-                  <React.Fragment key={request.id}>
-                    <ListItem
-                      sx={{ px: 2, py: 1.5 }}
-                      secondaryAction={
-                        <Chip 
-                          label={request.status} 
-                          size="small"
-                          color={
-                            request.status === 'pending' 
-                              ? 'warning' 
-                              : request.status === 'approved' 
-                                ? 'success' 
-                                : 'error'
+                {errors.requests ? (
+                  <ListItem sx={{ px: 2, py: 3 }}>
+                    <ListItemText 
+                      primary="Unable to load requests"
+                      secondary="There was an error fetching request data"
+                      sx={{ textAlign: 'center', color: 'error.main' }}
+                    />
+                  </ListItem>
+                ) : pendingRequests.length > 0 ? (
+                  pendingRequests.slice(0, 4).map((request, index) => (
+                    <React.Fragment key={request.id}>
+                      <ListItem
+                        sx={{ px: 2, py: 1.5 }}
+                        secondaryAction={
+                          <Chip 
+                            label={request.status} 
+                            size="small"
+                            color={
+                              request.status === 'pending' 
+                                ? 'warning' 
+                                : request.status === 'approved' 
+                                  ? 'success' 
+                                  : 'error'
+                            }
+                          />
+                        }
+                      >
+                        <ListItemText 
+                          primary={`${request.studentName} (${request.studentId})`}
+                          secondary={
+                            <Typography variant="body2" color="text.secondary">
+                              {request.requestType} • Submitted on {request.date}
+                            </Typography>
                           }
                         />
-                      }
-                    >
-                      <ListItemText 
-                        primary={`${request.studentName} (${request.studentId})`}
-                        secondary={
-                          <Typography variant="body2" color="text.secondary">
-                            {request.requestType} • Submitted on {request.date}
-                          </Typography>
-                        }
-                      />
-                    </ListItem>
-                    {index < pendingRequests.slice(0, 4).length - 1 && <Divider />}
-                  </React.Fragment>
-                ))}
-                {pendingRequests.length === 0 && (
+                      </ListItem>
+                      {index < pendingRequests.slice(0, 4).length - 1 && <Divider />}
+                    </React.Fragment>
+                  ))
+                ) : (
                   <ListItem sx={{ px: 2, py: 3 }}>
                     <ListItemText 
                       primary="No pending requests"

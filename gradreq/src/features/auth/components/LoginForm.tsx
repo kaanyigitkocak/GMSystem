@@ -56,12 +56,12 @@ const LoginForm = ({ onForgotPasswordClick, onRegisterClick }: LoginFormProps) =
         const user = JSON.parse(storedUser);
         if (user.role === 'student') {
           navigate('/student');
-        } else if (user.role === 'secretary') {
+        } else if (user.role === 'secretary' || user.role === 'DEPARTMENT_SECRETARY') {
           navigate('/secretary');
         } else if (user.role === 'advisor') {
           navigate('/advisor');
         } else if (user.role === 'deans_office') {
-          navigate('/deans-office');
+          navigate('/deansoffice');
         } else if (user.role === 'student_affairs') {
           navigate('/student-affairs');
         } else if (user.role === 'admin') {

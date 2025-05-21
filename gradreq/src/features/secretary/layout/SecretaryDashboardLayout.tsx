@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
 import { 
   Box, 
@@ -19,7 +19,9 @@ import {
   MenuItem,
   Tooltip,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  Alert,
+  Button
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -28,7 +30,8 @@ import {
   FormatListNumbered as FormatListNumberedIcon,
   Notifications as NotificationsIcon,
   Logout as LogoutIcon,
-  Close as CloseIcon
+  Close as CloseIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../../features/auth/contexts/AuthContext';
@@ -46,6 +49,7 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
+  const [renderError, setRenderError] = useState<Error | null>(null);
   
   const { user, logout } = useAuth();
   const navigate = useNavigate();
@@ -90,84 +94,98 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
     navigate('/login');
   };
 
+  // Handle errors in children rendering
+  useEffect(() => {
+    return () => {
+      // Clean up error state when unmounting
+      setRenderError(null);
+    };
+  }, []);
+
+  // Drawer content shared between mobile and desktop
   const drawer = (
     <>
-      <Box 
-        sx={{ 
+      <Toolbar sx={{ px: 2 }}>
+        <Box sx={{ 
           display: 'flex', 
-          flexDirection: 'column', 
-          alignItems: 'center', 
-          p: 2, 
-          borderBottom: `1px solid ${theme.palette.divider}` 
-        }}
-      >
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          width: '100%'
+        }}>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <Box 
+              component="img"
+              src={iyteLogoPng}
+              alt="IYTE Logo"
+              sx={{ width: 40, mr: 1 }}
+            />
+            <Typography variant="h6" noWrap component="div">
+              GradSys
+            </Typography>
+          </Box>
+          
+          {isMobile && (
+            <IconButton onClick={toggleDrawer} sx={{ ml: 1 }}>
+              <CloseIcon />
+            </IconButton>
+          )}
+        </Box>
+      </Toolbar>
+      <Divider />
+      
+      {user && (
         <Box 
-          component="img" 
-          src={iyteLogoPng} 
-          alt="IYTE Logo" 
-          sx={{ width: 120, height: 'auto', mb: 1 }}
-        />
-        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, textAlign: 'center' }}>
-          Graduation Management System
-        </Typography>
-        {isMobile && (
-          <IconButton 
-            onClick={toggleDrawer} 
-            sx={{ position: 'absolute', right: 8, top: 8 }}
-          >
-            <CloseIcon />
-          </IconButton>
-        )}
-      </Box>
+          sx={{ 
+            p: 2,
+            display: 'flex',
+            alignItems: 'center',
+            gap: 2
+          }}
+        >
+          <Avatar 
+            alt={user.name || 'User'} 
+            src="/static/images/avatar/default.jpg"
+            sx={{ width: 40, height: 40 }}
+          />
+          <Box>
+            <Typography variant="subtitle1" fontWeight={500} noWrap>
+              {user.name || 'Department Secretary'}
+            </Typography>
+            <Typography variant="body2" color="text.secondary" noWrap>
+              {user.department || 'Department'}
+            </Typography>
+          </Box>
+        </Box>
+      )}
       
       <Divider />
       
-      <List>
+      <List sx={{ pt: 1 }}>
         {navItems.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               component={RouterLink}
               to={item.path}
               selected={isActive(item.path, item.exact)}
-              onClick={isMobile ? toggleDrawer : undefined}
               sx={{
-                paddingLeft: theme.spacing(2.5),
-                paddingRight: theme.spacing(2.5),
-                '&.Mui-selected': {
-                  backgroundColor: theme.palette.action.selected,
-                  borderLeft: `4px solid ${theme.palette.primary.main}`,
-                  color: theme.palette.primary.main,
-                  paddingLeft: `calc(${theme.spacing(2.5)} - 4px)`,
-                  '& .MuiListItemIcon-root': {
-                    color: theme.palette.primary.main,
-                  },
-                  '&:hover': {
-                    backgroundColor: theme.palette.action.hover,
-                  },
-                },
-                '&:hover': {
-                  backgroundColor: theme.palette.action.hover,
-                },
+                borderLeft: isActive(item.path, item.exact) ? `3px solid ${theme.palette.primary.main}` : 'none',
+                bgcolor: isActive(item.path, item.exact) ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                py: 1.5,
               }}
             >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
+              <ListItemIcon sx={{ minWidth: 40, color: isActive(item.path, item.exact) ? theme.palette.primary.main : 'inherit' }}>
+                {item.icon}
+              </ListItemIcon>
+              <ListItemText 
+                primary={item.label} 
+                primaryTypographyProps={{ 
+                  fontWeight: isActive(item.path, item.exact) ? 500 : 400,
+                  color: isActive(item.path, item.exact) ? theme.palette.primary.main : 'inherit'
+                }} 
+              />
             </ListItemButton>
           </ListItem>
         ))}
-      </List>
-      
-      <Box sx={{ flexGrow: 1 }} />
-      
-      <List sx={{ mt: 'auto' }}>
-        <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout} sx={{ paddingLeft: theme.spacing(2.5) }}>
-            <ListItemIcon>
-              <LogoutIcon />
-            </ListItemIcon>
-            <ListItemText primary="Logout" />
-          </ListItemButton>
-        </ListItem>
       </List>
     </>
   );
@@ -246,115 +264,151 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
               Secretary Panel
             </Typography>
             
-            <Box sx={{ display: 'flex' }}>
-              <Tooltip title="Notifications">
-                <IconButton 
-                  color="inherit" 
-                  onClick={handleNotificationsOpen}
-                  aria-label="show notifications"
-                >
-                  <Badge badgeContent={3} color="error">
-                    <NotificationsIcon />
-                  </Badge>
-                </IconButton>
-              </Tooltip>
-              
-              <Menu
-                anchorEl={notificationsAnchor}
-                open={Boolean(notificationsAnchor)}
-                onClose={handleNotificationsClose}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    overflow: 'visible',
-                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                    mt: 1.5,
-                    width: 320,
-                    '& .MuiAvatar-root': {
-                      width: 32,
-                      height: 32,
-                      ml: -0.5,
-                      mr: 1,
-                    },
-                  },
-                }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+            <Tooltip title="Notifications">
+              <IconButton
+                onClick={handleNotificationsOpen}
+                aria-label="show notifications"
               >
-                <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">New graduation request from John Doe</Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">Transcript uploaded for Jane Smith</Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">Disengagement certificate confirmed</Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem 
-                  sx={{ 
-                    py: 1, 
-                    justifyContent: 'center', 
-                    color: 'primary.main',
-                    fontWeight: 500,
-                  }}
-                  component={RouterLink}
-                  to="/secretary/notifications"
-                  onClick={handleNotificationsClose}
-                >
-                  View all notifications
-                </MenuItem>
-              </Menu>
+                <Badge badgeContent={0} color="error">
+                  <NotificationsIcon />
+                </Badge>
+              </IconButton>
+            </Tooltip>
+            
+            <Menu
+              anchorEl={notificationsAnchor}
+              open={Boolean(notificationsAnchor)}
+              onClose={handleNotificationsClose}
+              MenuListProps={{ sx: { width: 320, maxHeight: 360 } }}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem disabled>
+                <Box sx={{ width: '100%', textAlign: 'center' }}>
+                  <Typography variant="subtitle1">Notifications</Typography>
+                </Box>
+              </MenuItem>
+              <Divider />
               
-              <Tooltip title="Profile settings">
-                <IconButton 
-                  onClick={handleProfileMenuOpen} 
-                  sx={{ ml: 1 }}
-                  aria-label="account settings"
-                >
-                  <Avatar 
-                    alt={user?.name || 'User'} 
-                    src="/static/images/avatar/default.jpg"
-                    sx={{ width: 32, height: 32 }}
-                  />
-                </IconButton>
-              </Tooltip>
+              <Box sx={{ maxHeight: 250, overflow: 'auto' }}>
+                {/* Placeholder for notifications would go here */}
+                <MenuItem disabled>
+                  <Box sx={{ width: '100%', textAlign: 'center', py: 2 }}>
+                    <Typography variant="body2" color="text.secondary">No new notifications</Typography>
+                  </Box>
+                </MenuItem>
+              </Box>
               
-              <Menu
-                anchorEl={profileMenuAnchor}
-                open={Boolean(profileMenuAnchor)}
-                onClose={handleProfileMenuClose}
-                PaperProps={{
-                  elevation: 0,
-                  sx: {
-                    overflow: 'visible',
-                    filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                    mt: 1.5,
-                    '& .MuiAvatar-root': {
-                      width: 32,
-                      height: 32,
-                      ml: -0.5,
-                      mr: 1,
-                    },
-                  },
+              <Divider />
+              
+              <MenuItem 
+                sx={{ 
+                  py: 1, 
+                  justifyContent: 'center', 
+                  color: 'primary.main',
+                  fontWeight: 500,
                 }}
-                transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-                anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
+                component={RouterLink}
+                to="/secretary/notifications"
+                onClick={handleNotificationsClose}
               >
-                <MenuItem onClick={handleProfileMenuClose}>
-                  Profile Settings
-                </MenuItem>
-                <MenuItem onClick={handleLogout}>
-                  Logout
-                </MenuItem>
-              </Menu>
-            </Box>
+                View all notifications
+              </MenuItem>
+            </Menu>
+            
+            <Tooltip title="Profile settings">
+              <IconButton 
+                onClick={handleProfileMenuOpen} 
+                sx={{ ml: 1 }}
+                aria-label="account settings"
+              >
+                <Avatar 
+                  alt={user?.name || 'User'} 
+                  src="/static/images/avatar/default.jpg"
+                  sx={{ width: 32, height: 32 }}
+                />
+              </IconButton>
+            </Tooltip>
+            
+            <Menu
+              anchorEl={profileMenuAnchor}
+              open={Boolean(profileMenuAnchor)}
+              onClose={handleProfileMenuClose}
+              anchorOrigin={{
+                vertical: 'bottom',
+                horizontal: 'right',
+              }}
+              transformOrigin={{
+                vertical: 'top',
+                horizontal: 'right',
+              }}
+            >
+              <MenuItem onClick={handleLogout} sx={{ minWidth: 150 }}>
+                <ListItemIcon>
+                  <LogoutIcon fontSize="small" />
+                </ListItemIcon>
+                <ListItemText>Log out</ListItemText>
+              </MenuItem>
+            </Menu>
           </Toolbar>
         </AppBar>
-        <Toolbar />
-        {children}
+        
+        <Toolbar /> {/* Empty toolbar to push content down below app bar */}
+        
+        <Box 
+          sx={{ 
+            mt: 2,
+            display: 'flex',
+            flexDirection: 'column',
+            width: '100%',
+          }}
+        >
+          {renderError ? (
+            <Box sx={{ mb: 3 }}>
+              <Alert
+                severity="error"
+                icon={<ErrorIcon />}
+                action={
+                  <Button 
+                    color="inherit" 
+                    size="small" 
+                    onClick={() => window.location.reload()}
+                  >
+                    RELOAD
+                  </Button>
+                }
+              >
+                An error occurred while loading content. Please try refreshing the page.
+              </Alert>
+            </Box>
+          ) : null}
+          
+          {/* Render children in a try-catch block */}
+          {(() => {
+            try {
+              return children;
+            } catch (error) {
+              if (error instanceof Error) {
+                console.error('Error rendering children:', error);
+                setRenderError(error);
+                return (
+                  <Box sx={{ p: 3, textAlign: 'center' }}>
+                    <Typography color="error">
+                      Failed to load content. Please try reloading the page.
+                    </Typography>
+                  </Box>
+                );
+              }
+              return null;
+            }
+          })()}
+        </Box>
       </Box>
     </Box>
   );

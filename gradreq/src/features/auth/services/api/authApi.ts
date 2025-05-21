@@ -4,6 +4,7 @@ import {
   handleApiResponse,
   ServiceError,
 } from "../../../../features/common/utils/serviceUtils";
+import { UserType } from "../../../auth/types";
 
 // Force using port 5278 for API calls
 const { useMock, fetchOptions } = getServiceConfig();
@@ -53,6 +54,28 @@ export const loginUserApi = async (
 
     const responseText = await response.text(); // Get response as text to log it
     console.log("Login API Response Text:", responseText);
+
+    // Check if the response status is not successful
+    if (!response.ok) {
+      let errorMessage = "Login failed";
+
+      try {
+        // Try to parse error details from response
+        const errorData = JSON.parse(responseText);
+        errorMessage =
+          errorData.detail || errorData.title || "Authentication failed";
+
+        console.log("Login failed with error:", errorMessage);
+        throw new ServiceError(errorMessage, response.status);
+      } catch (parseError) {
+        // If can't parse JSON, use the text response
+        console.error("Failed to parse error response:", parseError);
+        throw new ServiceError(
+          responseText || "Authentication failed",
+          response.status
+        );
+      }
+    }
 
     let data: any;
     try {
@@ -121,13 +144,38 @@ export const loginUserApi = async (
       (accessTokenObj && accessTokenObj.userRole) ||
       (accessTokenObj && accessTokenObj.UserRole);
 
+    // Map backend role names to frontend UserType enum values
+    const normalizeRole = (backendRole: string): UserType => {
+      // Map backend role names to frontend role names
+      switch (backendRole) {
+        case "DEPARTMENT_SECRETARY":
+          return UserType.SECRETARY;
+        case "STUDENT":
+          return UserType.STUDENT;
+        case "ADVISOR":
+          return UserType.ADVISOR;
+        case "DEANS_OFFICE_STAFF":
+          return UserType.DEANS_OFFICE;
+        case "STUDENT_AFFAIRS_STAFF":
+          return UserType.STUDENT_AFFAIRS;
+        case "SYSTEM_ADMIN":
+          return UserType.ADMIN;
+        default:
+          // Default to student to avoid type errors, but this should be handled better in a real app
+          console.warn(
+            `Unknown role type received from backend: ${backendRole}`
+          );
+          return UserType.STUDENT;
+      }
+    };
+
     // Map backend response to our AuthResponse format - adapt based on actual API response
     return {
       user: {
         id: data.id || "",
         email: email, // Use the email we know
         name: "", // We might not have this info yet
-        role: userRole || 0,
+        role: userRole ? normalizeRole(userRole) : UserType.STUDENT,
         department: data.department || "",
       },
       token: token,
@@ -167,13 +215,37 @@ export const validateTokenApi = async (token: string): Promise<User> => {
     // Get new token and extract user information from it
     const data = await handleApiResponse<any>(response);
 
+    // Map backend role names to frontend UserType enum values
+    const normalizeRole = (backendRole: string): UserType => {
+      // Map backend role names to frontend role names
+      switch (backendRole) {
+        case "DEPARTMENT_SECRETARY":
+          return UserType.SECRETARY;
+        case "STUDENT":
+          return UserType.STUDENT;
+        case "ADVISOR":
+          return UserType.ADVISOR;
+        case "DEANS_OFFICE":
+          return UserType.DEANS_OFFICE;
+        case "STUDENT_AFFAIRS":
+          return UserType.STUDENT_AFFAIRS;
+        case "SYSTEM_ADMIN":
+          return UserType.ADMIN;
+        default:
+          console.warn(
+            `Unknown role type received from backend: ${backendRole}`
+          );
+          return UserType.STUDENT;
+      }
+    };
+
     // The response structure needs to be adjusted based on actual API
     // This is a placeholder implementation
     return {
       id: data.userId || "",
       email: data.email || "",
       name: data.fullName || "",
-      role: data.role || 0,
+      role: data.role ? normalizeRole(data.role) : UserType.STUDENT,
       department: data.department || "",
     };
   } catch (error) {

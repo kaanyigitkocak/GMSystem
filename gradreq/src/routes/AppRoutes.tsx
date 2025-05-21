@@ -5,6 +5,7 @@ import theme from '../core/styles/theme';
 import { useAuth } from '../features/auth/contexts/AuthContext';
 import { UserType } from '../features/auth/types';
 import AdvisorDashboardLayout from '../features/advisor/layout/AdvisorDashboardLayout';
+import ErrorBoundary from '../shared/components/ErrorBoundary';
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -38,6 +39,9 @@ const StudentAffairsDashboardLayout = lazy(() => import('../features/student_aff
 const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
 const UniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/UniversityRankingsPage'));
 const StudentAffairsNotificationsPage = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
+
+// Admin pages - placeholder imports, these need to be created
+const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboardPage'));
 
 // Advisor pages
 import AdvisorDashboardPage from '../features/advisor/pages/AdvisorDashboardPage';
@@ -91,6 +95,10 @@ const DashboardRouter = () => {
       return <Navigate to="/deansoffice" replace />;
     case UserType.STUDENT_AFFAIRS:
       return <Navigate to="/student-affairs" replace />;
+    case UserType.ADVISOR:
+      return <Navigate to="/advisor" replace />;
+    case UserType.ADMIN:
+      return <Navigate to="/admin" replace />;
     default:
       return <Navigate to="/login" replace />;
   }
@@ -166,15 +174,28 @@ const AppRoutes = () => {
         />
         
         {/* Secretary Dashboard routes */}
-        <Route path="/secretary" element={<ProtectedRoute element={<SecretaryDashboard />} />} />
+        <Route 
+          path="/secretary" 
+          element={
+            <ProtectedRoute 
+              element={
+                <ErrorBoundary>
+                  <SecretaryDashboard />
+                </ErrorBoundary>
+              } 
+            />
+          } 
+        />
         <Route 
           path="/secretary/transcripts" 
           element={
             <ProtectedRoute 
               element={
-                <SecretaryDashboardLayout>
-                  <TranscriptProcessingPage />
-                </SecretaryDashboardLayout>
+                <ErrorBoundary>
+                  <SecretaryDashboardLayout>
+                    <TranscriptProcessingPage />
+                  </SecretaryDashboardLayout>
+                </ErrorBoundary>
               } 
             />
           } 
@@ -184,9 +205,11 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute 
               element={
-                <SecretaryDashboardLayout>
-                  <DepartmentRankingPage />
-                </SecretaryDashboardLayout>
+                <ErrorBoundary>
+                  <SecretaryDashboardLayout>
+                    <DepartmentRankingPage />
+                  </SecretaryDashboardLayout>
+                </ErrorBoundary>
               } 
             />
           } 
@@ -196,9 +219,11 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute 
               element={
-                <SecretaryDashboardLayout>
-                  <NotificationsPage />
-                </SecretaryDashboardLayout>
+                <ErrorBoundary>
+                  <SecretaryDashboardLayout>
+                    <NotificationsPage />
+                  </SecretaryDashboardLayout>
+                </ErrorBoundary>
               } 
             />
           } 
@@ -286,6 +311,9 @@ const AppRoutes = () => {
           <Route path="my-students" element={<MyStudentsPage />} />
           <Route path="manual-check-requests" element={<ManualCheckRequestsPage />} />
         </Route>
+        
+        {/* Admin Dashboard routes */}
+        <Route path="/admin" element={<ProtectedRoute element={<AdminDashboard />} />} />
         
         {/* Redirect root to appropriate dashboard or login */}
         <Route path="/" element={<DashboardRouter />} />
