@@ -117,9 +117,9 @@ export const universityRankings = [
     students: [
       { id: "1", name: "Jane Smith", gpa: 3.95, rank: 1 },
       { id: "2", name: "John Doe", gpa: 3.75, rank: 2 },
-      { id: "3", name: "Alex Brown", gpa: 3.7, rank: 3 },
+      { id: "3", name: "Alex Brown", gpa: 3.70, rank: 3 },
       { id: "4", name: "Sarah Johnson", gpa: 3.65, rank: 4 },
-      { id: "5", name: "David Lee", gpa: 3.6, rank: 5 },
+      { id: "5", name: "David Lee", gpa: 3.60, rank: 5 },
     ],
   },
   {
@@ -131,6 +131,7 @@ export const universityRankings = [
       { id: "1", name: "Lisa Wang", gpa: 3.92, rank: 1 },
       { id: "2", name: "Tom Harris", gpa: 3.85, rank: 2 },
       { id: "3", name: "Robert Johnson", gpa: 2.85, rank: 3 },
+      { id: "4", name: "John Doe", gpa: 3.80, rank: 2 },
     ],
   },
   {
@@ -140,7 +141,7 @@ export const universityRankings = [
     faculty: "Science",
     students: [
       { id: "1", name: "Emily Davis", gpa: 3.45, rank: 1 },
-      { id: "2", name: "Mark Thompson", gpa: 3.4, rank: 2 },
+      { id: "2", name: "Mark Thompson", gpa: 3.40, rank: 2 },
     ],
   },
 ];

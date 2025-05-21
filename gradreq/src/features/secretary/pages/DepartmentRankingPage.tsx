@@ -37,9 +37,11 @@ import {
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
 import { getStudentRankings, updateStudentRanking, reorderStudentRankings } from '../services/secretaryService';
 import type { StudentRanking } from '../types';
+import { useAuth } from '../../auth/contexts/AuthContext';
 
 const DepartmentRankingPage = () => {
-  const [selectedDepartment, setSelectedDepartment] = useState('Computer Engineering');
+  const { user } = useAuth();
+  const department = user?.department || 'Department';
   const [students, setStudents] = useState<StudentRanking[]>([]);
   const [openEditDialog, setOpenEditDialog] = useState(false);
   const [currentStudent, setCurrentStudent] = useState<StudentRanking | null>(null);
@@ -47,12 +49,12 @@ const DepartmentRankingPage = () => {
   const [snackbarMessage, setSnackbarMessage] = useState('');
   const [loading, setLoading] = useState(true);
 
-  // Fetch student rankings when department changes
+  // Fetch student rankings on mount
   useEffect(() => {
     const fetchStudentRankings = async () => {
       setLoading(true);
       try {
-        const data = await getStudentRankings(selectedDepartment);
+        const data = await getStudentRankings(department);
         setStudents(data);
       } catch (error) {
         console.error('Error fetching student rankings:', error);
@@ -62,14 +64,8 @@ const DepartmentRankingPage = () => {
         setLoading(false);
       }
     };
-
     fetchStudentRankings();
-  }, [selectedDepartment]);
-
-  // Handle department change
-  const handleDepartmentChange = (event: SelectChangeEvent) => {
-    setSelectedDepartment(event.target.value);
-  };
+  }, [department]);
 
   // Handle edit student
   const handleEditClick = (student: StudentRanking) => {
@@ -182,22 +178,9 @@ const DepartmentRankingPage = () => {
           </Typography>
           
           <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
-            <FormControl sx={{ minWidth: 240 }}>
-              <InputLabel id="department-select-label">Department</InputLabel>
-              <Select
-                labelId="department-select-label"
-                id="department-select"
-                value={selectedDepartment}
-                label="Department"
-                onChange={handleDepartmentChange}
-                disabled={loading}
-              >
-                <MenuItem value="Computer Engineering">Computer Engineering</MenuItem>
-                <MenuItem value="Electrical Engineering">Electrical Engineering</MenuItem>
-                <MenuItem value="Mechanical Engineering">Mechanical Engineering</MenuItem>
-                <MenuItem value="Civil Engineering">Civil Engineering</MenuItem>
-              </Select>
-            </FormControl>
+            <Typography variant="subtitle1" fontWeight="bold" sx={{ minWidth: 240, py: 2, px: 2, bgcolor: 'grey.100', borderRadius: 1 }}>
+              {department}
+            </Typography>
             
             <Box sx={{ display: 'flex', gap: 1, ml: 'auto', mt: { xs: 2, md: 0 } }}>
               <Button

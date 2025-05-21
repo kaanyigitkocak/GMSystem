@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -22,20 +22,19 @@ import {
   Delete as DeleteIcon,
   MarkEmailRead as MarkEmailReadIcon
 } from '@mui/icons-material';
-
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { getNotifications } from '../services/secretaryService';
-import type { Notification } from '../types';
+import { getNotifications, markNotificationAsRead } from '../../../shared/services/notificationsService';
+import type { Notification } from '../../../shared/components/NotificationsPanel';
 
 const NotificationsPage = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [activeTab, setActiveTab] = useState(0);
   const [loading, setLoading] = useState(true);
 
-  React.useEffect(() => {
+  useEffect(() => {
     const fetchNotifications = async () => {
       try {
-        const data = await getNotifications();
+        const data = await getNotifications('secretary');
         setNotifications(data);
       } catch (error) {
         console.error('Error fetching notifications:', error);
@@ -43,7 +42,6 @@ const NotificationsPage = () => {
         setLoading(false);
       }
     };
-
     fetchNotifications();
   }, []);
 
@@ -57,12 +55,14 @@ const NotificationsPage = () => {
         notification.id === id ? { ...notification, read: true } : notification
       )
     );
+    markNotificationAsRead('secretary', id);
   };
 
   const handleMarkAllAsRead = () => {
     setNotifications(
       notifications.map((notification) => ({ ...notification, read: true }))
     );
+    notifications.forEach(n => markNotificationAsRead('secretary', n.id));
   };
 
   const handleDelete = (id: string) => {
@@ -82,11 +82,11 @@ const NotificationsPage = () => {
     }
   };
 
-  const filteredNotifications = 
-    activeTab === 0 
-      ? notifications 
-      : activeTab === 1 
-        ? notifications.filter(n => !n.read) 
+  const filteredNotifications =
+    activeTab === 0
+      ? notifications
+      : activeTab === 1
+        ? notifications.filter(n => !n.read)
         : notifications.filter(n => n.read);
 
   return (
@@ -98,7 +98,7 @@ const NotificationsPage = () => {
               Notifications
             </Typography>
             <Box>
-              <Button 
+              <Button
                 startIcon={<MarkEmailReadIcon />}
                 onClick={handleMarkAllAsRead}
                 disabled={!notifications.some(n => !n.read)}
@@ -111,20 +111,20 @@ const NotificationsPage = () => {
 
           <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider', mb: 3 }}>
             <Tab label="All" />
-            <Tab 
+            <Tab
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <span>Unread</span>
                   {notifications.filter(n => !n.read).length > 0 && (
-                    <Chip 
-                      size="small" 
-                      color="primary" 
-                      label={notifications.filter(n => !n.read).length} 
-                      sx={{ ml: 1, height: 20, fontSize: '0.75rem' }} 
+                    <Chip
+                      size="small"
+                      color="primary"
+                      label={notifications.filter(n => !n.read).length}
+                      sx={{ ml: 1, height: 20, fontSize: '0.75rem' }}
                     />
                   )}
                 </Box>
-              } 
+              }
             />
             <Tab label="Read" />
           </Tabs>
@@ -132,9 +132,9 @@ const NotificationsPage = () => {
           <List>
             {filteredNotifications.length === 0 ? (
               <ListItem>
-                <ListItemText 
-                  primary="No notifications" 
-                  secondary="You're all caught up!" 
+                <ListItemText
+                  primary="No notifications"
+                  secondary="You're all caught up!"
                   sx={{ textAlign: 'center' }}
                 />
               </ListItem>
@@ -142,15 +142,15 @@ const NotificationsPage = () => {
               filteredNotifications.map((notification, index) => (
                 <React.Fragment key={notification.id}>
                   <ListItem
-                    sx={{ 
+                    sx={{
                       bgcolor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.02)',
                       py: 2
                     }}
                     secondaryAction={
                       <Box>
                         {!notification.read && (
-                          <IconButton 
-                            edge="end" 
+                          <IconButton
+                            edge="end"
                             aria-label="mark as read"
                             onClick={() => handleMarkAsRead(notification.id)}
                             sx={{ mr: 1 }}
@@ -158,8 +158,8 @@ const NotificationsPage = () => {
                             <MarkEmailReadIcon fontSize="small" />
                           </IconButton>
                         )}
-                        <IconButton 
-                          edge="end" 
+                        <IconButton
+                          edge="end"
                           aria-label="delete"
                           onClick={() => handleDelete(notification.id)}
                         >
@@ -171,7 +171,7 @@ const NotificationsPage = () => {
                     <ListItemIcon sx={{ minWidth: 40 }}>
                       {getNotificationIcon(notification.type)}
                     </ListItemIcon>
-                    <ListItemText 
+                    <ListItemText
                       primary={
                         <Typography variant="subtitle1" component="div" sx={{ fontWeight: notification.read ? 'normal' : 'bold' }}>
                           {notification.title}

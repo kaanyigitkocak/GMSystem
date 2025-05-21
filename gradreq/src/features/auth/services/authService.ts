@@ -6,6 +6,7 @@ export interface User {
   email: string;
   role: UserType;
   name: string;
+  department?: string;
 }
 
 export interface AuthResponse {
@@ -33,6 +34,7 @@ const MOCK_USERS = [
       email: "secretary@example.com",
       role: UserType.SECRETARY,
       name: "Test Secretary",
+      department: "Computer Engineering",
     },
   },
   {

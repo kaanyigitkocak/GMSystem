@@ -95,7 +95,8 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
     { path: '/student/transcript', icon: <DescriptionIcon />, label: 'My Transcript' },
     { path: '/student/requirements', icon: <SchoolIcon />, label: 'Graduation Requirements' },
     { path: '/student/manual-check', icon: <CheckCircleIcon />, label: 'Manual Check' },
-    { path: '/student/disengagement', icon: <UploadIcon />, label: 'Disengagement Certificates' }
+    { path: '/student/disengagement', icon: <UploadIcon />, label: 'Disengagement Certificates' },
+    { path: '/student/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
   
   // Check if a navigation item is active
