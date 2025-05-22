@@ -1,5 +1,5 @@
 import { getServiceConfig } from "./utils/serviceUtils";
-import * as apiService from "./api/secretaryApi";
+import * as apiService from "./api";
 import * as mockService from "./mock/secretaryMock";
 import type {
   Notification,
@@ -73,6 +73,42 @@ export const uploadTranscript = async (file: File): Promise<TranscriptData> => {
     return mockService.uploadTranscriptMock(file);
   }
   return apiService.uploadTranscriptApi(file);
+};
+
+export const uploadAndParsePDFTranscript = async (
+  file: File
+): Promise<TranscriptData> => {
+  if (useMock) {
+    return mockService.uploadAndParsePDFTranscriptMock(file);
+  }
+  return apiService.uploadAndParsePDFTranscriptApi(file);
+};
+
+export const submitParsedTranscript = async (
+  transcriptData: TranscriptData
+): Promise<{
+  transcriptData: TranscriptData;
+  studentCreated: {
+    userId: string;
+    studentId: string;
+    transcriptDataId: string;
+  };
+}> => {
+  if (useMock) {
+    // For mock, wrap the simple response in the expected format
+    const mockResult = await mockService.submitParsedTranscriptMock(
+      transcriptData
+    );
+    return {
+      transcriptData: mockResult,
+      studentCreated: {
+        userId: "mock-user-id",
+        studentId: "mock-student-id",
+        transcriptDataId: "mock-transcript-id",
+      },
+    };
+  }
+  return apiService.submitParsedTranscriptApi(transcriptData);
 };
 
 export const deleteTranscript = async (id: string): Promise<boolean> => {

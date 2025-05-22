@@ -20,28 +20,23 @@ using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) CORS policy — http://localhost:3000 ve ngrok-skip-browser-warning header'ını izin ver
+// 1) CORS policy — http://localhost:3000 ve ngrok-skip-browser-warning header’ını izin ver
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowLocalhost3000", policy =>
     {
         policy
-            .AllowAnyOrigin()
+            .WithOrigins(
+                "http://localhost:5173", 
+                "http://localhost:5174", 
+                "http://localhost:3000",
+                "http://localhost:4200"
+            )
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .AllowCredentials();
     });
 });
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowFrontend", policy =>
-    {
-        policy
-            .AllowAnyOrigin()
-            .AllowAnyMethod()
-            .AllowAnyHeader();
-    });
-});
-
 
 // 2) Controller & JSON ayarları
 builder.Services.AddControllers(opts =>
@@ -67,7 +62,7 @@ builder.Services.AddControllers(opts =>
         };
     });
 
-// 3) JSON'ı zorunlu kıl
+// 3) JSON’ı zorunlu kıl
 builder.Services.Configure<MvcOptions>(opts =>
 {
     opts.Filters.Add(new ProducesAttribute("application/json"));
@@ -123,10 +118,9 @@ var app = builder.Build();
 // 6) Middleware pipeline
 app.UseRouting();
 
-// 7) CORS'u burada uygula
+// 7) CORS’u burada uygula
 app.UseCors("AllowLocalhost3000");
-// In Configure method or middleware setup
-app.UseCors("AllowFrontend");
+
 if (app.Environment.IsDevelopment())
 {
     app.UseSwagger();

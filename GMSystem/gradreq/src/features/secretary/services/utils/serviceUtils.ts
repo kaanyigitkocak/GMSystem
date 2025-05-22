@@ -4,8 +4,7 @@ import type { ServiceConfig } from "../types";
 export const getServiceConfig = (): ServiceConfig => {
   console.log("API Source:", import.meta.env.VITE_API_SOURCE);
   return {
-    apiBaseUrl:
-      import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",
+    apiBaseUrl: "http://localhost:5278/api", // FORCE: Always use 5278
     useMock: import.meta.env.VITE_API_SOURCE === "mock",
   };
 };

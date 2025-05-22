@@ -655,32 +655,306 @@ export const parseTranscriptCSVMock = async (
 export const uploadTranscriptMock = async (
   file: File
 ): Promise<TranscriptData> => {
-  console.log(`Starting to process file: ${file.name} (type: ${file.type})`);
+  try {
+    // Check file type
+    const fileType = file.name.split(".").pop()?.toLowerCase();
 
-  // Check file type
-  const fileType = file.name.split(".").pop()?.toLowerCase();
+    // If CSV file, use the CSV parser
+    if (fileType === "csv") {
+      try {
+        console.log("Processing as CSV file");
+        const parsedTranscripts = await parseTranscriptCSVMock(file);
 
-  // If CSV file, use the CSV parser
-  if (fileType === "csv") {
-    try {
-      console.log("Processing as CSV file");
-      const parsedTranscripts = await parseTranscriptCSVMock(file);
-
-      // Return the first transcript for compatibility with existing code
-      if (parsedTranscripts.length > 0) {
-        console.log(
-          `CSV processing successful, ${parsedTranscripts.length} records created`
-        );
-        return parsedTranscripts[0];
+        // Return the first transcript for compatibility with existing code
+        if (parsedTranscripts.length > 0) {
+          console.log(
+            `CSV processing successful, ${parsedTranscripts.length} records created`
+          );
+          return parsedTranscripts[0];
+        }
+      } catch (error) {
+        console.error("Error processing CSV:", error);
+        throw error instanceof Error
+          ? error
+          : new Error("Unknown error processing CSV");
       }
-    } catch (error) {
-      console.error("Error processing CSV:", error);
-      throw error instanceof Error
-        ? error
-        : new Error("Unknown error processing CSV");
     }
+
+    // If PDF file, process it (this is a placeholder and should be implemented)
+    throw new Error("PDF processing not implemented");
+  } catch (error) {
+    console.error("Error in mock upload:", error);
+    throw new Error("Failed to upload transcript file in mock service");
+  }
+};
+
+/**
+ * Mock implementation for uploading and parsing a PDF transcript
+ * Updated to simulate parsing the Turkish transcript format
+ */
+export const uploadAndParsePDFTranscriptMock = async (
+  file: File
+): Promise<TranscriptData> => {
+  try {
+    // In a real implementation, this would extract data from the PDF content
+    // based on the Turkish transcript format
+
+    // Simulate extracted data from transcript (based on the example image)
+
+    // Use data from file name, or default if not available
+    const fileNameParts = file.name.split("_");
+    let studentId = fileNameParts.length > 1 ? fileNameParts[0] : "20190045";
+    let studentName =
+      fileNameParts.length > 1
+        ? fileNameParts[1]
+            .split(".")[0]
+            .replace(/([A-Z])/g, " $1")
+            .trim()
+        : "Öğrenci Adı Soyadı";
+
+    // Create a transcript data object based on the format in the image
+    const transcript: TranscriptData = {
+      id: `pdf_${new Date().getTime()}`,
+      studentId,
+      studentName,
+      department: "Bilgisayar Mühendisliği",
+      uploadDate: new Date().toISOString().split("T")[0],
+      status: "pending",
+      fileName: file.name,
+      fileSize: file.size,
+      metaInfo: `AGNO: 3.64 | Kayıt Tarihi: 14.09.2021 | Fakülte: Mühendislik Fakültesi | Toplam AKTS: 258`,
+    };
+
+    // Extracted courses would include:
+    // 1. Courses from the 2021-2022 Fall semester (e.g., CENG111, CENG112, etc.)
+    // 2. Courses from the 2021-2022 Spring semester
+    // 3. Courses from the 2022-2023 Fall semester
+    // 4. Courses from the 2022-2023 Spring semester
+    // 5. Courses from the 2023-2024 Fall semester
+    // 6. Courses from the 2023-2024 Spring semester
+
+    console.log("PDF parsing simulated successfully for:", studentName);
+
+    // Simulate processing delay
+    await new Promise((resolve) => setTimeout(resolve, 1500));
+
+    return transcript;
+  } catch (error) {
+    console.error("Error in mock PDF parsing:", error);
+    throw new Error("Failed to parse PDF transcript in mock service");
+  }
+};
+
+/**
+ * Mock implementation for submitting parsed transcript data
+ * Updated to handle the Turkish transcript format
+ */
+export const submitParsedTranscriptMock = async (
+  transcriptData: TranscriptData
+): Promise<TranscriptData> => {
+  try {
+    // Extract GPA and registration date from metaInfo if available
+    let gpa = "0.00";
+    let registrationDate = "";
+    let faculty = "";
+    let totalCredits = "";
+
+    if (transcriptData.metaInfo) {
+      const agnoMatch = transcriptData.metaInfo.match(/AGNO:\s*([\d.]+)/);
+      const dateMatch = transcriptData.metaInfo.match(
+        /Kayıt Tarihi:\s*([^|]+)/
+      );
+      const facultyMatch = transcriptData.metaInfo.match(/Fakülte:\s*([^|]+)/);
+      const creditsMatch =
+        transcriptData.metaInfo.match(/Toplam AKTS:\s*(\d+)/);
+
+      if (agnoMatch) gpa = agnoMatch[1];
+      if (dateMatch) registrationDate = dateMatch[1].trim();
+      if (facultyMatch) faculty = facultyMatch[1].trim();
+      if (creditsMatch) totalCredits = creditsMatch[1];
+    }
+
+    // In a real implementation, this would submit the transcript data to the backend
+    // For the mock, we'll simulate a successful submission
+
+    // Generate a new ID to simulate backend processing
+    const submittedTranscript: TranscriptData = {
+      ...transcriptData,
+      id: `submitted_${new Date().getTime()}`,
+      status: "processed",
+      uploadDate: new Date().toISOString().split("T")[0],
+      metaInfo:
+        transcriptData.metaInfo ||
+        `AGNO: ${gpa} | Kayıt Tarihi: ${registrationDate} | Fakülte: ${faculty} | Toplam AKTS: ${totalCredits}`,
+    };
+
+    // Create sample course data in the metaInfo to simulate a real transcript
+    if (!submittedTranscript.metaInfo?.includes("Courses:")) {
+      const courseSample = `
+Courses: 
+2021-2022 Güz: CENG111, CENG112, ENG101, MATH141, MATH144, PHYS121, PHYS122
+2021-2022 Bahar: CENG212, CENG216, CENG218, HIST202
+2022-2023 Güz: CENG211, CENG212, CENG315, CENG311
+2022-2023 Bahar: CENG218, CENG312, CENG316, CENG318, CENG322, CENG341, MAN223
+2023-2024 Güz: CENG415, CENG400, CENG411, CENG465, CENG464, SPRT211
+2023-2024 Bahar: CENG416, CENG418, CENG424, CENG506, CENG464
+      `;
+
+      submittedTranscript.metaInfo += " | " + courseSample.trim();
+    }
+
+    // Add to the mock transcripts list
+    updateMockTranscripts([submittedTranscript]);
+
+    console.log(
+      "Submitted transcript data for:",
+      submittedTranscript.studentName
+    );
+
+    // Simulate processing delay
+    await new Promise((resolve) => setTimeout(resolve, 800));
+
+    return submittedTranscript;
+  } catch (error) {
+    console.error("Error in mock transcript submission:", error);
+    throw new Error("Failed to submit transcript data in mock service");
+  }
+};
+
+/**
+ * Mock implementation for deleting a transcript
+ */
+export const deleteTranscriptMock = async (id: string): Promise<boolean> => {
+  try {
+    // In a real implementation, this would delete the transcript from the backend
+    // For the mock, we'll simulate a successful deletion
+
+    // Remove from the mock transcripts list
+    mockTranscripts = mockTranscripts.filter(
+      (transcript) => transcript.id !== id
+    );
+
+    // Simulate processing delay
+    await new Promise((resolve) => setTimeout(resolve, 300));
+
+    return true;
+  } catch (error) {
+    console.error("Error in mock transcript deletion:", error);
+    throw new Error("Failed to delete transcript in mock service");
+  }
+};
+
+/**
+ * Mock implementation for processing a transcript
+ */
+export const processTranscriptMock = async (
+  id: string
+): Promise<TranscriptData> => {
+  try {
+    // Find the transcript in our mock data
+    const transcriptIndex = mockTranscripts.findIndex(
+      (transcript) => transcript.id === id
+    );
+
+    if (transcriptIndex === -1) {
+      throw new Error(`Transcript with ID ${id} not found`);
+    }
+
+    // Update the transcript status
+    const updatedTranscript = {
+      ...mockTranscripts[transcriptIndex],
+      status: "processed",
+    };
+
+    // Update the mock data
+    mockTranscripts[transcriptIndex] = updatedTranscript;
+
+    // Simulate processing delay
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+
+    return updatedTranscript;
+  } catch (error) {
+    console.error("Error in mock transcript processing:", error);
+    throw new Error("Failed to process transcript in mock service");
+  }
+};
+
+/**
+ * Mock implementation for getting dashboard stats
+ */
+export const getDashboardStatsMock = async (): Promise<{
+  graduatesCount: number;
+  graduationDate: string;
+}> => {
+  // Simulate processing delay
+  await new Promise((resolve) => setTimeout(resolve, 300));
+
+  return {
+    graduatesCount: 152,
+    graduationDate: "2023-06-15",
+  };
+};
+
+/**
+ * Mock implementation for getting eligible graduates
+ */
+export const getEligibleGraduatesMock = async (): Promise<TranscriptData[]> => {
+  // Filter processed transcripts
+  const eligibleGraduates = mockTranscripts.filter(
+    (transcript) => transcript.status === "processed"
+  );
+
+  // Simulate processing delay
+  await new Promise((resolve) => setTimeout(resolve, 500));
+
+  return eligibleGraduates;
+};
+
+/**
+ * Mock implementation for exporting eligible graduates as CSV
+ */
+export const exportEligibleGraduatesCSVMock = async (): Promise<string> => {
+  // Create a simple CSV header
+  const csvHeader = "StudentID,StudentName,Department,GPA,Status\n";
+
+  // Add rows for each eligible graduate
+  const csvRows = mockTranscripts
+    .filter((transcript) => transcript.status === "processed")
+    .map(
+      (transcript) =>
+        `${transcript.studentId},${transcript.studentName},${transcript.department},3.5,Eligible`
+    )
+    .join("\n");
+
+  // Simulate processing delay
+  await new Promise((resolve) => setTimeout(resolve, 800));
+
+  return csvHeader + csvRows;
+};
+
+/**
+ * Mock implementation for exporting eligible graduates as PDF
+ */
+export const exportEligibleGraduatesPDFMock = async (): Promise<Blob> => {
+  // Create a simple text representation (would be PDF in real implementation)
+  const text = `Eligible Graduates Report
+Generated: ${new Date().toISOString().split("T")[0]}
+Total Graduates: ${
+    mockTranscripts.filter((t) => t.status === "processed").length
   }
 
-  // If PDF file, process it (this is a placeholder and should be implemented)
-  throw new Error("PDF processing not implemented");
+Student List:
+${mockTranscripts
+  .filter((t) => t.status === "processed")
+  .map((t) => `- ${t.studentId}: ${t.studentName} (${t.department})`)
+  .join("\n")}
+`;
+
+  // Convert to Blob
+  const blob = new Blob([text], { type: "application/pdf" });
+
+  // Simulate processing delay
+  await new Promise((resolve) => setTimeout(resolve, 1200));
+
+  return blob;
 };

@@ -33,65 +33,14 @@ import {
 import { useNavigate } from 'react-router-dom';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { getNotifications, getGraduationRequests, getDashboardStats } from '../services';
+import { useNotifications, useGraduationRequests, useDashboard } from '../hooks';
 import type { Notification, GraduationRequest } from '../services/types';
 
 const SecretaryDashboardPage = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [pendingRequests, setPendingRequests] = useState<GraduationRequest[]>([]);
-  const [graduatesCount, setGraduatesCount] = useState<number>(0);
-  const [graduationDate, setGraduationDate] = useState<string>('');
-  const [loading, setLoading] = useState(true);
-  const [errors, setErrors] = useState<{
-    notifications: boolean;
-    requests: boolean;
-    stats: boolean;
-  }>({
-    notifications: false,
-    requests: false,
-    stats: false
-  });
+  const { notifications, unreadCount, error: notificationsError } = useNotifications();
+  const { requests: pendingRequests, error: requestsError } = useGraduationRequests();
+  const { stats, loading, error: dashboardError } = useDashboard();
   const navigate = useNavigate();
-
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      setErrors({
-        notifications: false,
-        requests: false,
-        stats: false
-      });
-      
-      try {
-        const notificationsData = await getNotifications().catch(error => {
-          console.error('Error fetching notifications:', error);
-          setErrors(prev => ({ ...prev, notifications: true }));
-          return [];
-        });
-        
-        const requestsData = await getGraduationRequests().catch(error => {
-          console.error('Error fetching graduation requests:', error);
-          setErrors(prev => ({ ...prev, requests: true }));
-          return [];
-        });
-        
-        const statsData = await getDashboardStats().catch(error => {
-          console.error('Error fetching dashboard stats:', error);
-          setErrors(prev => ({ ...prev, stats: true }));
-          return { graduatesCount: 0, graduationDate: '' };
-        });
-        
-        setNotifications(notificationsData);
-        setPendingRequests(requestsData);
-        setGraduatesCount(statsData.graduatesCount);
-        setGraduationDate(statsData.graduationDate);
-      } finally {
-        setLoading(false);
-      }
-    };
-    
-    fetchData();
-  }, []);
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -126,12 +75,12 @@ const SecretaryDashboardPage = () => {
   return (
     <SecretaryDashboardLayout>
       <Box sx={{ mb: 4 }}>
-        {(errors.notifications || errors.requests || errors.stats) && (
+        {(notificationsError || requestsError || dashboardError) && (
           <Alert 
             severity="error" 
             sx={{ mb: 3 }}
           >
-            Unable to load some dashboard data. Please try refreshing the page.
+            {dashboardError || requestsError || notificationsError}
           </Alert>
         )}
         <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
@@ -211,7 +160,7 @@ const SecretaryDashboardPage = () => {
               Status Summary
             </Typography>
             <Paper sx={{ p: 2 }}>
-              {errors.stats || errors.requests ? (
+              {(dashboardError || requestsError) ? (
                 <Box sx={{ p: 2, textAlign: 'center' }}>
                   <Typography variant="body2" color="error">
                     Unable to load status data
@@ -244,7 +193,7 @@ const SecretaryDashboardPage = () => {
                           Notifications
                         </Typography>
                         <Typography variant="h6" fontWeight="bold">
-                          {notifications.filter(n => !n.read).length}
+                          {unreadCount}
                         </Typography>
                       </Box>
                     </Box>
@@ -259,7 +208,7 @@ const SecretaryDashboardPage = () => {
                           Graduates
                         </Typography>
                         <Typography variant="h6" fontWeight="bold">
-                          {graduatesCount}
+                          {stats?.graduatesCount || 0}
                         </Typography>
                       </Box>
                     </Box>
@@ -274,7 +223,7 @@ const SecretaryDashboardPage = () => {
                           Graduation Date
                         </Typography>
                         <Typography variant="h6" fontWeight="bold">
-                          {formatGraduationDate(graduationDate)}
+                          {formatGraduationDate(stats?.graduationDate || '')}
                         </Typography>
                       </Box>
                     </Box>
@@ -291,7 +240,7 @@ const SecretaryDashboardPage = () => {
             </Typography>
             <Paper>
               <List sx={{ p: 0 }}>
-                {errors.notifications ? (
+                {notificationsError ? (
                   <ListItem sx={{ px: 2, py: 3 }}>
                     <ListItemText 
                       primary="Unable to load notifications"
@@ -358,7 +307,7 @@ const SecretaryDashboardPage = () => {
             </Typography>
             <Paper>
               <List sx={{ p: 0 }}>
-                {errors.requests ? (
+                {requestsError ? (
                   <ListItem sx={{ px: 2, py: 3 }}>
                     <ListItemText 
                       primary="Unable to load requests"

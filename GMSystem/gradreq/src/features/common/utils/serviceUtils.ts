@@ -16,10 +16,8 @@ export interface ServiceConfig {
 export const getServiceConfig = (): ServiceConfig => {
   const useMock = import.meta.env.VITE_API_SOURCE === "mock";
 
-  // Force port 5278 for API in real mode, ignore VITE_API_BASE_URL
-  const apiBaseUrl = useMock
-    ? "http://localhost:5000/api" // Not used in mock mode
-    : "http://localhost:5278/api"; // Always use port 5278 in real mode
+  // FORCE: Always use port 5278 for backend API calls
+  const apiBaseUrl = "http://localhost:5278/api";
 
   console.log("Service Config:", {
     useMock,
