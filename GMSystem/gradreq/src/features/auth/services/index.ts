@@ -3,7 +3,7 @@ import { getServiceConfig } from "./utils/serviceUtils";
 // Import API services
 import {
   loginUserApi,
-  validateTokenApi,
+  // validateTokenApi,
   sendVerificationEmailApi,
   verifyCodeApi,
   registerUserApi,
@@ -12,7 +12,7 @@ import {
 // Import mock services
 import {
   loginUserMock,
-  validateTokenMock,
+  // validateTokenMock,
   sendVerificationEmailMock,
   verifyCodeMock,
   registerUserMock,
@@ -39,12 +39,7 @@ export const loginUser = async (
   return loginUserApi(email, password);
 };
 
-export const validateToken = async (token: string): Promise<User> => {
-  if (useMock) {
-    return validateTokenMock(token);
-  }
-  return validateTokenApi(token);
-};
+// Token validation removed as it's no longer needed
 
 // Registration services
 export const sendVerificationEmail = async (

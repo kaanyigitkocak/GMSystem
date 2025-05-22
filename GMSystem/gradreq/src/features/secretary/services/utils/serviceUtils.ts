@@ -2,6 +2,7 @@ import type { ServiceConfig } from "../types";
 
 // Service configuration
 export const getServiceConfig = (): ServiceConfig => {
+  console.log("API Source:", import.meta.env.VITE_API_SOURCE);
   return {
     apiBaseUrl:
       import.meta.env.VITE_API_BASE_URL || "http://localhost:5000/api",

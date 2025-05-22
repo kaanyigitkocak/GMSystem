@@ -16,10 +16,10 @@ import {
 import EmailIcon from '@mui/icons-material/Email';
 import SchoolIcon from '@mui/icons-material/School';
 import UploadFileIcon from '@mui/icons-material/UploadFile';
-import { useNavigate } from 'react-router-dom';
-import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
-import { getStudents, getNotifications, getGraduationDecisions } from '../services/studentAffairsService';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useNavigate } from "react-router-dom";
+import StudentAffairsDashboardLayout from "../layout/StudentAffairsDashboardLayout";
+import { getStudents, getNotifications, getGraduationDecisions } from "../services";
+import { useAuth } from "../../auth/contexts/AuthContext";
 import type { Notification } from '../types';
 
 // Define Grid component with proper typing

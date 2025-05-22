@@ -193,71 +193,11 @@ export const loginUserApi = async (
 };
 
 // Token validation API service
+// This is now a stub function that's no longer used
+// It's kept for API consistency but should not be called
 export const validateTokenApi = async (token: string): Promise<User> => {
-  try {
-    // First, check if token is valid by making an authenticated request
-    const response = await fetch(`${apiBaseUrl}/Auth/RefreshToken`, {
-      ...fetchOptions,
-      method: "GET",
-      headers: {
-        ...fetchOptions.headers,
-        Authorization: `Bearer ${token}`,
-      },
-    });
-
-    if (!response.ok) {
-      throw new ServiceError(
-        `Token validation failed: ${response.statusText}`,
-        response.status
-      );
-    }
-
-    // Get new token and extract user information from it
-    const data = await handleApiResponse<any>(response);
-
-    // Map backend role names to frontend UserType enum values
-    const normalizeRole = (backendRole: string): UserType => {
-      // Map backend role names to frontend role names
-      switch (backendRole) {
-        case "DEPARTMENT_SECRETARY":
-          return UserType.SECRETARY;
-        case "STUDENT":
-          return UserType.STUDENT;
-        case "ADVISOR":
-          return UserType.ADVISOR;
-        case "DEANS_OFFICE":
-          return UserType.DEANS_OFFICE;
-        case "STUDENT_AFFAIRS":
-          return UserType.STUDENT_AFFAIRS;
-        case "SYSTEM_ADMIN":
-          return UserType.ADMIN;
-        default:
-          console.warn(
-            `Unknown role type received from backend: ${backendRole}`
-          );
-          return UserType.STUDENT;
-      }
-    };
-
-    // The response structure needs to be adjusted based on actual API
-    // This is a placeholder implementation
-    return {
-      id: data.userId || "",
-      email: data.email || "",
-      name: data.fullName || "",
-      role: data.role ? normalizeRole(data.role) : UserType.STUDENT,
-      department: data.department || "",
-    };
-  } catch (error) {
-    console.error("Token validation API error:", error);
-    if (error instanceof ServiceError) {
-      throw error;
-    }
-    throw new ServiceError(
-      error instanceof Error ? error.message : "Failed to validate token",
-      500
-    );
-  }
+  // No longer validating token with the server
+  throw new Error("Token validation has been disabled");
 };
 
 // Registration API services

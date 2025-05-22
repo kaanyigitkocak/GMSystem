@@ -1,12 +1,6 @@
 import { useState, useEffect } from "react";
-import {
-  getGraduationProgressData,
-  getDisconnectionProcedures,
-} from "../services/graduationService";
-import type {
-  GraduationStep,
-  DisconnectionItem,
-} from "../services/graduationService";
+import { getGraduationProgress, getDisconnectionProcedures } from "../services";
+import type { GraduationStep, DisconnectionItem } from "../services/types";
 
 interface GraduationProgressData {
   activeStep: number;
@@ -36,16 +30,19 @@ export const useGraduationProgress = () => {
       error: null,
     });
 
+  // Removed mock data - now using centralized mock service
+
   useEffect(() => {
     const fetchProgressData = async () => {
       try {
-        const data = await getGraduationProgressData();
-        setProgressData({
+        const data = await getGraduationProgress();
+        setProgressData((prev) => ({
+          ...prev,
           activeStep: data.activeStep,
           steps: data.steps,
           isLoading: false,
           error: null,
-        });
+        }));
       } catch (error) {
         setProgressData((prev) => ({
           ...prev,
@@ -70,6 +67,7 @@ export const useGraduationProgress = () => {
     ) {
       const fetchDisconnectionData = async () => {
         try {
+          setDisconnectionData((prev) => ({ ...prev, isLoading: true }));
           const items = await getDisconnectionProcedures();
           setDisconnectionData({
             items,

@@ -108,49 +108,8 @@ export const loginUserMock = async (
 
 // Function to check if a token is valid
 export const validateTokenMock = async (token: string): Promise<User> => {
-  // Simulate network request delay
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      // In a real app, this would validate the token with the server
-      // For mock purposes, we'll just check if it starts with our prefix
-      if (!token || !token.startsWith("mock-jwt-token-")) {
-        console.error("Invalid token format:", token);
-        reject(new Error("Invalid token"));
-        return;
-      }
-
-      try {
-        // Extract user ID from token (in a real app, this would be decoded from JWT)
-        // Token format is: mock-jwt-token-userId-timestamp
-        const tokenParts = token.split("-");
-        if (tokenParts.length < 4) {
-          console.error("Invalid token parts:", tokenParts);
-          reject(new Error("Invalid token format"));
-          return;
-        }
-
-        const userId = tokenParts[2];
-        console.log("Extracted userId:", userId);
-
-        const matchedUser = MOCK_USERS.find((user) => user.user.id === userId);
-
-        if (!matchedUser) {
-          console.error("No user found for ID:", userId);
-          console.log(
-            "Available users:",
-            MOCK_USERS.map((u) => ({ id: u.user.id, email: u.user.email }))
-          );
-          reject(new Error("User not found"));
-          return;
-        }
-
-        resolve(matchedUser.user);
-      } catch (error) {
-        console.error("Token validation error:", error);
-        reject(error);
-      }
-    }, 300);
-  });
+  // No longer validating token
+  throw new Error("Token validation has been disabled");
 };
 
 // Registration API service functions

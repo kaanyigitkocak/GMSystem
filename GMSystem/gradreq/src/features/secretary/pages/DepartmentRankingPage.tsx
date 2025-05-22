@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Box,
   Paper,
@@ -26,13 +26,15 @@ import {
   FileDownload as FileDownloadIcon,
   Visibility as VisibilityIcon,
   Check as CheckIcon,
-  Cancel as CancelIcon
+  Cancel as CancelIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
 import type { StudentRanking } from '../services/types';
+import { getStudentRankings } from '../services';
 
 // Updated StudentRanking type to include status
 interface ExtendedStudentRanking extends StudentRanking {
@@ -59,65 +61,23 @@ const DepartmentRankingPage = () => {
   // Fixed department for the secretary
   const departmentName = "Test Department";
   
-  // Mock student data for testing
-  const mockStudents: ExtendedStudentRanking[] = [
-    {
-      id: '1',
-      studentId: '2019510001',
-      studentName: 'Ahmet Yılmaz',
-      department: departmentName,
-      gpa: 3.82,
-      graduationDate: '2024-06-15',
-      ranking: 1,
-      status: 'Pending'
-    },
-    {
-      id: '2',
-      studentId: '2019510042',
-      studentName: 'Ayşe Demir',
-      department: departmentName,
-      gpa: 3.75,
-      graduationDate: '2024-06-15',
-      ranking: 2,
-      status: 'Pending'
-    },
-    {
-      id: '3',
-      studentId: '2019510036',
-      studentName: 'Mehmet Kaya',
-      department: departmentName,
-      gpa: 3.65,
-      graduationDate: '2024-06-15',
-      ranking: 3,
-      status: 'Pending'
-    },
-    {
-      id: '4',
-      studentId: '2019510078',
-      studentName: 'Zeynep Şahin',
-      department: departmentName,
-      gpa: 3.58,
-      graduationDate: '2024-06-15',
-      ranking: 4,
-      status: 'Pending'
-    }
-  ];
-
-  const [students, setStudents] = useState<ExtendedStudentRanking[]>(mockStudents);
+  // Remove the direct mock data initialization
+  const [students, setStudents] = useState<ExtendedStudentRanking[]>([]);
   const [snackbarOpen, setSnackbarOpen] = useState(false);
   const [snackbarMessage, setSnackbarMessage] = useState('');
-  const [loading, setLoading] = useState(false); // Changed to false since we're using mock data
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   
   // New state for transcript dialog
   const [openTranscriptDialog, setOpenTranscriptDialog] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<StudentTranscript | null>(null);
   const [currentStudentId, setCurrentStudentId] = useState<string>('');
 
-  // Comment out or remove the useEffect that fetches student rankings since we're using mock data
-  /*
+  // Add back the useEffect to fetch student rankings from API
   useEffect(() => {
     const fetchStudentRankings = async () => {
       setLoading(true);
+      setError(null);
       try {
         const data = await getStudentRankings(departmentName);
         const studentsWithStatus = data.map(student => ({
@@ -127,6 +87,7 @@ const DepartmentRankingPage = () => {
         setStudents(studentsWithStatus);
       } catch (error) {
         console.error('Error fetching student rankings:', error);
+        setError('Unable to load data');
         setSnackbarMessage('Failed to load student rankings');
         setSnackbarOpen(true);
       } finally {
@@ -135,8 +96,7 @@ const DepartmentRankingPage = () => {
     };
 
     fetchStudentRankings();
-  }, []);
-  */
+  }, [departmentName]);
 
   // Handle view transcript
   const handleViewTranscript = (student: ExtendedStudentRanking) => {
@@ -311,104 +271,204 @@ const DepartmentRankingPage = () => {
     }
   };
 
+  // Update loading state rendering
+  if (loading) {
+    return (
+      <SecretaryDashboardLayout>
+        <Box sx={{ width: '100%' }}>
+          <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
+            <Box gridColumn="span 12">
+              <Paper sx={{ p: 3, mb: 3 }}>
+                <Typography variant="h5" gutterBottom fontWeight="bold">
+                  {departmentName} Ranking
+                </Typography>
+                <Typography variant="body1" paragraph color="text.secondary">
+                  Create and manage department graduation ranking lists. You can approve or reject students,
+                  export the ranking to various formats, and print graduation certificates.
+                </Typography>
+                
+                <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'flex-end' }}>
+                  <Button
+                    variant="contained"
+                    color="success"
+                    startIcon={<CheckIcon />}
+                    onClick={handleApproveAll}
+                    disabled={true}
+                  >
+                    Approve All
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<PrintIcon />}
+                    onClick={handleGeneratePDF}
+                    disabled={true}
+                  >
+                    Generate PDF
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    startIcon={<FileDownloadIcon />}
+                    onClick={handleExportCSV}
+                    disabled={true}
+                  >
+                    Export to CSV
+                  </Button>
+                </Box>
+                
+                <Alert severity="info" sx={{ mb: 3 }}>
+                  Review student transcripts and approve or reject their graduation status.
+                </Alert>
+                
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '400px' }}>
+                  <CircularProgress />
+                </Box>
+              </Paper>
+            </Box>
+          </Box>
+        </Box>
+      </SecretaryDashboardLayout>
+    );
+  }
+
   return (
     <SecretaryDashboardLayout>
-      <Box sx={{ mb: 4 }}>
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" gutterBottom fontWeight="bold">
-            {departmentName} Ranking
-          </Typography>
-          <Typography variant="body1" paragraph color="text.secondary">
-            Create and manage department graduation ranking lists. You can approve or reject students,
-            export the ranking to various formats, and print graduation certificates.
-          </Typography>
-          
-          <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'flex-end' }}>
-            <Button
-              variant="contained"
-              color="success"
-              startIcon={<CheckIcon />}
-              onClick={handleApproveAll}
-              disabled={loading || students.length === 0}
-            >
-              Approve All
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<PrintIcon />}
-              onClick={handleGeneratePDF}
-              disabled={loading || students.length === 0}
-            >
-              Generate PDF
-            </Button>
-            <Button
-              variant="outlined"
-              startIcon={<FileDownloadIcon />}
-              onClick={handleExportCSV} // Renamed from handleExportExcel
-              disabled={loading || students.length === 0}
-            >
-              Export to CSV
-            </Button>
+      <Box sx={{ width: '100%' }}>
+        <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
+          <Box gridColumn="span 12">
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h5" gutterBottom fontWeight="bold">
+                {departmentName} Ranking
+              </Typography>
+              <Typography variant="body1" paragraph color="text.secondary">
+                Create and manage department graduation ranking lists. You can approve or reject students,
+                export the ranking to various formats, and print graduation certificates.
+              </Typography>
+              
+              <Box sx={{ display: 'flex', gap: 2, mb: 3, justifyContent: 'flex-end' }}>
+                <Button
+                  variant="contained"
+                  color="success"
+                  startIcon={<CheckIcon />}
+                  onClick={handleApproveAll}
+                  disabled={loading || students.length === 0 || error !== null}
+                >
+                  Approve All
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<PrintIcon />}
+                  onClick={handleGeneratePDF}
+                  disabled={loading || students.length === 0 || error !== null}
+                >
+                  Generate PDF
+                </Button>
+                <Button
+                  variant="outlined"
+                  startIcon={<FileDownloadIcon />}
+                  onClick={handleExportCSV} // Renamed from handleExportExcel
+                  disabled={loading || students.length === 0 || error !== null}
+                >
+                  Export to CSV
+                </Button>
+              </Box>
+              
+              <Alert severity="info" sx={{ mb: 3 }}>
+                Review student transcripts and approve or reject their graduation status.
+              </Alert>
+              
+              {/* Show error alert when data loading fails */}
+              {error && (
+                <Alert 
+                  severity="error" 
+                  icon={<ErrorIcon />}
+                  action={
+                    <Button 
+                      color="inherit" 
+                      size="small" 
+                      onClick={() => window.location.reload()}
+                    >
+                      RETRY
+                    </Button>
+                  }
+                  sx={{ mb: 3 }}
+                >
+                  {error}
+                </Alert>
+              )}
+              
+              {students.length === 0 && !error ? (
+                <Alert severity="warning" sx={{ mb: 3 }}>
+                  No student rankings found for this department.
+                </Alert>
+              ) : (
+                <TableContainer>
+                  <Table>
+                    <TableHead>
+                      <TableRow>
+                        <TableCell>Rank</TableCell>
+                        <TableCell>Student ID</TableCell>
+                        <TableCell>Student Name</TableCell>
+                        <TableCell>GPA</TableCell>
+                        <TableCell>Graduation Date</TableCell>
+                        <TableCell>Status</TableCell>
+                        <TableCell align="center">Actions</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {/* Show table rows only if there's no error and we have students */}
+                      {!error && students.map((student) => (
+                        <TableRow key={student.id}>
+                          <TableCell>{student.ranking}</TableCell>
+                          <TableCell>{student.studentId}</TableCell>
+                          <TableCell>{student.studentName}</TableCell>
+                          <TableCell>{student.gpa.toFixed(2)}</TableCell>
+                          <TableCell>{student.graduationDate}</TableCell>
+                          <TableCell>
+                            <Chip 
+                              label={student.status} 
+                              color={getStatusChipColor(student.status) as any}
+                              size="small"
+                            />
+                          </TableCell>
+                          <TableCell align="center">
+                            <IconButton 
+                              size="small" 
+                              color="info"
+                              onClick={() => handleViewTranscript(student)}
+                              disabled={loading}
+                            >
+                              <VisibilityIcon fontSize="small" />
+                            </IconButton>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      
+                      {/* Show an error row when there's an error */}
+                      {error && (
+                        <TableRow>
+                          <TableCell colSpan={7} align="center" sx={{ py: 4 }}>
+                            <Typography color="error">
+                              {error}
+                            </Typography>
+                            <Button 
+                              variant="outlined" 
+                              color="primary" 
+                              size="small" 
+                              onClick={() => window.location.reload()}
+                              sx={{ mt: 2 }}
+                            >
+                              Retry Loading Data
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              )}
+            </Paper>
           </Box>
-          
-          <Alert severity="info" sx={{ mb: 3 }}>
-            Review student transcripts and approve or reject their graduation status.
-          </Alert>
-          
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', py: 4 }}>
-              <CircularProgress />
-            </Box>
-          ) : students.length === 0 ? (
-            <Alert severity="warning" sx={{ mb: 3 }}>
-              No student rankings found for this department.
-            </Alert>
-          ) : (
-            <TableContainer>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Rank</TableCell>
-                    <TableCell>Student ID</TableCell>
-                    <TableCell>Student Name</TableCell>
-                    <TableCell>GPA</TableCell>
-                    <TableCell>Graduation Date</TableCell>
-                    <TableCell>Status</TableCell>
-                    <TableCell align="center">Actions</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {students.map((student) => (
-                    <TableRow key={student.id}>
-                      <TableCell>{student.ranking}</TableCell>
-                      <TableCell>{student.studentId}</TableCell>
-                      <TableCell>{student.studentName}</TableCell>
-                      <TableCell>{student.gpa.toFixed(2)}</TableCell>
-                      <TableCell>{student.graduationDate}</TableCell>
-                      <TableCell>
-                        <Chip 
-                          label={student.status} 
-                          color={getStatusChipColor(student.status) as any}
-                          size="small"
-                        />
-                      </TableCell>
-                      <TableCell align="center">
-                        <IconButton 
-                          size="small" 
-                          color="info"
-                          onClick={() => handleViewTranscript(student)}
-                          disabled={loading}
-                        >
-                          <VisibilityIcon fontSize="small" />
-                        </IconButton>
-                      </TableCell>
-                    </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          )}
-        </Paper>
+        </Box>
       </Box>
       
       {/* View Transcript Dialog */}

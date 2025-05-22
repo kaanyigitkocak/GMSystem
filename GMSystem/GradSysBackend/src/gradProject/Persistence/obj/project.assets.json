@@ -5665,11 +5665,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
+      "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
       "projectName": "Persistence",
-      "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
+      "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
       "packagesPath": "/Users/dkwns/.nuget/packages/",
-      "outputPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Persistence/obj/",
+      "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/dkwns/.nuget/NuGet/NuGet.Config"
@@ -5684,8 +5684,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
-              "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
+            "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
+              "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
             }
           }
         }

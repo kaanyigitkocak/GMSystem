@@ -32,7 +32,7 @@ import {
   Close as CloseIcon
 } from '@mui/icons-material';
 import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
-import { getUniversityRankings } from '../services/studentAffairsService';
+import { getUniversityRankings } from '../services';
 import { useNavigate } from 'react-router-dom';
 
 // Define types for university rankings

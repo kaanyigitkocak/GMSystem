@@ -1,6 +1,6 @@
 import { createContext, useState, useContext, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { loginUser, validateToken, type User } from '../services';
+import { loginUser, type User } from '../services';
 
 interface AuthContextType {
   user: User | null;
@@ -29,28 +29,22 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [token, setToken] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check for stored token on mount
+    // Check for stored token and user on mount
     const storedToken = localStorage.getItem('authToken');
-    if (storedToken) {
-      console.log('Found stored token, validating...');
-      // Validate the token with our service function
-      const verifyToken = async () => {
-        try {
-          const userData = await validateToken(storedToken);
-          console.log('Token validated successfully, user:', userData);
-          setUser(userData);
-          setToken(storedToken);
-        } catch (error) {
-          console.error('Token validation failed', error);
-          // Clear invalid auth data
-          localStorage.removeItem('authToken');
-          localStorage.removeItem('authUser');
-          setUser(null);
-          setToken(null);
-        }
-      };
-      
-      verifyToken();
+    const storedUser = localStorage.getItem('authUser');
+    
+    if (storedToken && storedUser) {
+      try {
+        const userData = JSON.parse(storedUser);
+        console.log('Found stored token and user data');
+        setUser(userData);
+        setToken(storedToken);
+      } catch (error) {
+        console.error('Failed to parse stored user data', error);
+        // Clear invalid auth data
+        localStorage.removeItem('authToken');
+        localStorage.removeItem('authUser');
+      }
     }
   }, []);
 

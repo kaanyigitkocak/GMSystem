@@ -121,8 +121,6 @@ const TranscriptProcessingPage = () => {
     }
   };
 
-
-
   /**
    * Parses CSV content and detects conflicts between student records
    * Returns both valid transcripts and conflicts
@@ -457,8 +455,6 @@ const TranscriptProcessingPage = () => {
     }
   };
 
-
-
   /**
    * Renders file preview if a file is selected
    */
@@ -623,92 +619,94 @@ const TranscriptProcessingPage = () => {
 
   return (
     <SecretaryDashboardLayout>
-      <Box sx={{ mb: 4 }}>
-        {/* Upload Section */}
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" gutterBottom fontWeight="bold">
-            Transcript Processing
-          </Typography>
-          <Typography variant="body1" paragraph color="text.secondary">
-            Upload student transcripts to process graduation requirements. The system will automatically check 
-            if students meet all graduation criteria.
-          </Typography>
-          
-          <Divider sx={{ my: 3 }} />
-          
-          {/* Alert Messages */}
-          {successMessage && (
-            <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccessMessage('')}>
-              {successMessage}
-            </Alert>
-          )}
-          
-          {errorMessage && (
-            <Alert severity="error" sx={{ mb: 3 }} onClose={() => setErrorMessage('')}>
-              {errorMessage}
-              {file && (
-                <Button 
-                  color="inherit" 
-                  size="small" 
-                  onClick={() => setFile(null)} 
-                  sx={{ ml: 2 }}
-                >
-                  Clear Selected File
-                </Button>
+      <Box sx={{ width: '100%' }}>
+        <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
+          <Box gridColumn="span 12">
+            {/* Upload Section */}
+            <Paper sx={{ p: 3, mb: 3 }}>
+              <Typography variant="h5" gutterBottom fontWeight="bold">
+                Transcript Processing
+              </Typography>
+              <Typography variant="body1" paragraph color="text.secondary">
+                Upload student transcripts to process graduation requirements. The system will automatically check 
+                if students meet all graduation criteria.
+              </Typography>
+              
+              <Divider sx={{ my: 3 }} />
+              
+              {/* Alert Messages */}
+              {successMessage && (
+                <Alert severity="success" sx={{ mb: 3 }} onClose={() => setSuccessMessage('')}>
+                  {successMessage}
+                </Alert>
               )}
-            </Alert>
-          )}
-          
-          {/* Upload Controls */}
-          <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
-            <Button
-              component="label"
-              variant="outlined"
-              startIcon={<CloudUploadIcon />}
-              sx={{ flexGrow: 1 }}
-              disabled={processing}
-            >
-              Select Transcript File
-              <input
-                type="file"
-                accept=".pdf,.csv"
-                hidden
-                onChange={handleFileChange}
-                key={file ? 'file-selected' : 'no-file'}
-              />
-            </Button>
+              
+              {errorMessage && (
+                <Alert severity="error" sx={{ mb: 3 }} onClose={() => setErrorMessage('')}>
+                  {errorMessage}
+                  {file && (
+                    <Button 
+                      color="inherit" 
+                      size="small" 
+                      onClick={() => setFile(null)} 
+                      sx={{ ml: 2 }}
+                    >
+                      Clear Selected File
+                    </Button>
+                  )}
+                </Alert>
+              )}
+              
+              {/* Upload Controls */}
+              <Box sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' }, gap: 2, mb: 3 }}>
+                <Button
+                  component="label"
+                  variant="outlined"
+                  startIcon={<CloudUploadIcon />}
+                  sx={{ flexGrow: 1 }}
+                  disabled={processing}
+                >
+                  Select Transcript File
+                  <input
+                    type="file"
+                    accept=".pdf,.csv"
+                    hidden
+                    onChange={handleFileChange}
+                    key={file ? 'file-selected' : 'no-file'}
+                  />
+                </Button>
+                
+                <Button
+                  variant="contained"
+                  startIcon={processing ? <LinearProgress sx={{ width: 24 }} /> : <CheckCircleIcon />}
+                  onClick={handleUpload}
+                  disabled={!file || processing}
+                  sx={{ flexGrow: 1 }}
+                >
+                  {processing ? 'Processing...' : 'Upload Transcript'}
+                </Button>
+              </Box>
+              
+              {/* File Preview */}
+              {renderFilePreview()}
+            </Paper>
             
-            <Button
-              variant="contained"
-              startIcon={processing ? <LinearProgress sx={{ width: 24 }} /> : <CheckCircleIcon />}
-              onClick={handleUpload}
-              disabled={!file || processing}
-              sx={{ flexGrow: 1 }}
-            >
-              {processing ? 'Processing...' : 'Upload Transcript'}
-            </Button>
+            {/* Conflicts Section */}
+            {renderConflictsSection()}
+            
+            {/* Transcripts List */}
+            <Paper sx={{ p: 3 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+                <Typography variant="h6" fontWeight="medium">
+                  Uploaded Transcripts
+                </Typography>
+              </Box>
+              
+              {/* Transcript Table */}
+              {renderTranscriptTable()}
+            </Paper>
           </Box>
-          
-
-          
-          {/* File Preview */}
-          {renderFilePreview()}
-        </Paper>
-        
-        {/* Conflicts Section */}
-        {renderConflictsSection()}
-        
-        {/* Transcripts List */}
-        <Paper sx={{ p: 3 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
-            <Typography variant="h6" fontWeight="medium">
-              Uploaded Transcripts
-            </Typography>
-          </Box>
-          
-          {/* Transcript Table */}
-          {renderTranscriptTable()}
-        </Paper>
+        </Box>
       </Box>
 
       {/* Conflict Resolution Dialog */}

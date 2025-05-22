@@ -5887,11 +5887,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
+      "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
       "projectName": "Infrastructure",
-      "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
+      "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
       "packagesPath": "/Users/dkwns/.nuget/packages/",
-      "outputPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Infrastructure/obj/",
+      "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/dkwns/.nuget/NuGet/NuGet.Config"
@@ -5906,8 +5906,8 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
-              "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
+            "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
+              "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
             }
           }
         }

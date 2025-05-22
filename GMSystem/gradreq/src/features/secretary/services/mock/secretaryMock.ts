@@ -21,7 +21,6 @@ const GRADE_POINTS: Record<string, number> = {
   AA: 4.0,
   A: 4.0,
   BA: 3.5,
-  "B+": 3.5,
   BB: 3.0,
   B: 3.0,
   CB: 2.5,
@@ -248,6 +247,44 @@ const mockStudentRankings: Record<string, StudentRanking[]> = {
       gpa: 3.77,
       graduationDate: "2023-06-15",
       ranking: 2,
+    },
+  ],
+  "Test Department": [
+    {
+      id: "101",
+      studentId: "2019510001",
+      studentName: "Ahmet Yılmaz",
+      department: "Test Department",
+      gpa: 3.82,
+      graduationDate: "2024-06-15",
+      ranking: 1,
+    },
+    {
+      id: "102",
+      studentId: "2019510042",
+      studentName: "Ayşe Demir",
+      department: "Test Department",
+      gpa: 3.75,
+      graduationDate: "2024-06-15",
+      ranking: 2,
+    },
+    {
+      id: "103",
+      studentId: "2019510036",
+      studentName: "Mehmet Kaya",
+      department: "Test Department",
+      gpa: 3.65,
+      graduationDate: "2024-06-15",
+      ranking: 3,
+    },
+    {
+      id: "104",
+      studentId: "2019510078",
+      studentName: "Zeynep Şahin",
+      department: "Test Department",
+      gpa: 3.58,
+      graduationDate: "2024-06-15",
+      ranking: 4,
     },
   ],
 };
@@ -635,148 +672,15 @@ export const uploadTranscriptMock = async (
           `CSV processing successful, ${parsedTranscripts.length} records created`
         );
         return parsedTranscripts[0];
-      } else {
-        throw new Error("No valid records found in CSV file");
       }
     } catch (error) {
-      console.error("Error parsing CSV:", error);
-      throw new Error(
-        `Failed to parse CSV file: ${
-          error instanceof Error ? error.message : "Unknown error"
-        }`
-      );
+      console.error("Error processing CSV:", error);
+      throw error instanceof Error
+        ? error
+        : new Error("Unknown error processing CSV");
     }
   }
 
-  console.log("Processing as PDF file");
-  // For PDF files or if CSV parsing failed, use the original implementation
-  return new Promise((resolve, reject) => {
-    try {
-      setTimeout(() => {
-        const newTranscript: TranscriptData = {
-          id: `pdf_${new Date().getTime()}`,
-          studentId:
-            "2019" + Math.floor(1000 + Math.random() * 9000).toString(),
-          studentName: "New Student",
-          department: "Computer Engineering",
-          uploadDate: new Date().toISOString().split("T")[0],
-          status: "pending",
-          fileName: file.name,
-          fileSize: Math.round(file.size / 1024),
-        };
-
-        // Create a copy of the current mock data and add the new transcripts
-        const updatedMockTranscripts = [...mockTranscripts, newTranscript];
-
-        // Update the mock data
-        console.log("Previous mockTranscripts count:", mockTranscripts.length);
-        mockTranscripts = updatedMockTranscripts;
-        console.log("Updated mockTranscripts count:", mockTranscripts.length);
-
-        console.log("PDF processing successful");
-        resolve(newTranscript);
-      }, 1500);
-    } catch (error) {
-      console.error("Error processing PDF:", error);
-      reject(
-        new Error(
-          `Failed to process PDF file: ${
-            error instanceof Error ? error.message : "Unknown error"
-          }`
-        )
-      );
-    }
-  });
-};
-
-// Function to delete transcript (simulated API call)
-export const deleteTranscriptMock = async (id: string): Promise<boolean> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      mockTranscripts = mockTranscripts.filter(
-        (transcript) => transcript.id !== id
-      );
-      resolve(true);
-    }, 500);
-  });
-};
-
-// Function to process transcript (simulated API call)
-export const processTranscriptMock = async (
-  id: string
-): Promise<TranscriptData> => {
-  return new Promise((resolve, reject) => {
-    setTimeout(() => {
-      const index = mockTranscripts.findIndex(
-        (transcript) => transcript.id === id
-      );
-
-      if (index !== -1) {
-        mockTranscripts[index] = {
-          ...mockTranscripts[index],
-          status: "processed",
-        };
-
-        resolve(mockTranscripts[index]);
-      } else {
-        reject(new Error("Transcript not found"));
-      }
-    }, 1000);
-  });
-};
-
-// Function to get dashboard statistics
-export const getDashboardStatsMock = async (): Promise<{
-  graduatesCount: number;
-  graduationDate: string;
-}> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve(mockDashboardStats);
-    }, 500);
-  });
-};
-
-// Function to get exportable students who are eligible for graduation
-export const getEligibleGraduatesMock = async (): Promise<TranscriptData[]> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      // Filter only processed transcripts which represent eligible graduates
-      const eligibleGraduates = mockTranscripts.filter(
-        (transcript) => transcript.status === "processed"
-      );
-      resolve(eligibleGraduates);
-    }, 500);
-  });
-};
-
-// Function to export eligible graduates as CSV
-export const exportEligibleGraduatesCSVMock = async (): Promise<string> => {
-  const graduates = await getEligibleGraduatesMock();
-
-  // Create CSV header
-  const csvHeader = "Student ID,Student Name,Department,Upload Date,Status\n";
-
-  // Create CSV rows
-  const csvRows = graduates
-    .map(
-      (graduate) =>
-        `${graduate.studentId},${graduate.studentName},${graduate.department},${graduate.uploadDate},${graduate.status}`
-    )
-    .join("\n");
-
-  // Combine header and rows
-  return csvHeader + csvRows;
-};
-
-// Function to export eligible graduates as PDF
-export const exportEligibleGraduatesPDFMock = async (): Promise<Blob> => {
-  // In a real implementation, this would use a PDF library like pdfmake or jspdf
-  const graduates = await getEligibleGraduatesMock();
-
-  // Mock PDF content creation (would be replaced with actual PDF generation)
-  const mockPdfContent = JSON.stringify(graduates, null, 2);
-
-  // Return a blob that represents a PDF file
-  return new Blob([mockPdfContent], { type: "application/pdf" });
+  // If PDF file, process it (this is a placeholder and should be implemented)
+  throw new Error("PDF processing not implemented");
 };

@@ -1,8 +1,8 @@
 {
   "version": 2,
-  "dgSpecHash": "mq6C/Giqer8+yvL8TJAFGQzLSOv7OoBifuZ891wAjvsiFFB2rK4pfPJEecRq/eXZ0BUIDHQMndszRpHkxA76vQ==",
+  "dgSpecHash": "L+m6drJ22VexDHcmrqVAlRYkJf6UUmDU00x1Js0cXFwBrLB79FFYjqMmNaeGVWrZfiZqasihKTHiwv6hYk9U9Q==",
   "success": true,
-  "projectFilePath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
+  "projectFilePath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
   "expectedPackageFiles": [
     "/Users/dkwns/.nuget/packages/automapper/13.0.1/automapper.13.0.1.nupkg.sha512",
     "/Users/dkwns/.nuget/packages/azure.core/1.35.0/azure.core.1.35.0.nupkg.sha512",

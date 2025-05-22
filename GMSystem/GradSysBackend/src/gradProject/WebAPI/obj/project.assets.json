@@ -10104,11 +10104,11 @@
   "project": {
     "version": "1.0.0",
     "restore": {
-      "projectUniqueName": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
+      "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
       "projectName": "WebAPI",
-      "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
+      "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
       "packagesPath": "/Users/dkwns/.nuget/packages/",
-      "outputPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/WebAPI/obj/",
+      "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/obj/",
       "projectStyle": "PackageReference",
       "configFilePaths": [
         "/Users/dkwns/.nuget/NuGet/NuGet.Config"
@@ -10123,14 +10123,14 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "projectReferences": {
-            "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
-              "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
+            "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
+              "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
             },
-            "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj": {
-              "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj"
+            "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj": {
+              "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj"
             },
-            "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj": {
-              "projectPath": "/Users/dkwns/Desktop/GMS/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj"
+            "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj": {
+              "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj"
             }
           }
         }

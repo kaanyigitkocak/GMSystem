@@ -4,7 +4,7 @@ import {
   markNotificationAsRead,
   markAllNotificationsAsRead,
   deleteNotification as deleteNotificationService,
-} from "../services/notificationService";
+} from "../services";
 import type { Notification } from "../types";
 
 interface UseNotificationsReturn {

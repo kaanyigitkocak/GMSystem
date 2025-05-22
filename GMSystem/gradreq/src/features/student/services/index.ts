@@ -10,6 +10,10 @@ import {
 
 import { getGraduationRequirementsApi } from "./api/graduationRequirementsApi";
 import { getTranscriptApi } from "./api/transcriptApi";
+import {
+  getGraduationProgressApi,
+  getDisconnectionProceduresApi,
+} from "./api/graduationProgressApi";
 
 // Import mock services
 import {
@@ -21,12 +25,18 @@ import {
 
 import { getGraduationRequirementsMock } from "./mock/graduationRequirementsMock";
 import { getTranscriptMock } from "./mock/transcriptMock";
+import {
+  getGraduationProgressMock,
+  getDisconnectionProceduresMock,
+} from "./mock/graduationProgressMock";
 
 // Import types
 import type {
   Notification,
   GraduationRequirementsData,
   TranscriptData,
+  GraduationStep,
+  DisconnectionItem,
 } from "./types";
 
 // Get service configuration
@@ -76,4 +86,27 @@ export const getTranscript = async (): Promise<TranscriptData> => {
     return getTranscriptMock();
   }
   return getTranscriptApi();
+};
+
+// Graduation progress services
+export const getGraduationProgress = async (): Promise<{
+  steps: GraduationStep[];
+  activeStep: number;
+}> => {
+  if (useMock) {
+    return getGraduationProgressMock();
+  }
+  // API implementation would go here - for now just return mock data
+  return getGraduationProgressApi();
+};
+
+// Disconnection procedures services
+export const getDisconnectionProcedures = async (): Promise<
+  DisconnectionItem[]
+> => {
+  if (useMock) {
+    return getDisconnectionProceduresMock();
+  }
+  // API implementation would go here - for now just return mock data
+  return getDisconnectionProceduresApi();
 };

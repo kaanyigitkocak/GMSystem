@@ -105,87 +105,71 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
   // Drawer content shared between mobile and desktop
   const drawer = (
     <>
-      <Toolbar sx={{ px: 2 }}>
-        <Box sx={{ 
+      <Box 
+        sx={{ 
           display: 'flex', 
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          width: '100%'
-        }}>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            <Box 
-              component="img"
-              src={iyteLogoPng}
-              alt="IYTE Logo"
-              sx={{ width: 40, mr: 1 }}
-            />
-            <Typography variant="h6" noWrap component="div">
-              GradSys
-            </Typography>
-          </Box>
-          
-          {isMobile && (
-            <IconButton onClick={toggleDrawer} sx={{ ml: 1 }}>
-              <CloseIcon />
-            </IconButton>
-          )}
-        </Box>
-      </Toolbar>
-      <Divider />
-      
-      {user && (
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          p: 2, 
+          borderBottom: `1px solid ${theme.palette.divider}`
+        }}
+      >
         <Box 
-          sx={{ 
-            p: 2,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 2
-          }}
-        >
-          <Avatar 
-            alt={user.name || 'User'} 
-            src="/static/images/avatar/default.jpg"
-            sx={{ width: 40, height: 40 }}
-          />
-          <Box>
-            <Typography variant="subtitle1" fontWeight={500} noWrap>
-              {user.name || 'Department Secretary'}
-            </Typography>
-            <Typography variant="body2" color="text.secondary" noWrap>
-              {user.department || 'Department'}
-            </Typography>
-          </Box>
-        </Box>
-      )}
-      
-      <Divider />
-      
-      <List sx={{ pt: 1 }}>
+          component="img" 
+          src={iyteLogoPng} 
+          alt="IYTE Logo" 
+          sx={{ width: 120, height: 'auto', mb: 1 }}
+        />
+        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, textAlign: 'center' }}>
+          Graduation Management System
+        </Typography>
+        {isMobile && (
+          <IconButton 
+            onClick={toggleDrawer} 
+            sx={{ position: 'absolute', right: 8, top: 8 }}
+          >
+            <CloseIcon />
+          </IconButton>
+        )}
+      </Box>
+      <List sx={{ pt: 0 }}>
         {navItems.map((item) => (
           <ListItem key={item.path} disablePadding>
             <ListItemButton
               component={RouterLink}
               to={item.path}
               selected={isActive(item.path, item.exact)}
+              onClick={isMobile ? toggleDrawer : undefined}
               sx={{
-                borderLeft: isActive(item.path, item.exact) ? `3px solid ${theme.palette.primary.main}` : 'none',
-                bgcolor: isActive(item.path, item.exact) ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
-                py: 1.5,
+                // borderLeft: isActive(item.path, item.exact) ? `3px solid ${theme.palette.primary.main}` : 'none',
+                // bgcolor: isActive(item.path, item.exact) ? 'rgba(0, 0, 0, 0.04)' : 'transparent',
+                // py: 1.5,
               }}
             >
-              <ListItemIcon sx={{ minWidth: 40, color: isActive(item.path, item.exact) ? theme.palette.primary.main : 'inherit' }}>
+              <ListItemIcon sx={{ minWidth: 'auto', mr: 2, color: isActive(item.path, item.exact) ? theme.palette.primary.main : 'inherit' }}>
                 {item.icon}
               </ListItemIcon>
               <ListItemText 
                 primary={item.label} 
-                primaryTypographyProps={{ 
-                  fontWeight: isActive(item.path, item.exact) ? 500 : 400,
-                  color: isActive(item.path, item.exact) ? theme.palette.primary.main : 'inherit'
+                primaryTypographyProps={{
+                  fontWeight: isActive(item.path, item.exact) ? 'bold' : 'normal',
+                  // color: isActive(item.path, item.exact) ? theme.palette.primary.main : 'inherit'
                 }} 
               />
             </ListItemButton>
           </ListItem>
         ))}
+      </List>
+      <Box sx={{ flexGrow: 1 }} /> 
+      <List sx={{ mt: 'auto' }}>
+        <ListItem disablePadding>
+          <ListItemButton onClick={handleLogout}>
+            <ListItemIcon>
+              <LogoutIcon />
+            </ListItemIcon>
+            <ListItemText primary="Logout" />
+          </ListItemButton>
+        </ListItem>
       </List>
     </>
   );
@@ -208,7 +192,8 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
             sx={{
               '& .MuiDrawer-paper': { 
                 width: drawerWidth,
-                boxSizing: 'border-box' 
+                boxSizing: 'border-box',
+                border: 'none'
               },
             }}
           >
@@ -222,6 +207,7 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
               '& .MuiDrawer-paper': { 
                 width: drawerWidth,
                 boxSizing: 'border-box',
+                border: 'none'
               },
             }}
           >
