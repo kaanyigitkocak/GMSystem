@@ -1,72 +1,15 @@
-import React, { useState } from 'react';
-import { 
-  Box, 
-  Paper, 
-  Typography,
-  List,
-  ListItem,
-  Button,
-  Stack,
-  Snackbar,
-  Alert
-} from '@mui/material';
-import UploadFileIcon from '@mui/icons-material/UploadFile';
+import { Box, Paper, Typography, Snackbar, Alert } from '@mui/material';
 import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
-
-const departments = [
-  'Physics',
-  'Photonics',
-  'Chemistry',
-  'Mathematics',
-  'Molecular Biology and Genetics',
-  'Computer Engineering',
-  'Bioengineering',
-  'Environmental Engineering',
-  'Energy Systems Engineering',
-  'Electrical-Electronics Engineering',
-  'Food Engineering',
-  'Civil Engineering',
-  'Mechanical Engineering',
-  'Materials Science and Engineering',
-  'Chemical Engineering',
-  'Industrial Design',
-  'Architecture',
-  'City and Regional Planning'
-];
+import { useUploadGraduationDecisions } from '../hooks/useUploadGraduationDecisions';
+import DepartmentUploadList from '../components/DepartmentUploadList';
 
 const UploadGraduationDecisionsPage = () => {
-  const [uploadedFiles, setUploadedFiles] = useState<Record<string, File | null>>({});
-  const [notification, setNotification] = useState<{
-    open: boolean;
-    message: string;
-    severity: 'success' | 'error';
-  }>({
-    open: false,
-    message: '',
-    severity: 'success'
-  });
-
-  const handleFileUpload = (department: string, event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0] || null;
-    if (file) {
-      setUploadedFiles(prev => ({
-        ...prev,
-        [department]: file
-      }));
-      console.log(`File uploaded for ${department}:`, file);
-      
-      // Show success notification
-      setNotification({
-        open: true,
-        message: `File uploaded successfully for ${department}`,
-        severity: 'success'
-      });
-    }
-  };
-
-  const handleCloseNotification = () => {
-    setNotification(prev => ({ ...prev, open: false }));
-  };
+  const {
+    uploadedFiles,
+    notification,
+    handleFileUpload,
+    handleCloseNotification
+  } = useUploadGraduationDecisions();
 
   return (
     <StudentAffairsDashboardLayout>
@@ -80,48 +23,10 @@ const UploadGraduationDecisionsPage = () => {
             Select a file for each department to upload graduation decisions.
           </Typography>
 
-          <List>
-            {departments.map((department) => (
-              <ListItem 
-                key={department}
-                sx={{ 
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                  py: 2
-                }}
-              >
-                <Stack 
-                  direction="row" 
-                  spacing={2} 
-                  alignItems="center" 
-                  width="100%"
-                >
-                  <Typography sx={{ flex: 1 }}>
-                    {department}
-                  </Typography>
-                  <Button
-                    variant="contained"
-                    component="label"
-                    startIcon={<UploadFileIcon />}
-                    sx={{ minWidth: '150px' }}
-                  >
-                    {uploadedFiles[department] ? 'Change File' : 'Upload File'}
-                    <input
-                      type="file"
-                      hidden
-                      onChange={(e) => handleFileUpload(department, e)}
-                      accept=".xlsx,.xls,.csv"
-                    />
-                  </Button>
-                  {uploadedFiles[department] && (
-                    <Typography variant="body2" color="text.secondary">
-                      {uploadedFiles[department]?.name}
-                    </Typography>
-                  )}
-                </Stack>
-              </ListItem>
-            ))}
-          </List>
+          <DepartmentUploadList 
+            uploadedFiles={uploadedFiles}
+            onFileUpload={handleFileUpload}
+          />
         </Paper>
       </Box>
 

@@ -1,4 +1,15 @@
 // Types for deansoffice feature
+
+// Types for notifications
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "error" | "success";
+  read: boolean;
+  date: string;
+}
+
 export interface StudentRanking {
   id: string;
   rank: number;

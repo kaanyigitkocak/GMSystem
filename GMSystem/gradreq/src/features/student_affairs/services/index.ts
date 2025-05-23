@@ -181,3 +181,6 @@ export const getGraduationDecisions = async (): Promise<
   }
   return getGraduationDecisionsApi();
 };
+
+// Transcript service
+export { getStudentTranscript } from "./transcriptService";

@@ -25,6 +25,8 @@ import type {
   UploadedFile,
   ValidationSummary,
   FileValidationResult,
+  FileStatus,
+  Notification,
 } from "./types";
 
 // Get service configuration
@@ -86,3 +88,14 @@ export const generateValidationSummary = (
   }
   return generateValidationSummaryApi(files);
 };
+
+// Export types for external use
+export type {
+  StudentRanking,
+  RankingMetadata,
+  UploadedFile,
+  ValidationSummary,
+  FileValidationResult,
+  FileStatus,
+  Notification,
+} from "./types";

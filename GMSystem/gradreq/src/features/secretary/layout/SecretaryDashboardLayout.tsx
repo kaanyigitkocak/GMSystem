@@ -1,46 +1,53 @@
-import { useState, useEffect } from 'react';
-import type { ReactNode } from 'react';
-import { 
-  Box, 
-  Drawer, 
-  AppBar, 
-  Toolbar, 
-  Typography, 
-  Divider, 
-  List, 
-  ListItem, 
-  ListItemButton, 
-  ListItemIcon, 
-  ListItemText, 
-  IconButton, 
-  Badge,
+import React, { useState, useEffect } from 'react';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import {
+  Box,
+  Drawer,
+  AppBar,
+  Toolbar,
+  List,
+  Typography,
+  Divider,
+  IconButton,
+  ListItem,
+  ListItemButton,
+  ListItemIcon,
+  ListItemText,
+  useTheme,
+  useMediaQuery,
   Avatar,
   Menu,
   MenuItem,
+  Badge,
   Tooltip,
-  useTheme,
-  useMediaQuery,
+  CircularProgress,
+  Paper,
   Alert,
   Button
 } from '@mui/material';
 import {
-  Menu as MenuIcon,
   Dashboard as DashboardIcon,
   CloudUpload as CloudUploadIcon,
   FormatListNumbered as FormatListNumberedIcon,
   Notifications as NotificationsIcon,
-  Logout as LogoutIcon,
+  Menu as MenuIcon,
+  Person as PersonIcon,
+  ExitToApp as ExitToAppIcon,
+  AccountCircle as AccountCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  CheckCircle as CheckCircleIcon,
   Close as CloseIcon,
-  Error as ErrorIcon
+  Logout as LogoutIcon,
 } from '@mui/icons-material';
-import { useNavigate, Link as RouterLink } from 'react-router-dom';
-import { useAuth } from '../../../features/auth/contexts/AuthContext';
+import { useAuth } from '../../auth/contexts/AuthContext';
+import { useNotifications } from '../hooks';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 
-const drawerWidth = 240;
+const drawerWidth = 280;
 
 interface SecretaryDashboardLayoutProps {
-  children: ReactNode;
+  children: React.ReactNode;
 }
 
 const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) => {
@@ -53,6 +60,7 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
   
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  const { notifications, unreadCount, loading: notificationsLoading, markAsRead } = useNotifications();
   
   const pathname = window.location.pathname;
 
@@ -255,7 +263,7 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
                 onClick={handleNotificationsOpen}
                 aria-label="show notifications"
               >
-                <Badge badgeContent={0} color="error">
+                <Badge badgeContent={unreadCount} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
@@ -265,7 +273,7 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
               anchorEl={notificationsAnchor}
               open={Boolean(notificationsAnchor)}
               onClose={handleNotificationsClose}
-              MenuListProps={{ sx: { width: 320, maxHeight: 360 } }}
+              MenuListProps={{ sx: { width: 350, maxHeight: 400, p: 0 } }}
               anchorOrigin={{
                 vertical: 'bottom',
                 horizontal: 'right',
@@ -275,37 +283,125 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
                 horizontal: 'right',
               }}
             >
-              <MenuItem disabled>
-                <Box sx={{ width: '100%', textAlign: 'center' }}>
-                  <Typography variant="subtitle1">Notifications</Typography>
+              <Paper sx={{ width: '100%' }}>
+                <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Notifications
+                  </Typography>
+                  {unreadCount > 0 && (
+                    <Typography variant="body2" color="text.secondary">
+                      {unreadCount} unread notifications
+                    </Typography>
+                  )}
                 </Box>
-              </MenuItem>
-              <Divider />
-              
-              <Box sx={{ maxHeight: 250, overflow: 'auto' }}>
-                {/* Placeholder for notifications would go here */}
-                <MenuItem disabled>
-                  <Box sx={{ width: '100%', textAlign: 'center', py: 2 }}>
-                    <Typography variant="body2" color="text.secondary">No new notifications</Typography>
-                  </Box>
+                
+                <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                  {notificationsLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : notifications.length > 0 ? (
+                    notifications.slice(0, 5).map((notification, index) => {
+                      const getNotificationIcon = () => {
+                        switch (notification.type) {
+                          case 'warning':
+                            return <WarningIcon color="warning" fontSize="small" />;
+                          case 'error':
+                            return <ErrorIcon color="error" fontSize="small" />;
+                          case 'success':
+                            return <CheckCircleIcon color="success" fontSize="small" />;
+                          default:
+                            return <NotificationsIcon color="info" fontSize="small" />;
+                        }
+                      };
+
+                      return (
+                        <MenuItem 
+                          key={notification.id} 
+                          onClick={() => {
+                            if (!notification.read) {
+                              markAsRead(notification.id);
+                            }
+                            handleNotificationsClose();
+                          }}
+                          sx={{ 
+                            py: 1.5, 
+                            px: 2,
+                            backgroundColor: notification.read ? 'transparent' : 'action.hover',
+                            '&:hover': {
+                              backgroundColor: 'action.selected'
+                            }
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 36 }}>
+                            {getNotificationIcon()}
+                          </ListItemIcon>
+                          <ListItemText 
+                            primary={
+                              <Typography 
+                                variant="body2" 
+                                sx={{ 
+                                  fontWeight: notification.read ? 400 : 600,
+                                  overflow: 'hidden',
+                                  textOverflow: 'ellipsis',
+                                  whiteSpace: 'nowrap'
+                                }}
+                              >
+                                {notification.title}
+                              </Typography>
+                            }
+                            secondary={
+                              <Box>
+                                <Typography 
+                                  variant="caption" 
+                                  color="text.secondary"
+                                  sx={{ 
+                                    display: '-webkit-box',
+                                    WebkitBoxOrient: 'vertical',
+                                    WebkitLineClamp: 2,
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis'
+                                  }}
+                                >
+                                  {notification.message}
+                                </Typography>
+                                <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                                  {new Date(notification.date).toLocaleDateString()}
+                                </Typography>
+                              </Box>
+                            }
+                          />
+                        </MenuItem>
+                      );
+                    })
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <NotificationsIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        No notifications yet
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+                
+                <Divider />
+                
+                <MenuItem 
+                  sx={{ 
+                    py: 1.5, 
+                    justifyContent: 'center', 
+                    color: 'primary.main',
+                    fontWeight: 600,
+                    borderTop: '1px solid',
+                    borderColor: 'divider'
+                  }}
+                  component={RouterLink}
+                  to="/secretary/notifications"
+                  onClick={handleNotificationsClose}
+                >
+                  View all notifications
                 </MenuItem>
-              </Box>
-              
-              <Divider />
-              
-              <MenuItem 
-                sx={{ 
-                  py: 1, 
-                  justifyContent: 'center', 
-                  color: 'primary.main',
-                  fontWeight: 500,
-                }}
-                component={RouterLink}
-                to="/secretary/notifications"
-                onClick={handleNotificationsClose}
-              >
-                View all notifications
-              </MenuItem>
+              </Paper>
             </Menu>
             
             <Tooltip title="Profile settings">

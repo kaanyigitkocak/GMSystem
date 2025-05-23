@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import {
   Box,
   Paper,
@@ -12,7 +12,8 @@ import {
   Tabs,
   Tab,
   Chip,
-  Button
+  Button,
+  CircularProgress
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -24,50 +25,20 @@ import {
 } from '@mui/icons-material';
 
 import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
-import { getNotifications } from '../services/studentAffairsService';
+import { useNotificationsPage } from '../hooks/useNotificationsPage';
 import type { Notification } from '../types';
 
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [activeTab, setActiveTab] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  React.useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await getNotifications();
-        setNotifications(data);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    fetchNotifications();
-  }, []);
-
-  const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
-    setActiveTab(newValue);
-  };
-
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-  };
-
-  const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({ ...notification, read: true }))
-    );
-  };
-
-  const handleDelete = (id: string) => {
-    setNotifications(notifications.filter((notification) => notification.id !== id));
-  };
+  const {
+    notifications,
+    activeTab,
+    loading,
+    filteredNotifications,
+    handleTabChange,
+    handleMarkAsRead,
+    handleMarkAllAsRead,
+    handleDelete
+  } = useNotificationsPage();
 
   const getNotificationIcon = (type: Notification['type']) => {
     switch (type) {
@@ -82,12 +53,15 @@ const NotificationsPage = () => {
     }
   };
 
-  const filteredNotifications = 
-    activeTab === 0 
-      ? notifications 
-      : activeTab === 1 
-        ? notifications.filter(n => !n.read) 
-        : notifications.filter(n => n.read);
+  if (loading) {
+    return (
+      <StudentAffairsDashboardLayout>
+        <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+          <CircularProgress />
+        </Box>
+      </StudentAffairsDashboardLayout>
+    );
+  }
 
   return (
     <StudentAffairsDashboardLayout>

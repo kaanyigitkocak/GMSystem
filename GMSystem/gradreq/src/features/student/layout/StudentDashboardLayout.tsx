@@ -19,6 +19,7 @@ import {
   useMediaQuery,
   ListItemButton,
   Badge,
+  CircularProgress,
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
@@ -30,11 +31,14 @@ import {
   Dashboard as DashboardIcon,
   Close as CloseIcon,
   Notifications as NotificationsIcon,
-  Upload as UploadIcon
+  Upload as UploadIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../../features/auth/contexts/AuthContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { useNotifications } from '../hooks/useNotifications';
 
 // Main StudentDashboardLayout component
 const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) => {
@@ -43,6 +47,10 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
   const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
+  
+  // Notifications hook
+  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
   
   // Menu anchor states
   const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
@@ -246,7 +254,7 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
                 sx={{ ml: 1 }}
                 onClick={handleNotificationsOpen}
               >
-                <Badge badgeContent={3} color="error">
+                <Badge badgeContent={unreadCount} color="error">
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
@@ -295,39 +303,117 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               PaperProps={{
-                sx: { width: 320, maxHeight: 400 }
+                sx: { width: 350, maxHeight: 400, p: 0 }
               }}
             >
-              <MenuItem sx={{ bgcolor: '#f9f9f9' }}>
-                <Box sx={{ width: '100%' }}>
-                  <Typography variant="subtitle2" fontWeight={600}>Notifications</Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem>
-                <Box>
-                  <Typography variant="body2" fontWeight={500}>Advisor responded to your request</Typography>
-                  <Typography variant="caption" color="text.secondary">2 hours ago</Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem>
-                <Box>
-                  <Typography variant="body2" fontWeight={500}>Missing document report processed</Typography>
-                  <Typography variant="caption" color="text.secondary">1 day ago</Typography>
-                </Box>
-              </MenuItem>
-              <MenuItem>
-                <Box>
-                  <Typography variant="body2" fontWeight={500}>System update completed</Typography>
-                  <Typography variant="caption" color="text.secondary">2 days ago</Typography>
-                </Box>
-              </MenuItem>
+              <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                  Notifications
+                </Typography>
+                {unreadCount > 0 && (
+                  <Typography variant="body2" color="text.secondary">
+                    {unreadCount} unread notifications
+                  </Typography>
+                )}
+              </Box>
+              
+              <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                {notificationsLoading ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                    <CircularProgress size={24} />
+                  </Box>
+                ) : notifications.length > 0 ? (
+                  notifications.slice(0, 5).map((notification) => {
+                    const getNotificationIcon = () => {
+                      switch (notification.type) {
+                        case 'warning':
+                          return <WarningIcon color="warning" fontSize="small" />;
+                        case 'error':
+                          return <ErrorIcon color="error" fontSize="small" />;
+                        case 'success':
+                          return <CheckCircleIcon color="success" fontSize="small" />;
+                        default:
+                          return <NotificationsIcon color="info" fontSize="small" />;
+                      }
+                    };
+
+                    return (
+                      <MenuItem 
+                        key={notification.id} 
+                        onClick={() => {
+                          if (!notification.read) {
+                            markAsRead(notification.id);
+                          }
+                          handleNotificationsClose();
+                        }}
+                        sx={{ 
+                          py: 1.5, 
+                          px: 2,
+                          backgroundColor: notification.read ? 'transparent' : 'action.hover',
+                          '&:hover': {
+                            backgroundColor: 'action.selected'
+                          }
+                        }}
+                      >
+                        <ListItemIcon sx={{ minWidth: 36 }}>
+                          {getNotificationIcon()}
+                        </ListItemIcon>
+                        <Box sx={{ width: '100%' }}>
+                          <Typography 
+                            variant="body2" 
+                            sx={{ 
+                              fontWeight: notification.read ? 400 : 600,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap'
+                            }}
+                          >
+                            {notification.title}
+                          </Typography>
+                          <Typography 
+                            variant="caption" 
+                            color="text.secondary"
+                            sx={{ 
+                              display: '-webkit-box',
+                              WebkitBoxOrient: 'vertical',
+                              WebkitLineClamp: 2,
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis'
+                            }}
+                          >
+                            {notification.message}
+                          </Typography>
+                          <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                            {new Date(notification.date).toLocaleDateString()}
+                          </Typography>
+                        </Box>
+                      </MenuItem>
+                    );
+                  })
+                ) : (
+                  <Box sx={{ textAlign: 'center', py: 4 }}>
+                    <NotificationsIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
+                    <Typography variant="body2" color="text.secondary">
+                      No notifications yet
+                    </Typography>
+                  </Box>
+                )}
+              </Box>
+              
               <MenuItem 
-                sx={{ justifyContent: 'center' }}
+                sx={{ 
+                  py: 1.5, 
+                  justifyContent: 'center', 
+                  color: 'primary.main',
+                  fontWeight: 600,
+                  borderTop: '1px solid',
+                  borderColor: 'divider'
+                }}
                 component={RouterLink}
                 to="/student/notifications"
                 onClick={handleNotificationsClose}
               >
-                <Typography variant="body2" color="primary" sx={{ fontWeight: 500 }}>View All Notifications</Typography>
+                View all notifications
               </MenuItem>
             </Menu>
           </Toolbar>

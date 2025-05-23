@@ -19,7 +19,8 @@ import {
   MenuItem,
   Tooltip,
   useTheme,
-  useMediaQuery
+  useMediaQuery,
+  CircularProgress,
 } from '@mui/material';
 import {
   Menu as MenuIcon,
@@ -29,10 +30,15 @@ import {
   Notifications as NotificationsIcon,
   Logout as LogoutIcon,
   Close as CloseIcon,
-  FileUpload as FileUploadIcon
+  FileUpload as FileUploadIcon,
+  AccountCircle as AccountCircleIcon,
+  Warning as WarningIcon,
+  Error as ErrorIcon,
+  CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../../features/auth/contexts/AuthContext';
+import { useNotifications } from '../hooks/useNotifications';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 
 const drawerWidth = 240;
@@ -50,6 +56,10 @@ const StudentAffairsDashboardLayout = ({ children }: StudentAffairsDashboardLayo
   
   const { user, logout } = useAuth();
   const navigate = useNavigate();
+  
+  // Notifications hook
+  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
   
   const pathname = window.location.pathname;
 
@@ -254,7 +264,7 @@ const StudentAffairsDashboardLayout = ({ children }: StudentAffairsDashboardLayo
                   onClick={handleNotificationsOpen}
                   aria-label="show notifications"
                 >
-                  <Badge badgeContent={3} color="error">
+                  <Badge badgeContent={unreadCount} color="error">
                     <NotificationsIcon />
                   </Badge>
                 </IconButton>
@@ -270,36 +280,116 @@ const StudentAffairsDashboardLayout = ({ children }: StudentAffairsDashboardLayo
                     overflow: 'visible',
                     filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
                     mt: 1.5,
-                    width: 320,
-                    '& .MuiAvatar-root': {
-                      width: 32,
-                      height: 32,
-                      ml: -0.5,
-                      mr: 1,
-                    },
+                    width: 350,
+                    maxHeight: 400,
+                    p: 0,
                   },
                 }}
                 transformOrigin={{ horizontal: 'right', vertical: 'top' }}
                 anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
               >
-                <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">New graduation request from John Doe</Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">Transcript uploaded for Jane Smith</Typography>
-                </MenuItem>
-                <Divider />
-                <MenuItem sx={{ py: 1, px: 2 }}>
-                  <Typography variant="body2">Disengagement certificate confirmed</Typography>
-                </MenuItem>
-                <Divider />
+                <Box sx={{ p: 2, borderBottom: '1px solid', borderColor: 'divider' }}>
+                  <Typography variant="h6" sx={{ fontWeight: 600 }}>
+                    Notifications
+                  </Typography>
+                  {unreadCount > 0 && (
+                    <Typography variant="body2" color="text.secondary">
+                      {unreadCount} unread notifications
+                    </Typography>
+                  )}
+                </Box>
+                
+                <Box sx={{ maxHeight: 300, overflow: 'auto' }}>
+                  {notificationsLoading ? (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
+                      <CircularProgress size={24} />
+                    </Box>
+                  ) : notifications.length > 0 ? (
+                    notifications.slice(0, 5).map((notification) => {
+                      const getNotificationIcon = () => {
+                        switch (notification.type) {
+                          case 'warning':
+                            return <WarningIcon color="warning" fontSize="small" />;
+                          case 'error':
+                            return <ErrorIcon color="error" fontSize="small" />;
+                          case 'success':
+                            return <CheckCircleIcon color="success" fontSize="small" />;
+                          default:
+                            return <NotificationsIcon color="info" fontSize="small" />;
+                        }
+                      };
+
+                      return (
+                        <MenuItem 
+                          key={notification.id} 
+                          onClick={() => {
+                            if (!notification.read) {
+                              markAsRead(notification.id);
+                            }
+                            handleNotificationsClose();
+                          }}
+                          sx={{ 
+                            py: 1.5, 
+                            px: 2,
+                            backgroundColor: notification.read ? 'transparent' : 'action.hover',
+                            '&:hover': {
+                              backgroundColor: 'action.selected'
+                            }
+                          }}
+                        >
+                          <ListItemIcon sx={{ minWidth: 36 }}>
+                            {getNotificationIcon()}
+                          </ListItemIcon>
+                          <Box sx={{ width: '100%' }}>
+                            <Typography 
+                              variant="body2" 
+                              sx={{ 
+                                fontWeight: notification.read ? 400 : 600,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis',
+                                whiteSpace: 'nowrap'
+                              }}
+                            >
+                              {notification.title}
+                            </Typography>
+                            <Typography 
+                              variant="caption" 
+                              color="text.secondary"
+                              sx={{ 
+                                display: '-webkit-box',
+                                WebkitBoxOrient: 'vertical',
+                                WebkitLineClamp: 2,
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {notification.message}
+                            </Typography>
+                            <Typography variant="caption" color="text.disabled" sx={{ display: 'block', mt: 0.5 }}>
+                              {new Date(notification.date).toLocaleDateString()}
+                            </Typography>
+                          </Box>
+                        </MenuItem>
+                      );
+                    })
+                  ) : (
+                    <Box sx={{ textAlign: 'center', py: 4 }}>
+                      <NotificationsIcon color="disabled" sx={{ fontSize: 48, mb: 1 }} />
+                      <Typography variant="body2" color="text.secondary">
+                        No notifications yet
+                      </Typography>
+                    </Box>
+                  )}
+                </Box>
+                
                 <MenuItem 
                   sx={{ 
-                    py: 1, 
+                    py: 1.5, 
                     justifyContent: 'center', 
                     color: 'primary.main',
-                    fontWeight: 500,
+                    fontWeight: 600,
+                    borderTop: '1px solid',
+                    borderColor: 'divider'
                   }}
                   component={RouterLink}
                   to="/student-affairs/notifications"

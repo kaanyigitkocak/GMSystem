@@ -1,5 +1,15 @@
 // Types for advisor feature
 
+// Types for notifications
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "error" | "success";
+  read: boolean;
+  date: string;
+}
+
 // Types for student data
 export interface Student {
   id: string;
