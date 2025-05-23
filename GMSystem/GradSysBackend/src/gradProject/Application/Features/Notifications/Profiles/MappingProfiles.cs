@@ -21,7 +21,10 @@ public class MappingProfiles : Profile
         CreateMap<Notification, DeleteNotificationCommand>().ReverseMap();
         CreateMap<Notification, DeletedNotificationResponse>().ReverseMap();
         CreateMap<Notification, GetByIdNotificationResponse>().ReverseMap();
-        CreateMap<Notification, GetListNotificationListItemDto>().ReverseMap();
+        CreateMap<Notification, GetListNotificationListItemDto>()
+            .ForMember(dest => dest.RecipientUserName, opt => opt.MapFrom(src => src.RecipientUser.UserName))
+            .ForMember(dest => dest.RecipientUserFullName, opt => opt.MapFrom(src => src.RecipientUser.FirstName + " " + src.RecipientUser.LastName))
+            .ReverseMap();
         CreateMap<IPaginate<Notification>, GetListResponse<GetListNotificationListItemDto>>().ReverseMap();
     }
 }

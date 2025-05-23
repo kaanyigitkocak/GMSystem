@@ -1,0 +1,44 @@
+Student ID,Student Name,Department,Course Code,Course Name,Grade,Credits,Semester,Course Type
+202400077,Mehmet Sorunlu,Computer Engineering,MATH 141,Calculus I,DC,5,2020-2021 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,PHYS 121,Physics I,DD,7,2020-2021 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 111,Introduction to Computer Engineering,CC,5,2020-2021 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 113,Introduction to Programming,CB,6,2020-2021 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 115,Discrete Structures,DC,5,2020-2021 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,ENG 101,Academic English I,CC,3,2020-2021 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,MATH 142,Calculus II,DC,6,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,PHYS 122,Physics II,DD,8,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,MATH 144,Finite Mathematics,DC,5,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 112,Data Structures,CC,5,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,ECON 106,Principles of Economics,DC,3,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,ENG 102,Academic English II,CB,3,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,GCC 101,Career Planning and Development,CC,0,2020-2021 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 211,Fundamentals of Programming,CC,5,2021-2022 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 213,Theory of Computation,DC,5,2021-2022 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 215,Circuits and Electronics,DD,6,2021-2022 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,MATH 255,Differential Equations,DC,6,2021-2022 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,HIST 201,History of Turkish Republic I,CC,2,2021-2022 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,TURK 201,Turkish Language I,CB,2,2021-2022 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 212,Programming Language Concepts,CC,5,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 214,Logic Design,DC,6,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 216,Numerical Computing,DD,5,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 218,Analysis and Design of Algorithms,CC,5,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 222,Probability and Statistics,DC,5,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,HIST 202,History of Turkish Republic II,CB,2,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,TURK 202,Turkish Language II,CC,2,2021-2022 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 311,Computer Architecture,CC,8,2022-2023 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 315,Information Management,DC,6,2022-2023 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 312,Computer Networks,DD,6,2022-2023 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 316,Software Engineering,CC,6,2022-2023 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 318,Human-Computer Interaction,DC,6,2022-2023 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 322,Operating Systems,CC,8,2022-2023 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 411,Professionalism in Computer Engineering,DC,6,2023-2024 Fall,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 416,Undergraduate Thesis and Seminar II,CC,8,2023-2024 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,ECON 205,Principles of Economics,DC,3,2023-2024 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 246,Numerical Computing,DD,5,2023-2024 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 400,Summer Internship,CC,0,2023-2024 Spring,Mandatory
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 384,Microprocessors,CC,3,2022-2023 Fall,Technical Elective
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 385,Mathematical Logic,DC,3,2022-2023 Fall,Technical Elective
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 386,Fuzzy Logic Systems,DD,3,2022-2023 Spring,Technical Elective
+202400077,Mehmet Sorunlu,Computer Engineering,CENG 391,Introduction to Image Understanding,CC,3,2023-2024 Fall,Technical Elective
+202400077,Mehmet Sorunlu,Computer Engineering,ART 202,Painting,CB,3,2022-2023 Fall,Non-Technical Elective
+202400077,Mehmet Sorunlu,Computer Engineering,HUM 206,Comparative Cultures,CC,3,2022-2023 Spring,Non-Technical Elective 

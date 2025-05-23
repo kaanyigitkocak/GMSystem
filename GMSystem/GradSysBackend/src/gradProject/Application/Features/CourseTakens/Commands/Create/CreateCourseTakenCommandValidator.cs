@@ -13,6 +13,5 @@ public class CreateCourseTakenCommandValidator : AbstractValidator<CreateCourseT
         RuleFor(c => c.Grade).NotEmpty();
         RuleFor(c => c.SemesterTaken).NotEmpty();
         RuleFor(c => c.CreditsEarned).NotEmpty();
-        RuleFor(c => c.IsSuccessfullyCompleted).NotEmpty();
     }
 }

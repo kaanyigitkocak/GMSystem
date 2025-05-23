@@ -15,7 +15,7 @@ public class CreateCourseTakenCommand : IRequest<CreatedCourseTakenResponse>
     public string Grade { get; set; }
     public string SemesterTaken { get; set; }
     public int CreditsEarned { get; set; }
-    public bool IsSuccessfullyCompleted { get; set; }
+    public bool IsSuccessfullyCompleted { get; set; } = true;
 
     public class CreateCourseTakenCommandHandler : IRequestHandler<CreateCourseTakenCommand, CreatedCourseTakenResponse>
     {

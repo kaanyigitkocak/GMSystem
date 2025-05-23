@@ -8,6 +8,13 @@ namespace Persistence.Seeds
 {
     public static class StudentSeeds
     {
+        // Grade letter and GPA mapping for calculation
+        private static readonly Dictionary<string, double> GradeGpaMapping = new()
+        {
+            { "AA", 4.0 }, { "BA", 3.5 }, { "BB", 3.0 }, { "CB", 2.5 }, 
+            { "CC", 2.0 }, { "DC", 1.5 }, { "DD", 1.0 }, { "FF", 0.0 }
+        };
+
         public static IEnumerable<Student> GetSeeds()
         {
             var students = new List<Student>();
@@ -34,12 +41,57 @@ namespace Persistence.Seeds
             //     // Add more department IDs if needed for variety
             // };
 
-            var random = new Random();
+            var random = new Random(12345); // Same seed as CourseTaken for consistency
 
             for (int i = 1; i <= 80; i++)
             {
-                // Determine if the student is one of the new 40 students
-                bool isNewStudent = i > -1;
+                // Determine if this is a "problematic" student
+                bool isMissingMandatory = i == 77; // Student 77: Missing mandatory course
+                bool hasLowGPA = i == 78; // Student 78: GPA < 2.0
+                bool hasLowCredits = i == 79; // Student 79: Credits < 240
+                bool hasInsufficientTechnical = i == 80; // Student 80: < 6 technical electives
+                bool hasInsufficientNonTechnical = i == 76; // Student 76: < 3 non-technical electives
+
+                // Calculate appropriate GPA and ECTS based on the student's profile
+                decimal? currentGpa = null;
+                int? currentEctsCompleted = null;
+
+                if (hasLowGPA)
+                {
+                    // GPA below 2.0 - between 1.5 and 1.9
+                    currentGpa = (decimal)(1.5 + random.NextDouble() * 0.4);
+                    currentEctsCompleted = random.Next(240, 280); // Normal credits but low GPA
+                }
+                else if (hasLowCredits)
+                {
+                    // Credits below 240 - between 180 and 230
+                    currentGpa = (decimal)(2.2 + random.NextDouble() * 1.5); // Good GPA but low credits
+                    currentEctsCompleted = random.Next(180, 235);
+                }
+                else if (isMissingMandatory)
+                {
+                    // Missing mandatory course - missing 8 ECTS from CENG 415
+                    currentGpa = (decimal)(2.5 + random.NextDouble() * 1.2); // Good GPA
+                    currentEctsCompleted = random.Next(235, 245); // Slightly lower due to missing course
+                }
+                else if (hasInsufficientTechnical)
+                {
+                    // Insufficient technical electives - only 4 instead of 6 (missing 6 ECTS)
+                    currentGpa = (decimal)(2.3 + random.NextDouble() * 1.4); // Good GPA
+                    currentEctsCompleted = random.Next(238, 248); // Slightly lower due to missing electives
+                }
+                else if (hasInsufficientNonTechnical)
+                {
+                    // Insufficient non-technical electives - only 2 instead of 3 (missing 3 ECTS)
+                    currentGpa = (decimal)(2.4 + random.NextDouble() * 1.3); // Good GPA
+                    currentEctsCompleted = random.Next(240, 250); // Slightly lower due to missing elective
+                }
+                else
+                {
+                    // Normal student - meets all requirements
+                    currentGpa = (decimal)(2.0 + random.NextDouble() * 2.0); // GPA between 2.0 and 4.0
+                    currentEctsCompleted = random.Next(240, 280); // Credits between 240 and 280
+                }
 
                 students.Add(new Student(
                     userId: UserSeeds.StudentUser1Id, // This will be corrected below
@@ -48,8 +100,8 @@ namespace Persistence.Seeds
                     programName: "Undergraduate Program", 
                     enrollDate: DateTime.Now.AddYears(-random.Next(1, 5)).AddMonths(-random.Next(0,12)),
                     graduationStatus: StudentGraduationStatus.PASSIVE, // Default for all, can be adjusted
-                    currentGpa: isNewStudent ? (decimal)(random.NextDouble() * 2.0 + 2.0) : null, // GPA between 2.0 and 4.0 for new students
-                    currentEctsCompleted: isNewStudent ? random.Next(60, 181) : null, // ECTS between 60 and 180 for new students
+                    currentGpa: currentGpa,
+                    currentEctsCompleted: currentEctsCompleted,
                     assignedAdvisorUserId: null 
                 ));
             }

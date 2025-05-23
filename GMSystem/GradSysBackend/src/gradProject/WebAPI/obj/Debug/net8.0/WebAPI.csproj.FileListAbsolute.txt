@@ -482,8 +482,8 @@
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/Features/Users/Resources/Locales/users.tr.yaml
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/Features/ValidationCodes/Resources/Locales/ValidationCodes.en.yaml
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/appsettings.Development.json
-/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/appsettings.Staging.json
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/appsettings.json
+/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/appsettings.Staging.json
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/WebAPI
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/WebAPI.deps.json
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/bin/Debug/net8.0/WebAPI.runtimeconfig.json

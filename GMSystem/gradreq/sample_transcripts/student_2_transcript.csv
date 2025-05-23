@@ -1,0 +1,48 @@
+Student ID,Student Name,Department,Course Code,Course Name,Grade,Credits,Semester,Course Type
+202400002,Elif Demir,Computer Engineering,MATH 141,Calculus I,BB,5,2020-2021 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,PHYS 121,Physics I,CB,7,2020-2021 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 111,Introduction to Computer Engineering,BB,5,2020-2021 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 113,Introduction to Programming,BA,6,2020-2021 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 115,Discrete Structures,CC,5,2020-2021 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,ENG 101,Academic English I,BB,3,2020-2021 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,MATH 142,Calculus II,CB,6,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,PHYS 122,Physics II,CC,8,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,MATH 144,Finite Mathematics,CB,5,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 112,Data Structures,BB,5,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,ECON 106,Principles of Economics,CB,3,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,ENG 102,Academic English II,BA,3,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,GCC 101,Career Planning and Development,CC,0,2020-2021 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 211,Fundamentals of Programming,BB,5,2021-2022 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 213,Theory of Computation,CB,5,2021-2022 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 215,Circuits and Electronics,CC,6,2021-2022 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,MATH 255,Differential Equations,CB,6,2021-2022 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,HIST 201,History of Turkish Republic I,BB,2,2021-2022 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,TURK 201,Turkish Language I,BA,2,2021-2022 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 212,Programming Language Concepts,BB,5,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 214,Logic Design,CB,6,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 216,Numerical Computing,CC,5,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 218,Analysis and Design of Algorithms,BB,5,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 222,Probability and Statistics,CB,5,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,HIST 202,History of Turkish Republic II,BA,2,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,TURK 202,Turkish Language II,BB,2,2021-2022 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 311,Computer Architecture,BB,8,2022-2023 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 315,Information Management,CB,6,2022-2023 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 312,Computer Networks,CC,6,2022-2023 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 316,Software Engineering,BB,6,2022-2023 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 318,Human-Computer Interaction,CB,6,2022-2023 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 322,Operating Systems,BB,8,2022-2023 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 411,Professionalism in Computer Engineering,CB,6,2023-2024 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 415,Undergraduate Thesis and Seminar I,BB,8,2023-2024 Fall,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 416,Undergraduate Thesis and Seminar II,BB,8,2023-2024 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,ECON 205,Principles of Economics,CB,3,2023-2024 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 246,Numerical Computing,CC,5,2023-2024 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 400,Summer Internship,CC,0,2023-2024 Spring,Mandatory
+202400002,Elif Demir,Computer Engineering,CENG 370,Mainframe Computers,BB,3,2022-2023 Fall,Technical Elective
+202400002,Elif Demir,Computer Engineering,CENG 382,Information Theory,CB,3,2022-2023 Fall,Technical Elective
+202400002,Elif Demir,Computer Engineering,CENG 383,Real-Time Systems,CC,3,2022-2023 Spring,Technical Elective
+202400002,Elif Demir,Computer Engineering,CENG 422,Computer Network Design and Management,BB,3,2023-2024 Fall,Technical Elective
+202400002,Elif Demir,Computer Engineering,CENG 432,Fundamentals of Enterprise Application Development,CB,3,2023-2024 Fall,Technical Elective
+202400002,Elif Demir,Computer Engineering,CENG 462,Soft Computing,CC,3,2023-2024 Spring,Technical Elective
+202400002,Elif Demir,Computer Engineering,ART 201,Drawing-Sketch,BA,3,2022-2023 Fall,Non-Technical Elective
+202400002,Elif Demir,Computer Engineering,HUM 203,Introduction to Social Anthropology,BB,3,2022-2023 Spring,Non-Technical Elective
+202400002,Elif Demir,Computer Engineering,MAN 205,Innovation Management,CB,3,2023-2024 Fall,Non-Technical Elective 

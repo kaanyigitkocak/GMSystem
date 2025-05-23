@@ -21,7 +21,11 @@ public class MappingProfiles : Profile
         CreateMap<Student, DeleteStudentCommand>().ReverseMap();
         CreateMap<Student, DeletedStudentResponse>().ReverseMap();
         CreateMap<Student, GetByIdStudentResponse>().ReverseMap();
-        CreateMap<Student, GetListStudentListItemDto>().ReverseMap();
+        CreateMap<Student, GetListStudentListItemDto>()
+            .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Name))
+            .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Department.FacultyId))
+            .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Department.Faculty.Name))
+            .ReverseMap();
         CreateMap<IPaginate<Student>, GetListResponse<GetListStudentListItemDto>>().ReverseMap();
     }
 }

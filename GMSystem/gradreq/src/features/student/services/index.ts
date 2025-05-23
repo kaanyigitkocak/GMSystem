@@ -8,7 +8,10 @@ import {
   deleteNotificationApi,
 } from "./api/notificationApi";
 
-import { getGraduationRequirementsApi } from "./api/graduationRequirementsApi";
+import {
+  getGraduationRequirementsApi,
+  reportMissingFilesApi,
+} from "./api/graduationRequirementsApi";
 import { getTranscriptApi } from "./api/transcriptApi";
 import {
   getGraduationProgressApi,
@@ -79,6 +82,24 @@ export const getGraduationRequirements =
     }
     return getGraduationRequirementsApi();
   };
+
+// Report missing files service
+export const reportMissingFiles = async (
+  message: string
+): Promise<{ success: boolean }> => {
+  if (useMock) {
+    // Mock implementation for now
+    return new Promise((resolve) => {
+      setTimeout(() => {
+        if (!message.trim()) {
+          throw new Error("Message is required");
+        }
+        resolve({ success: true });
+      }, 1000);
+    });
+  }
+  return reportMissingFilesApi(message);
+};
 
 // Transcript services
 export const getTranscript = async (): Promise<TranscriptData> => {

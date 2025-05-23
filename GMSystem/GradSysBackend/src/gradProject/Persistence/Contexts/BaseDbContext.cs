@@ -53,6 +53,7 @@ public class BaseDbContext : DbContext
         modelBuilder.Entity<Student>().HasData(StudentSeeds.GetSeeds());
         modelBuilder.Entity<Staff>().HasData(StaffSeeds.GetSeeds());
         modelBuilder.Entity<Course>().HasData(CourseSeeds.GetSeeds());
+        modelBuilder.Entity<CourseTaken>().HasData(CourseTakenSeeds.GetSeeds());
 
         foreach (var entityType in modelBuilder.Model.GetEntityTypes())
         {

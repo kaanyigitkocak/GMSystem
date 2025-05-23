@@ -3,7 +3,7 @@ import { Box } from '@mui/material';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
 import { useTranscripts, useTranscriptConflicts } from '../hooks';
-import { validateTranscriptFile, formatTranscriptMetaInfo } from '../utils/transcriptUtils';
+import { validateTranscriptFile, formatTranscriptMetaInfo, parseTranscriptCSV } from '../utils/transcriptUtils';
 import {
   FileUploadSection,
   FilePreview,
@@ -11,10 +11,13 @@ import {
   ConflictsSection,
   ConflictResolutionDialog,
 } from '../components';
+import TranscriptAnalysisDialog from '../components/transcripts/TranscriptAnalysisDialog';
 import type {
   TranscriptEntryDetails,
   StudentConflict,
+  TranscriptData,
 } from '../services/types';
+import type { ParsedStudentTranscript } from '../utils/transcriptUtils';
 
 /**
  * TranscriptProcessingPage Component
@@ -33,7 +36,8 @@ const TranscriptProcessingPage = () => {
     uploadTranscript,
     submitParsedTranscript,
     deleteTranscript,
-    fetchTranscripts
+    fetchTranscripts,
+    addTranscript
   } = useTranscripts();
 
   const {
@@ -52,9 +56,14 @@ const TranscriptProcessingPage = () => {
   const [processing, setProcessing] = useState<boolean>(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  
   // Dialog management state
   const [selectedConflict, setSelectedConflict] = useState<StudentConflict | null>(null);
   const [isConflictResolutionDialogOpen, setIsConflictResolutionDialogOpen] = useState<boolean>(false);
+  
+  // Transcript analysis dialog state
+  const [parsedTranscript, setParsedTranscript] = useState<ParsedStudentTranscript | null>(null);
+  const [isAnalysisDialogOpen, setIsAnalysisDialogOpen] = useState<boolean>(false);
 
   /**
    * Loads transcript data when component mounts
@@ -110,7 +119,7 @@ const TranscriptProcessingPage = () => {
       const fileType = file.name.split('.').pop()?.toLowerCase();
       
       if (fileType === 'csv') {
-        // Process CSV file for conflicts directly
+        // Process CSV file with our new parsing function
         const reader = new FileReader();
         
         reader.onload = async (event) => {
@@ -121,30 +130,16 @@ const TranscriptProcessingPage = () => {
               throw new Error('Failed to read CSV content');
             }
             
-            // Parse CSV and detect conflicts using hook
-            const result = await processCSVForConflicts(csvContent, file.name);
+            // Parse CSV using our new function
+            const parsedResult = parseTranscriptCSV(csvContent, file.name);
             
-            console.log('Parsed CSV results:', result);
+            console.log('Parsed CSV transcript:', parsedResult);
             
-            // Update the transcripts state with successfully added transcripts
-            if (result.validTranscripts.length > 0) {
-              // Show success message if any transcripts were added
-              setSuccessMessage(`${result.validTranscripts.length} transcripts from ${file.name} uploaded successfully.`);
-              
-              // Clear success message after 3 seconds
-              setTimeout(() => {
-                setSuccessMessage('');
-              }, 3000);
-            }
+            // Set the parsed transcript and show analysis dialog
+            setParsedTranscript(parsedResult);
+            setIsAnalysisDialogOpen(true);
             
-            // Conflicts are automatically managed by the hook
-            if (result.conflicts.length > 0) {
-              // Show warning about conflicts
-              setErrorMessage(`${result.conflicts.length} conflicts detected in ${file.name}. Please review and resolve them.`);
-            }
-            
-            // Reset file input state
-            setFile(null);
+            // Reset processing state
             setProcessing(false);
             
           } catch (error) {
@@ -162,29 +157,28 @@ const TranscriptProcessingPage = () => {
         // Start reading the file
         reader.readAsText(file);
       } else if (fileType === 'pdf') {
-        // For PDF files, use the PDF parsing API
+        // For PDF files, use the PDF parsing API with detailed progress
         try {
-          // Upload and parse the PDF transcript
-          const parsedTranscript = await uploadAndParsePDF(file);
-          console.log('PDF transcript parsed:', parsedTranscript);
+          // Show initial loading message for OCR
+          setSuccessMessage('🔄 Starting OCR processing... This may take 30-60 seconds.');
           
-          // Submit the parsed transcript data to create a record
-          const submittedTranscript = await submitParsedTranscript(parsedTranscript);
-          console.log('Transcript submitted successfully:', submittedTranscript);
+          // Upload and parse the PDF transcript (this already creates TranscriptData and CourseTaken records)
+          const parsedTranscript = await uploadAndParsePDF(file);
+          console.log('PDF transcript parsed and saved:', parsedTranscript);
           
           // Show success message
-          setSuccessMessage(`Transcript for ${submittedTranscript.transcriptData.studentName} uploaded and processed successfully.`);
+          setSuccessMessage(`✅ Transcript for ${parsedTranscript.studentName} uploaded and processed successfully!`);
           
           // Reset file input state
           setFile(null);
           
-          // Clear success message after 3 seconds
+          // Clear success message after 5 seconds (longer for PDF success)
           setTimeout(() => {
             setSuccessMessage('');
-          }, 3000);
+          }, 5000);
         } catch (error) {
           console.error('Error processing PDF transcript:', error);
-          setErrorMessage(`Failed to process PDF transcript: ${error instanceof Error ? error.message : 'Unknown error'}`);
+          setErrorMessage(`❌ Failed to process PDF transcript: ${error instanceof Error ? error.message : 'Unknown error'}`);
         }
       } else {
         // For other file types, use the original implementation
@@ -222,6 +216,46 @@ const TranscriptProcessingPage = () => {
     } catch (error) {
       console.error('Error deleting transcript:', error);
       setErrorMessage('Failed to delete transcript.');
+    }
+  };
+
+  /**
+   * Handles confirming a parsed transcript from CSV analysis
+   */
+  const handleConfirmTranscriptAnalysis = async (transcript: ParsedStudentTranscript) => {
+    try {
+      // Create a TranscriptData object from the parsed transcript
+      const transcriptData: TranscriptData = {
+        id: `transcript_${Date.now()}`,
+        studentId: transcript.studentId,
+        studentName: transcript.studentName,
+        department: transcript.department,
+        uploadDate: new Date().toISOString().split('T')[0],
+        status: 'pending' as const,
+        fileName: file?.name || 'unknown.csv',
+        fileSize: 0,
+        metaInfo: `GPA: ${transcript.calculatedGpa} | Credits: ${transcript.totalCredits} | Courses: ${transcript.courses.length} | ${transcript.analysis.isEligibleForGraduation ? '✅ Eligible' : '❌ Not Eligible'}`
+      };
+      
+      // Add the transcript to the transcripts list
+      addTranscript(transcriptData);
+      
+      // Show success message
+      setSuccessMessage(`Transcript for ${transcript.studentName} (${transcript.studentId}) processed successfully!`);
+      
+      // Reset states
+      setFile(null);
+      setParsedTranscript(null);
+      setIsAnalysisDialogOpen(false);
+      
+      // Clear success message after 3 seconds
+      setTimeout(() => {
+        setSuccessMessage('');
+      }, 3000);
+      
+    } catch (error) {
+      console.error('Error confirming transcript analysis:', error);
+      setErrorMessage(`Failed to process transcript: ${error instanceof Error ? error.message : 'Unknown error'}`);
     }
   };
 
@@ -301,6 +335,17 @@ const TranscriptProcessingPage = () => {
           setSelectedConflict(null);
         }}
         onConfirmResolution={handleConfirmResolution}
+      />
+
+      {/* Transcript Analysis Dialog */}
+      <TranscriptAnalysisDialog
+        open={isAnalysisDialogOpen}
+        transcript={parsedTranscript}
+        onClose={() => {
+          setIsAnalysisDialogOpen(false);
+          setParsedTranscript(null);
+        }}
+        onConfirm={handleConfirmTranscriptAnalysis}
       />
     </SecretaryDashboardLayout>
   );

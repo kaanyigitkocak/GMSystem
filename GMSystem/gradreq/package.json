@@ -17,11 +17,13 @@
     "@mui/styles": "^6.4.11",
     "axios": "^1.9.0",
     "jspdf-autotable": "^5.0.2",
+    "pdfjs-dist": "^5.2.133",
     "react": "^19.1.0",
     "react-dom": "^19.1.0",
     "react-pdf": "^9.2.1",
     "react-router-dom": "^7.6.0",
-    "spdf": "^0.0.4"
+    "spdf": "^0.0.4",
+    "tesseract.js": "^6.0.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.25.0",

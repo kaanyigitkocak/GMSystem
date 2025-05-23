@@ -24,10 +24,44 @@ export class ServiceError extends Error {
 // Response handling utility
 export const handleApiResponse = async <T>(response: Response): Promise<T> => {
   if (!response.ok) {
-    throw new ServiceError(
-      `API error: ${response.statusText}`,
-      response.status
-    );
+    let errorMessage = `API error: ${response.statusText}`;
+    let errorDetails = null;
+
+    try {
+      // Try to parse error response body for more details
+      const errorData = await response.text();
+      console.error("API Error Response Body:", errorData);
+
+      // Try to parse as JSON if possible
+      try {
+        errorDetails = JSON.parse(errorData);
+        console.error("Parsed API Error Details:", errorDetails);
+
+        // Use more detailed error message if available
+        if (errorDetails.detail) {
+          errorMessage += ` - ${errorDetails.detail}`;
+        } else if (errorDetails.message) {
+          errorMessage += ` - ${errorDetails.message}`;
+        } else if (errorDetails.errors) {
+          const validationErrors = Object.entries(errorDetails.errors)
+            .map(
+              ([field, errors]) =>
+                `${field}: ${
+                  Array.isArray(errors) ? errors.join(", ") : errors
+                }`
+            )
+            .join("; ");
+          errorMessage += ` - Validation errors: ${validationErrors}`;
+        }
+      } catch {
+        // If not JSON, just append the raw text
+        errorMessage += ` - ${errorData}`;
+      }
+    } catch (readError) {
+      console.error("Could not read error response body:", readError);
+    }
+
+    throw new ServiceError(errorMessage, response.status);
   }
   return response.json() as Promise<T>;
 };

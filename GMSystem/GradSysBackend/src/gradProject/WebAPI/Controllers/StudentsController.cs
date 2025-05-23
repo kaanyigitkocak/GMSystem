@@ -3,6 +3,7 @@ using Application.Features.Students.Commands.Delete;
 using Application.Features.Students.Commands.Update;
 using Application.Features.Students.Queries.GetById;
 using Application.Features.Students.Queries.GetList;
+using Domain.Enums;
 using NArchitecture.Core.Application.Requests;
 using NArchitecture.Core.Application.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -45,9 +46,19 @@ public class StudentsController : BaseController
     }
 
     [HttpGet]
-    public async Task<IActionResult> GetList([FromQuery] PageRequest pageRequest)
+    public async Task<IActionResult> GetList(
+        [FromQuery] PageRequest pageRequest,
+        [FromQuery] GraduationProcessStatus? graduationProcessStatus = null,
+        [FromQuery] Guid? departmentId = null,
+        [FromQuery] Guid? facultyId = null)
     {
-        GetListStudentQuery getListStudentQuery = new() { PageRequest = pageRequest };
+        GetListStudentQuery getListStudentQuery = new()
+        {
+            PageRequest = pageRequest,
+            GraduationProcessStatus = graduationProcessStatus,
+            DepartmentId = departmentId,
+            FacultyId = facultyId
+        };
         GetListResponse<GetListStudentListItemDto> response = await Mediator.Send(getListStudentQuery);
         return Ok(response);
     }

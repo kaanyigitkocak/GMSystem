@@ -127,7 +127,7 @@ if (app.Environment.IsDevelopment())
     app.UseSwaggerUI(opt => opt.DocExpansion(DocExpansion.None));
 }
 
-app.ConfigureCustomExceptionMiddleware();
+//app.ConfigureCustomExceptionMiddleware();
 app.UseDbMigrationApplier();
 
 app.UseAuthentication();

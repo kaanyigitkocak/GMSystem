@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import type { TranscriptData } from "../services/types";
 import {
   getTranscriptsApi,
@@ -9,6 +9,36 @@ import {
   processTranscriptApi,
 } from "../services/api/transcriptsApi";
 import { submitParsedTranscriptApi } from "../services/api/studentManagementApi";
+
+// localStorage key for transcripts
+const TRANSCRIPTS_STORAGE_KEY = "secretary_transcripts";
+
+// Helper functions for localStorage
+const saveTranscriptsToStorage = (transcripts: TranscriptData[]) => {
+  try {
+    localStorage.setItem(TRANSCRIPTS_STORAGE_KEY, JSON.stringify(transcripts));
+  } catch (error) {
+    console.warn("Failed to save transcripts to localStorage:", error);
+  }
+};
+
+const loadTranscriptsFromStorage = (): TranscriptData[] => {
+  try {
+    const stored = localStorage.getItem(TRANSCRIPTS_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+  } catch (error) {
+    console.warn("Failed to load transcripts from localStorage:", error);
+    return [];
+  }
+};
+
+const clearTranscriptsFromStorage = () => {
+  try {
+    localStorage.removeItem(TRANSCRIPTS_STORAGE_KEY);
+  } catch (error) {
+    console.warn("Failed to clear transcripts from localStorage:", error);
+  }
+};
 
 interface UseTranscriptsReturn {
   transcripts: TranscriptData[];
@@ -29,21 +59,41 @@ interface UseTranscriptsReturn {
       transcriptDataId: string;
     };
   }>;
+  addTranscript: (transcript: TranscriptData) => void;
+  clearStoredTranscripts: () => void;
   clearError: () => void;
 }
 
 export const useTranscripts = (): UseTranscriptsReturn => {
-  const [transcripts, setTranscripts] = useState<TranscriptData[]>([]);
+  // Initialize state from localStorage
+  const [transcripts, setTranscripts] = useState<TranscriptData[]>(() =>
+    loadTranscriptsFromStorage()
+  );
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadProgress, setUploadProgress] = useState(0);
+
+  // Sync transcripts to localStorage whenever state changes
+  useEffect(() => {
+    saveTranscriptsToStorage(transcripts);
+  }, [transcripts]);
 
   const fetchTranscripts = useCallback(async () => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getTranscriptsApi();
-      setTranscripts(data);
+      const apiData = await getTranscriptsApi();
+
+      // Get current local transcripts
+      const localTranscripts = loadTranscriptsFromStorage();
+
+      // Merge API data with local transcripts (avoid duplicates by ID)
+      const existingIds = new Set(localTranscripts.map((t) => t.id));
+      const newApiTranscripts = apiData.filter((t) => !existingIds.has(t.id));
+
+      // Set combined data
+      const combinedTranscripts = [...localTranscripts, ...newApiTranscripts];
+      setTranscripts(combinedTranscripts);
     } catch (err) {
       setError(
         err instanceof Error ? err.message : "Failed to fetch transcripts"
@@ -184,6 +234,15 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     []
   );
 
+  const addTranscript = useCallback((transcript: TranscriptData) => {
+    setTranscripts((prev) => [...prev, transcript]);
+  }, []);
+
+  const clearStoredTranscripts = useCallback(() => {
+    clearTranscriptsFromStorage();
+    setTranscripts([]);
+  }, []);
+
   const clearError = useCallback(() => {
     setError(null);
   }, []);
@@ -200,6 +259,8 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     deleteTranscript,
     processTranscript,
     submitParsedTranscript,
+    addTranscript,
+    clearStoredTranscripts,
     clearError,
   };
 };

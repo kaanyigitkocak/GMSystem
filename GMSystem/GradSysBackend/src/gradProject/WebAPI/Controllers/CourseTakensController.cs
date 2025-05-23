@@ -3,6 +3,7 @@ using Application.Features.CourseTakens.Commands.Delete;
 using Application.Features.CourseTakens.Commands.Update;
 using Application.Features.CourseTakens.Queries.GetById;
 using Application.Features.CourseTakens.Queries.GetList;
+using Application.Features.CourseTakens.Queries.GetStudentCourseIds;
 using NArchitecture.Core.Application.Requests;
 using NArchitecture.Core.Application.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +50,14 @@ public class CourseTakensController : BaseController
     {
         GetListCourseTakenQuery getListCourseTakenQuery = new() { PageRequest = pageRequest };
         GetListResponse<GetListCourseTakenListItemDto> response = await Mediator.Send(getListCourseTakenQuery);
+        return Ok(response);
+    }
+
+    [HttpGet("student-course-ids")]
+    public async Task<IActionResult> GetStudentCourseIds()
+    {
+        GetStudentCourseIdsQuery query = new();
+        GetStudentCourseIdsResponse response = await Mediator.Send(query);
         return Ok(response);
     }
 }
