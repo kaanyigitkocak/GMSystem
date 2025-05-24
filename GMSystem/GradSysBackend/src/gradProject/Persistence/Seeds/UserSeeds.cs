@@ -10,15 +10,31 @@ namespace Persistence.Seeds
         private static readonly byte[] DefaultPasswordSalt;
         private static readonly byte[] DefaultPasswordHash;
 
-        // Örnek Türkçe İsimler (Daha fazla çeşitlendirilebilir)
-        private static readonly List<string> TurkishMaleFirstNames = new List<string> { "Ahmet", "Mehmet", "Mustafa", "Ali", "Hüseyin", "Veli", "Can", "Emre", "Burak", "Murat" };
-        private static readonly List<string> TurkishFemaleFirstNames = new List<string> { "Ayşe", "Fatma", "Zeynep", "Elif", "Hatice", "Merve", "Selin", "Deniz", "Ebru", "Gamze" };
-        private static readonly List<string> TurkishLastNames = new List<string> { "Yılmaz", "Kaya", "Demir", "Çelik", "Şahin", "Yıldız", "Öztürk", "Aydın", "Arslan", "Doğan" };
+        // Sabit öğrenci isimleri - sıralı ve tutarlı
+        private static readonly List<(string firstName, string lastName)> StudentNames = new List<(string, string)>
+        {
+            ("Fatma", "Demir"), ("Ahmet", "Yılmaz"), ("Zeynep", "Kaya"), ("Mehmet", "Çelik"), ("Ayşe", "Şahin"),
+            ("Mustafa", "Yıldız"), ("Elif", "Öztürk"), ("Ali", "Aydın"), ("Hatice", "Arslan"), ("Hüseyin", "Doğan"),
+            ("Merve", "Özkan"), ("Can", "Koç"), ("Selin", "Aslan"), ("Emre", "Ceylan"), ("Deniz", "Kılıç"),
+            ("Burak", "Özdemir"), ("Ebru", "Güven"), ("Murat", "Balkan"), ("Gamze", "Erkan"), ("Veli", "Polat"),
+            ("Esra", "Başar"), ("Oğuz", "Sever"), ("Pınar", "Tunç"), ("Kemal", "Işık"), ("Neslihan", "Güneş"),
+            ("Serkan", "Ateş"), ("Gülben", "Duman"), ("Tolga", "Çakır"), ("Sibel", "Küçük"), ("Cem", "Büyük"),
+            ("Didem", "Özgür"), ("Berk", "Kurtul"), ("Asena", "Sezer"), ("Erdem", "Kara"), ("Tuğba", "Beyaz"),
+            ("Kaan", "Gök"), ("Özlem", "Şen"), ("Onur", "Güçlü"), ("Burcu", "Tatlı"), ("Engin", "Sağlam"),
+            ("Ceren", "Yalın"), ("Uğur", "Çınar"), ("Ece", "Özkan"), ("Barış", "Dalga"), ("Simge", "Uzun"),
+            ("Alper", "Işık"), ("Yasemin", "Tekin"), ("Ufuk", "Çetin"), ("Derya", "Esen"), ("Taner", "Akın"),
+            ("Gizem", "Korkmaz"), ("Selim", "Bozkurt"), ("Meltem", "Çiftçi"), ("Serhat", "Kaplan"), ("Berrin", "Çıtak"),
+            ("Erhan", "Yazıcı"), ("Pelin", "Kocaman"), ("Volkan", "Sönmez"), ("İrem", "Aktaş"), ("Cihan", "Özer"),
+            ("Gül", "Yavuz"), ("Arda", "Keskin"), ("Seray", "Türk"), ("Kağan", "Çolak"), ("Nisan", "Altın"),
+            ("Rıza", "Gümüş"), ("Defne", "Bulut"), ("Koray", "Yıldırım"), ("Melisa", "Kök"), ("Başak", "Taş"),
+            ("Okan", "Su"), ("Seda", "Kar"), ("Gökhan", "Rüzgar"), ("Fulya", "Çiçek"), ("Hakan", "Ağaç"),
+            ("Nilay", "Irmak"), ("Mert", "Deniz"), ("Aylin", "Göl"), ("Umut", "Dağ"), ("Senem", "Bahçe")
+        };
 
         static UserSeeds()
         {
-            // Örnek bir şifre için salt ve hash oluşturma (Gerçek uygulamada güvenli bir yöntem kullanılmalı)
-            HashingHelper.CreatePasswordHash("Password123!", out DefaultPasswordSalt, out DefaultPasswordHash);
+            // UserConfiguration'daki gibi şifre hash'leme
+            HashingHelper.CreatePasswordHash("Password123!", out DefaultPasswordHash, out DefaultPasswordSalt);
         }
 
         // Students - User IDs (First 40 for students)
@@ -106,8 +122,6 @@ namespace Persistence.Seeds
         public static readonly Guid StudentUser80Id = new("40000000-0000-0000-0000-000000000080");
 
         // Staff - User IDs (Next 10 for staff)
-        // Note: Staff IDs start after student IDs to avoid conflicts if student count changes.
-        // Adjusted staff IDs to start from ...0081 to avoid overlap with new students.
         public static readonly Guid StaffUser1Id = new("40000000-0000-0000-0000-000000000081"); // CompEng Advisor
         public static readonly Guid StaffUser2Id = new("40000000-0000-0000-0000-000000000082"); // ElecEng Advisor
         public static readonly Guid StaffUser3Id = new("40000000-0000-0000-0000-000000000083"); // CompEng Dept Secretary
@@ -122,13 +136,14 @@ namespace Persistence.Seeds
         public static IEnumerable<User> GetSeeds()
         {
             var userList = new List<User>();
-            var random = new Random();
 
-            // Student Users
-            for (int i = 1; i <= 80; i++) // Increased to 80
+            // Student Users - Sabit isimlerle
+            for (int i = 1; i <= 80; i++)
             {
-                string firstName = (i % 2 == 0) ? TurkishMaleFirstNames[random.Next(TurkishMaleFirstNames.Count)] : TurkishFemaleFirstNames[random.Next(TurkishFemaleFirstNames.Count)];
-                string lastName = TurkishLastNames[random.Next(TurkishLastNames.Count)];
+                var nameIndex = (i - 1) % StudentNames.Count;
+                var studentName = StudentNames[nameIndex];
+                string firstName = studentName.firstName;
+                string lastName = studentName.lastName;
                 string userName = $"{firstName.ToLower().Replace('ı', 'i').Replace('ö', 'o').Replace('ü', 'u').Replace('ş', 's').Replace('ç', 'c').Replace('ğ', 'g')}.{lastName.ToLower().Replace('ı', 'i').Replace('ö', 'o').Replace('ü', 'u').Replace('ş', 's').Replace('ç', 'c').Replace('ğ', 'g')}.s{i}";
 
                 userList.Add(new User(
@@ -139,12 +154,12 @@ namespace Persistence.Seeds
                     lastName: lastName,
                     passwordSalt: DefaultPasswordSalt,
                     passwordHash: DefaultPasswordHash,
-                    isActive: true, // Students are not active as per request
-                    isEmailVerified: true // Student emails are not verified by default
+                    isActive: true,
+                    isEmailVerified: true
                 ));
             }
 
-            // Staff Users - Using Turkish names. Role descriptions below are for local reference and match updated StaffSeeds.
+            // Staff Users - Using Turkish names
             var staffUsersData = new List<(Guid id, string userNamePrefix, string firstName, string lastName, string roleDescription)> 
             {
                 (StaffUser1Id, "ayse.yilmaz", "Ayşe", "Yılmaz", "Computer Engineering Advisor"),
@@ -172,7 +187,7 @@ namespace Persistence.Seeds
                     lastName: staffData.lastName,
                     passwordSalt: DefaultPasswordSalt,
                     passwordHash: DefaultPasswordHash,
-                    isActive: true, // Staff users are active by default
+                    isActive: true,
                     isEmailVerified: true
                 ));
             }

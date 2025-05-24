@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Notification } from "../services/types";
 import {
-  getNotificationsApi,
-  markNotificationAsReadApi,
-} from "../services/api/notificationsApi";
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+} from "../services";
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -24,7 +25,7 @@ export const useNotifications = (): UseNotificationsReturn => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getNotificationsApi();
+      const data = await getNotifications();
       setNotifications(data);
     } catch (err) {
       setError(
@@ -37,7 +38,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const markAsRead = useCallback(async (id: string) => {
     try {
-      await markNotificationAsReadApi(id);
+      await markNotificationAsRead(id);
       setNotifications((prev) =>
         prev.map((notification) =>
           notification.id === id
@@ -56,12 +57,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const markAllAsRead = useCallback(async () => {
     try {
-      const unreadNotifications = notifications.filter((n) => !n.read);
-      await Promise.all(
-        unreadNotifications.map((notification) =>
-          markNotificationAsReadApi(notification.id)
-        )
-      );
+      await markAllNotificationsAsRead();
       setNotifications((prev) =>
         prev.map((notification) => ({ ...notification, read: true }))
       );
@@ -72,7 +68,7 @@ export const useNotifications = (): UseNotificationsReturn => {
           : "Failed to mark all notifications as read"
       );
     }
-  }, [notifications]);
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.read).length;
 

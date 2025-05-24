@@ -261,6 +261,29 @@ export const markNotificationAsReadMock = async (id: string): Promise<void> => {
   });
 };
 
+export const markAllNotificationsAsReadMock = async (): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockNotifications.forEach((notification) => {
+        notification.read = true;
+      });
+      resolve();
+    }, 500);
+  });
+};
+
+export const deleteNotificationMock = async (id: string): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const index = mockNotifications.findIndex((n) => n.id === id);
+      if (index !== -1) {
+        mockNotifications.splice(index, 1);
+      }
+      resolve();
+    }, 300);
+  });
+};
+
 // Graduation requests service
 export const getGraduationRequestsMock = async (): Promise<
   GraduationRequest[]

@@ -14,6 +14,7 @@ import autoTable from 'jspdf-autotable';
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
 import type { StudentRanking } from '../services/types';
 import { useStudentRankings } from '../hooks';
+import { getStudentTranscript } from '../services';
 import {
   StudentRankingTable,
   RankingActions,
@@ -61,56 +62,25 @@ const DepartmentRankingPage = () => {
     setStudents(studentsWithStatus);
   }, [rankings]);
 
-  // Handle view transcript
-  const handleViewTranscript = (student: ExtendedStudentRanking) => {
-    const mockTranscript: StudentTranscript = {
-      studentId: student.studentId,
-      studentName: student.studentName,
-      department: student.department,
-      gpa: student.gpa,
-      credits: Math.floor(Math.random() * 50) + 100, 
-      courses: [
-        {
-          courseCode: 'CENG101',
-          courseName: 'Introduction to Computer Engineering',
-          credit: 4,
-          grade: 'AA',
-          semester: 'Fall 2020'
-        },
-        {
-          courseCode: 'MATH101',
-          courseName: 'Calculus I',
-          credit: 4,
-          grade: 'BA',
-          semester: 'Fall 2020'
-        },
-        {
-          courseCode: 'PHYS101',
-          courseName: 'Physics I',
-          credit: 4,
-          grade: 'BB',
-          semester: 'Fall 2020'
-        },
-        {
-          courseCode: 'CENG102',
-          courseName: 'Data Structures',
-          credit: 4,
-          grade: 'AA',
-          semester: 'Spring 2021'
-        },
-        {
-          courseCode: 'MATH102',
-          courseName: 'Calculus II',
-          credit: 4,
-          grade: 'CB',
-          semester: 'Spring 2021'
-        }
-      ]
-    };
-    
-    setCurrentTranscript(mockTranscript);
-    setCurrentStudentId(student.id);
-    setOpenTranscriptDialog(true);
+  // Handle view transcript with new service
+  const handleViewTranscript = async (student: ExtendedStudentRanking) => {
+    try {
+      const transcript = await getStudentTranscript(
+        student.studentId,
+        student.studentName,
+        student.department,
+        "Engineering",
+        student.gpa,
+        Math.floor(Math.random() * 50) + 100
+      );
+      setCurrentTranscript(transcript);
+      setCurrentStudentId(student.id);
+      setOpenTranscriptDialog(true);
+    } catch (error) {
+      console.error('Failed to load transcript:', error);
+      setSnackbarMessage('Failed to load transcript');
+      setSnackbarOpen(true);
+    }
   };
 
   const handleCloseTranscriptDialog = () => {
@@ -119,6 +89,7 @@ const DepartmentRankingPage = () => {
     setCurrentStudentId('');
   };
 
+  // Handle approve/reject from transcript dialog
   const handleRejectStudent = () => {
     if (!currentStudentId) return;
     
@@ -149,6 +120,35 @@ const DepartmentRankingPage = () => {
     setSnackbarMessage(`Student has been approved for graduation`);
     setSnackbarOpen(true);
     handleCloseTranscriptDialog();
+  };
+
+  // Handle approve/reject from table
+  const handleTableApprove = (studentId: string) => {
+    setStudents(prevStudents => 
+      prevStudents.map(student => 
+        student.id === studentId 
+          ? { ...student, status: 'Approved' as const } 
+          : student
+      )
+    );
+    
+    const student = students.find(s => s.id === studentId);
+    setSnackbarMessage(`${student?.studentName} has been approved for graduation`);
+    setSnackbarOpen(true);
+  };
+
+  const handleTableReject = (studentId: string) => {
+    setStudents(prevStudents => 
+      prevStudents.map(student => 
+        student.id === studentId 
+          ? { ...student, status: 'Rejected' as const } 
+          : student
+      )
+    );
+    
+    const student = students.find(s => s.id === studentId);
+    setSnackbarMessage(`${student?.studentName} has been rejected from graduation`);
+    setSnackbarOpen(true);
   };
 
   const handleApproveAll = () => {
@@ -274,6 +274,8 @@ const DepartmentRankingPage = () => {
             loading={loading}
             departmentName={departmentName}
             onViewTranscript={handleViewTranscript}
+            onApprove={handleTableApprove}
+            onReject={handleTableReject}
             getStatusChipColor={getStatusChipColor}
           />
         </Box>

@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Notification } from "../services/types";
 import {
-  getNotificationsApi,
-  markNotificationAsReadApi,
-  markAllNotificationsAsReadApi,
-  deleteNotificationApi,
-} from "../services/api/notificationsApi";
+  getNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  deleteNotification,
+} from "../services";
 
 interface UseNotificationsReturn {
   notifications: Notification[];
@@ -27,7 +27,7 @@ export const useNotifications = (): UseNotificationsReturn => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getNotificationsApi();
+      const data = await getNotifications();
       setNotifications(data);
     } catch (err) {
       setError(
@@ -40,7 +40,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const markAsRead = useCallback(async (id: string) => {
     try {
-      await markNotificationAsReadApi(id);
+      await markNotificationAsRead(id);
       setNotifications((prev) =>
         prev.map((notification) =>
           notification.id === id
@@ -59,7 +59,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const markAllAsRead = useCallback(async () => {
     try {
-      await markAllNotificationsAsReadApi();
+      await markAllNotificationsAsRead();
       setNotifications((prev) =>
         prev.map((notification) => ({ ...notification, read: true }))
       );
@@ -74,7 +74,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const deleteNotification = useCallback(async (id: string) => {
     try {
-      await deleteNotificationApi(id);
+      await deleteNotification(id);
       setNotifications((prev) =>
         prev.filter((notification) => notification.id !== id)
       );

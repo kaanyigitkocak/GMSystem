@@ -99,3 +99,22 @@ export const markNotificationAsReadApi = async (id: string): Promise<void> => {
     throw new ServiceError(`Failed to mark notification ${id} as read`);
   }
 };
+
+// Mark all notifications as read
+export const markAllNotificationsAsReadApi = async (): Promise<void> => {
+  try {
+    // Get current user's notifications first
+    const notifications = await getNotificationsApi();
+    const unreadNotifications = notifications.filter((n) => !n.read);
+
+    // Mark each unread notification as read
+    await Promise.all(
+      unreadNotifications.map((notification) =>
+        markNotificationAsReadApi(notification.id)
+      )
+    );
+  } catch (error) {
+    console.error("Failed to mark all notifications as read:", error);
+    throw new ServiceError("Failed to mark all notifications as read");
+  }
+};

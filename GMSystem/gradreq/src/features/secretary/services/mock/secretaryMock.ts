@@ -255,7 +255,7 @@ const mockStudentRankings: Record<string, StudentRanking[]> = {
       studentId: "2019510001",
       studentName: "Ahmet Yılmaz",
       department: "Test Department",
-      gpa: 3.82,
+      gpa: 3.95,
       graduationDate: "2024-06-15",
       ranking: 1,
     },
@@ -264,7 +264,7 @@ const mockStudentRankings: Record<string, StudentRanking[]> = {
       studentId: "2019510042",
       studentName: "Ayşe Demir",
       department: "Test Department",
-      gpa: 3.75,
+      gpa: 3.89,
       graduationDate: "2024-06-15",
       ranking: 2,
     },
@@ -273,7 +273,7 @@ const mockStudentRankings: Record<string, StudentRanking[]> = {
       studentId: "2019510036",
       studentName: "Mehmet Kaya",
       department: "Test Department",
-      gpa: 3.65,
+      gpa: 3.84,
       graduationDate: "2024-06-15",
       ranking: 3,
     },
@@ -282,9 +282,198 @@ const mockStudentRankings: Record<string, StudentRanking[]> = {
       studentId: "2019510078",
       studentName: "Zeynep Şahin",
       department: "Test Department",
-      gpa: 3.58,
+      gpa: 3.79,
       graduationDate: "2024-06-15",
       ranking: 4,
+    },
+    {
+      id: "105",
+      studentId: "2019510089",
+      studentName: "Can Özkan",
+      department: "Test Department",
+      gpa: 3.74,
+      graduationDate: "2024-06-15",
+      ranking: 5,
+    },
+    {
+      id: "106",
+      studentId: "2019510123",
+      studentName: "Elif Güner",
+      department: "Test Department",
+      gpa: 3.68,
+      graduationDate: "2024-06-15",
+      ranking: 6,
+    },
+    {
+      id: "107",
+      studentId: "2019510067",
+      studentName: "Burak Arslan",
+      department: "Test Department",
+      gpa: 3.62,
+      graduationDate: "2024-06-15",
+      ranking: 7,
+    },
+    {
+      id: "108",
+      studentId: "2019510145",
+      studentName: "Selin Yurt",
+      department: "Test Department",
+      gpa: 3.58,
+      graduationDate: "2024-06-15",
+      ranking: 8,
+    },
+    {
+      id: "109",
+      studentId: "2019510156",
+      studentName: "Emre Çelik",
+      department: "Test Department",
+      gpa: 3.53,
+      graduationDate: "2024-06-15",
+      ranking: 9,
+    },
+    {
+      id: "110",
+      studentId: "2019510178",
+      studentName: "Gizem Aydın",
+      department: "Test Department",
+      gpa: 3.47,
+      graduationDate: "2024-06-15",
+      ranking: 10,
+    },
+    {
+      id: "111",
+      studentId: "2019510199",
+      studentName: "Tolga Şen",
+      department: "Test Department",
+      gpa: 3.42,
+      graduationDate: "2024-06-15",
+      ranking: 11,
+    },
+    {
+      id: "112",
+      studentId: "2019510211",
+      studentName: "Deniz Korkmaz",
+      department: "Test Department",
+      gpa: 3.38,
+      graduationDate: "2024-06-15",
+      ranking: 12,
+    },
+    {
+      id: "113",
+      studentId: "2019510234",
+      studentName: "Ozan Balcı",
+      department: "Test Department",
+      gpa: 3.33,
+      graduationDate: "2024-06-15",
+      ranking: 13,
+    },
+    {
+      id: "114",
+      studentId: "2019510256",
+      studentName: "Merve Akbaş",
+      department: "Test Department",
+      gpa: 3.28,
+      graduationDate: "2024-06-15",
+      ranking: 14,
+    },
+    {
+      id: "115",
+      studentId: "2019510278",
+      studentName: "Kemal Doğan",
+      department: "Test Department",
+      gpa: 3.24,
+      graduationDate: "2024-06-15",
+      ranking: 15,
+    },
+    {
+      id: "116",
+      studentId: "2019510289",
+      studentName: "Pınar Özdemir",
+      department: "Test Department",
+      gpa: 3.19,
+      graduationDate: "2024-06-15",
+      ranking: 16,
+    },
+    {
+      id: "117",
+      studentId: "2019510301",
+      studentName: "Murat Sezer",
+      department: "Test Department",
+      gpa: 3.15,
+      graduationDate: "2024-06-15",
+      ranking: 17,
+    },
+    {
+      id: "118",
+      studentId: "2019510324",
+      studentName: "İrem Kaplan",
+      department: "Test Department",
+      gpa: 3.11,
+      graduationDate: "2024-06-15",
+      ranking: 18,
+    },
+    {
+      id: "119",
+      studentId: "2019510345",
+      studentName: "Berkay Tunç",
+      department: "Test Department",
+      gpa: 3.07,
+      graduationDate: "2024-06-15",
+      ranking: 19,
+    },
+    {
+      id: "120",
+      studentId: "2019510367",
+      studentName: "Ezgi Çakır",
+      department: "Test Department",
+      gpa: 3.02,
+      graduationDate: "2024-06-15",
+      ranking: 20,
+    },
+    {
+      id: "121",
+      studentId: "2019510389",
+      studentName: "Arda Yıldız",
+      department: "Test Department",
+      gpa: 2.98,
+      graduationDate: "2024-06-15",
+      ranking: 21,
+    },
+    {
+      id: "122",
+      studentId: "2019510412",
+      studentName: "Neslihan Koca",
+      department: "Test Department",
+      gpa: 2.94,
+      graduationDate: "2024-06-15",
+      ranking: 22,
+    },
+    {
+      id: "123",
+      studentId: "2019510435",
+      studentName: "Serkan Polat",
+      department: "Test Department",
+      gpa: 2.89,
+      graduationDate: "2024-06-15",
+      ranking: 23,
+    },
+    {
+      id: "124",
+      studentId: "2019510458",
+      studentName: "Başak Öz",
+      department: "Test Department",
+      gpa: 2.85,
+      graduationDate: "2024-06-15",
+      ranking: 24,
+    },
+    {
+      id: "125",
+      studentId: "2019510481",
+      studentName: "Görkem Erdem",
+      department: "Test Department",
+      gpa: 2.81,
+      graduationDate: "2024-06-15",
+      ranking: 25,
     },
   ],
 };
@@ -321,6 +510,107 @@ let mockTranscripts: TranscriptData[] = [
     fileName: "mike_johnson_transcript.pdf",
     fileSize: 1100,
   },
+  // Test Department transcripts
+  {
+    id: "101",
+    studentId: "2019510001",
+    studentName: "Ahmet Yılmaz",
+    department: "Test Department",
+    uploadDate: "2024-05-20",
+    status: "processed",
+    fileName: "ahmet_yilmaz_transcript.pdf",
+    fileSize: 1350,
+  },
+  {
+    id: "102",
+    studentId: "2019510042",
+    studentName: "Ayşe Demir",
+    department: "Test Department",
+    uploadDate: "2024-05-19",
+    status: "processed",
+    fileName: "ayse_demir_transcript.pdf",
+    fileSize: 1280,
+  },
+  {
+    id: "103",
+    studentId: "2019510036",
+    studentName: "Mehmet Kaya",
+    department: "Test Department",
+    uploadDate: "2024-05-18",
+    status: "pending",
+    fileName: "mehmet_kaya_transcript.pdf",
+    fileSize: 1190,
+  },
+  {
+    id: "104",
+    studentId: "2019510078",
+    studentName: "Zeynep Şahin",
+    department: "Test Department",
+    uploadDate: "2024-05-17",
+    status: "processed",
+    fileName: "zeynep_sahin_transcript.pdf",
+    fileSize: 1420,
+  },
+  {
+    id: "105",
+    studentId: "2019510089",
+    studentName: "Can Özkan",
+    department: "Test Department",
+    uploadDate: "2024-05-16",
+    status: "pending",
+    fileName: "can_ozkan_transcript.pdf",
+    fileSize: 1310,
+  },
+  {
+    id: "106",
+    studentId: "2019510123",
+    studentName: "Elif Güner",
+    department: "Test Department",
+    uploadDate: "2024-05-15",
+    status: "processed",
+    fileName: "elif_guner_transcript.pdf",
+    fileSize: 1270,
+  },
+  {
+    id: "107",
+    studentId: "2019510067",
+    studentName: "Burak Arslan",
+    department: "Test Department",
+    uploadDate: "2024-05-14",
+    status: "processed",
+    fileName: "burak_arslan_transcript.pdf",
+    fileSize: 1390,
+  },
+  {
+    id: "108",
+    studentId: "2019510145",
+    studentName: "Selin Yurt",
+    department: "Test Department",
+    uploadDate: "2024-05-13",
+    status: "pending",
+    fileName: "selin_yurt_transcript.pdf",
+    fileSize: 1250,
+  },
+  {
+    id: "109",
+    studentId: "2019510156",
+    studentName: "Emre Çelik",
+    department: "Test Department",
+    uploadDate: "2024-05-12",
+    status: "processed",
+    fileName: "emre_celik_transcript.pdf",
+    fileSize: 1330,
+  },
+  {
+    id: "110",
+    studentId: "2019510178",
+    studentName: "Gizem Aydın",
+    department: "Test Department",
+    uploadDate: "2024-05-11",
+    status: "processed",
+    fileName: "gizem_aydin_transcript.pdf",
+    fileSize: 1180,
+  },
 ];
 
 // Mock data for dashboard statistics
@@ -329,12 +619,53 @@ const mockDashboardStats = {
   graduationDate: "2023-06-15",
 };
 
+// Mock function for getting user data
+export const getUserFromAuthMock = async () => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      resolve({
+        id: "secretary-mock-id",
+        firstName: "Test",
+        lastName: "Secretary",
+        email: "secretary@example.com",
+        createdDate: "2023-01-01T00:00:00",
+        updatedDate: "2023-01-01T00:00:00",
+      });
+    }, 200);
+  });
+};
+
 // Function to fetch notifications (simulated API call)
 export const getNotificationsMock = async (): Promise<Notification[]> => {
   return new Promise((resolve) => {
     setTimeout(() => {
       resolve(mockNotifications);
     }, 500);
+  });
+};
+
+// Function to mark notification as read (simulated API call)
+export const markNotificationAsReadMock = async (id: string): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      const notification = mockNotifications.find((n) => n.id === id);
+      if (notification) {
+        notification.read = true;
+      }
+      resolve();
+    }, 300);
+  });
+};
+
+// Function to mark all notifications as read (simulated API call)
+export const markAllNotificationsAsReadMock = async (): Promise<void> => {
+  return new Promise((resolve) => {
+    setTimeout(() => {
+      mockNotifications.forEach((n) => {
+        n.read = true;
+      });
+      resolve();
+    }, 300);
   });
 };
 
@@ -347,6 +678,27 @@ export const getGraduationRequestsMock = async (): Promise<
       resolve(mockGraduationRequests);
     }, 500);
   });
+};
+
+// Mock function for updating graduation request status
+export const updateGraduationRequestStatusMock = async (
+  id: string,
+  status: string,
+  notes?: string
+): Promise<GraduationRequest> => {
+  console.log(
+    `Mock: Updating graduation request ${id} to status ${status} with notes: ${notes}`
+  );
+  const requestIndex = mockGraduationRequests.findIndex((req) => req.id === id);
+  if (requestIndex === -1) {
+    throw new Error("Mock: Graduation request not found");
+  }
+  mockGraduationRequests[requestIndex] = {
+    ...mockGraduationRequests[requestIndex],
+    status,
+    notes: notes ?? mockGraduationRequests[requestIndex].notes,
+  };
+  return mockGraduationRequests[requestIndex];
 };
 
 // Function to fetch student rankings by department (simulated API call)
@@ -689,12 +1041,25 @@ export const uploadTranscriptMock = async (
 };
 
 /**
- * Mock implementation for uploading and parsing a PDF transcript
- * Updated to simulate parsing the Turkish transcript format
+ * Mock function for uploading and parsing PDF transcript
  */
 export const uploadAndParsePDFTranscriptMock = async (
-  file: File
+  file: File,
+  onProgress?: (progress: number) => void // Add optional onProgress callback
 ): Promise<TranscriptData> => {
+  console.log("Mock: Uploading and parsing PDF transcript:", file.name);
+  if (onProgress) {
+    onProgress(0);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    onProgress(25);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    onProgress(50);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    onProgress(75);
+    await new Promise((resolve) => setTimeout(resolve, 50));
+    onProgress(100);
+  }
+
   try {
     // In a real implementation, this would extract data from the PDF content
     // based on the Turkish transcript format
@@ -958,3 +1323,6 @@ ${mockTranscripts
 
   return blob;
 };
+
+// Export transcript service
+export { getStudentTranscript } from "../transcriptService";

@@ -4,7 +4,7 @@ import {
   getStudentsForPetition,
   type PetitionStudent,
   type PetitionData,
-} from "../services/petitionService";
+} from "../services"; // Changed from "../services/petitionService"
 
 interface PetitionState {
   students: PetitionStudent[];
@@ -95,4 +95,4 @@ export const usePetition = () => {
     submitPetition,
     resetSubmitState,
   };
-}; 
+};

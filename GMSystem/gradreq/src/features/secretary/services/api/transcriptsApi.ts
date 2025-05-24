@@ -172,9 +172,20 @@ export const getTranscriptsApi = async (): Promise<TranscriptData[]> => {
 
 // Upload and parse PDF transcript (frontend parsing)
 export const uploadAndParsePDFTranscriptApi = async (
-  file: File
+  file: File,
+  onProgress?: (progress: number) => void // Add optional onProgress callback
 ): Promise<TranscriptData> => {
   try {
+    // Simulate progress for API call if onProgress is provided
+    if (onProgress) {
+      onProgress(0);
+      // Simulate some async work
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      onProgress(50);
+      await new Promise((resolve) => setTimeout(resolve, 100));
+      onProgress(100);
+    }
+
     // Parse PDF on frontend
     const parsedData = await parsePDFTranscript(file);
     console.log("Parsed PDF data:", parsedData);

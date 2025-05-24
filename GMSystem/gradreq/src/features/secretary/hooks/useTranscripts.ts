@@ -1,14 +1,14 @@
 import { useState, useCallback, useEffect } from "react";
 import type { TranscriptData } from "../services/types";
 import {
-  getTranscriptsApi,
-  uploadAndParsePDFTranscriptApi,
-  parseTranscriptCSVApi,
-  uploadTranscriptApi,
-  deleteTranscriptApi,
-  processTranscriptApi,
-} from "../services/api/transcriptsApi";
-import { submitParsedTranscriptApi } from "../services/api/studentManagementApi";
+  getTranscripts,
+  uploadAndParsePDFTranscript,
+  parseTranscriptCSV,
+  uploadTranscript,
+  deleteTranscript,
+  processTranscript,
+  submitParsedTranscript,
+} from "../services"; // Updated import
 
 // localStorage key for transcripts
 const TRANSCRIPTS_STORAGE_KEY = "secretary_transcripts";
@@ -46,7 +46,7 @@ interface UseTranscriptsReturn {
   error: string | null;
   uploadProgress: number;
   fetchTranscripts: () => Promise<void>;
-  uploadAndParsePDF: (file: File) => Promise<TranscriptData>;
+  uploadAndParsePDF: (file: File, onProgress: (progress: number) => void) => Promise<TranscriptData>; // Add onProgress to type
   parseCSV: (file: File) => Promise<TranscriptData[]>;
   uploadTranscript: (file: File) => Promise<TranscriptData>;
   deleteTranscript: (id: string) => Promise<void>;
@@ -82,7 +82,7 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     setLoading(true);
     setError(null);
     try {
-      const apiData = await getTranscriptsApi();
+      const apiData = await getTranscripts(); // Use service router
 
       // Get current local transcripts
       const localTranscripts = loadTranscriptsFromStorage();
@@ -104,16 +104,21 @@ export const useTranscripts = (): UseTranscriptsReturn => {
   }, []);
 
   const uploadAndParsePDF = useCallback(
-    async (file: File): Promise<TranscriptData> => {
+    async (file: File, onProgress: (progress: number) => void): Promise<TranscriptData> => {
       setLoading(true);
       setError(null);
       setUploadProgress(0);
       try {
-        const result = await uploadAndParsePDFTranscriptApi(file);
-        setUploadProgress(100);
-        // Add to local state
-        setTranscripts((prev) => [...prev, result]);
-        return result;
+        const newTranscript = await uploadAndParsePDFTranscript(file, (progress: number) => { // Use service router and type progress
+          setUploadProgress(progress);
+          if (onProgress) onProgress(progress); // Call the passed onProgress
+        });
+        setTranscripts((prev) => {
+          const updatedTranscripts = [newTranscript, ...prev];
+          saveTranscriptsToStorage(updatedTranscripts); // Ensure storage is updated
+          return updatedTranscripts;
+        });
+        return newTranscript;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to upload and parse PDF"
@@ -132,10 +137,18 @@ export const useTranscripts = (): UseTranscriptsReturn => {
       setLoading(true);
       setError(null);
       try {
-        const results = await parseTranscriptCSVApi(file);
-        // Add to local state
-        setTranscripts((prev) => [...prev, ...results]);
-        return results;
+        const newTranscripts = await parseTranscriptCSV(file); // Use service router
+        setTranscripts((prev) => {
+          // Filter out any potential duplicates if re-parsing
+          const existingIds = new Set(prev.map((t) => t.id));
+          const uniqueNewTranscripts = newTranscripts.filter(
+            (t) => !existingIds.has(t.id)
+          );
+          const updatedTranscripts = [...uniqueNewTranscripts, ...prev];
+          saveTranscriptsToStorage(updatedTranscripts); // Ensure storage is updated
+          return updatedTranscripts;
+        });
+        return newTranscripts;
       } catch (err) {
         setError(err instanceof Error ? err.message : "Failed to parse CSV");
         throw err;
@@ -146,15 +159,19 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     []
   );
 
-  const uploadTranscript = useCallback(
+  const uploadLocalTranscript = useCallback(
     async (file: File): Promise<TranscriptData> => {
       setLoading(true);
       setError(null);
+      setUploadProgress(0);
       try {
-        const result = await uploadTranscriptApi(file);
-        // Add to local state
-        setTranscripts((prev) => [...prev, result]);
-        return result;
+        const newTranscript = await uploadTranscript(file); // Use service router
+        setTranscripts((prev) => {
+          const updatedTranscripts = [newTranscript, ...prev];
+          saveTranscriptsToStorage(updatedTranscripts); // Ensure storage is updated
+          return updatedTranscripts;
+        });
+        return newTranscript;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to upload transcript"
@@ -167,32 +184,45 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     []
   );
 
-  const deleteTranscript = useCallback(async (id: string) => {
-    try {
-      await deleteTranscriptApi(id);
-      // Remove from local state
-      setTranscripts((prev) =>
-        prev.filter((transcript) => transcript.id !== id)
-      );
-    } catch (err) {
-      setError(
-        err instanceof Error ? err.message : "Failed to delete transcript"
-      );
-      throw err;
-    }
-  }, []);
+  const deleteLocalTranscript = useCallback(
+    async (id: string) => {
+      setLoading(true);
+      setError(null);
+      try {
+        await deleteTranscript(id); // Use service router
+        setTranscripts((prev) => {
+          const updatedTranscripts = prev.filter(
+            (transcript) => transcript.id !== id
+          );
+          saveTranscriptsToStorage(updatedTranscripts); // Ensure storage is updated
+          return updatedTranscripts;
+        });
+      } catch (err) {
+        setError(
+          err instanceof Error ? err.message : "Failed to delete transcript"
+        );
+        throw err;
+      } finally {
+        setLoading(false);
+      }
+    },
+    []
+  );
 
-  const processTranscript = useCallback(
+  const processLocalTranscript = useCallback(
     async (id: string): Promise<TranscriptData> => {
       setLoading(true);
       setError(null);
       try {
-        const result = await processTranscriptApi(id);
-        // Update local state
-        setTranscripts((prev) =>
-          prev.map((transcript) => (transcript.id === id ? result : transcript))
-        );
-        return result;
+        const processedTranscript = await processTranscript(id); // Use service router
+        setTranscripts((prev) => {
+          const updatedTranscripts = prev.map((transcript) =>
+            transcript.id === id ? processedTranscript : transcript
+          );
+          saveTranscriptsToStorage(updatedTranscripts); // Ensure storage is updated
+          return updatedTranscripts;
+        });
+        return processedTranscript;
       } catch (err) {
         setError(
           err instanceof Error ? err.message : "Failed to process transcript"
@@ -205,20 +235,22 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     []
   );
 
-  const submitParsedTranscript = useCallback(
+  const submitLocalParsedTranscript = useCallback(
     async (transcriptData: TranscriptData) => {
       setLoading(true);
       setError(null);
       try {
-        const result = await submitParsedTranscriptApi(transcriptData);
-        // Update local state with enhanced transcript data
-        setTranscripts((prev) =>
-          prev.map((transcript) =>
-            transcript.id === transcriptData.id
-              ? result.transcriptData
-              : transcript
-          )
-        );
+        const result = await submitParsedTranscript(transcriptData); // Use service router
+        // Update local transcript status or remove if successfully submitted
+        setTranscripts((prev) => {
+          const updatedTranscripts = prev.map((t) =>
+            t.id === transcriptData.id
+              ? { ...t, status: "Processed" } // Or remove, depending on desired UX
+              : t
+          );
+          saveTranscriptsToStorage(updatedTranscripts); // Ensure storage is updated
+          return updatedTranscripts;
+        });
         return result;
       } catch (err) {
         setError(
@@ -255,10 +287,10 @@ export const useTranscripts = (): UseTranscriptsReturn => {
     fetchTranscripts,
     uploadAndParsePDF,
     parseCSV,
-    uploadTranscript,
-    deleteTranscript,
-    processTranscript,
-    submitParsedTranscript,
+    uploadTranscript: uploadLocalTranscript,
+    deleteTranscript: deleteLocalTranscript,
+    processTranscript: processLocalTranscript,
+    submitParsedTranscript: submitLocalParsedTranscript,
     addTranscript,
     clearStoredTranscripts,
     clearError,

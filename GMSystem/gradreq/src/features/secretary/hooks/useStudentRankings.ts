@@ -1,10 +1,10 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useCallback } from "react"; // Removed useEffect
 import type { StudentRanking } from "../services/types";
 import {
-  getStudentRankingsApi,
-  updateStudentRankingApi,
-  reorderStudentRankingsApi,
-} from "../services/api/studentRankingsApi";
+  getStudentRankings,
+  updateStudentRanking,
+  reorderStudentRankings,
+} from "../services"; // Updated import
 
 interface UseStudentRankingsReturn {
   rankings: StudentRanking[];
@@ -25,7 +25,7 @@ export const useStudentRankings = (): UseStudentRankingsReturn => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getStudentRankingsApi(department);
+      const data = await getStudentRankings(department); // Use service router
       setRankings(data);
     } catch (err) {
       setError(
@@ -38,7 +38,7 @@ export const useStudentRankings = (): UseStudentRankingsReturn => {
 
   const updateRanking = useCallback(async (student: StudentRanking) => {
     try {
-      const updatedStudent = await updateStudentRankingApi(student);
+      const updatedStudent = await updateStudentRanking(student); // Use service router
       setRankings((prev) =>
         prev.map((ranking) =>
           ranking.id === updatedStudent.id ? updatedStudent : ranking
@@ -53,7 +53,7 @@ export const useStudentRankings = (): UseStudentRankingsReturn => {
 
   const reorderRankings = useCallback(async (newRankings: StudentRanking[]) => {
     try {
-      const updatedRankings = await reorderStudentRankingsApi(newRankings);
+      const updatedRankings = await reorderStudentRankings(newRankings); // Use service router
       setRankings(updatedRankings);
     } catch (err) {
       setError(

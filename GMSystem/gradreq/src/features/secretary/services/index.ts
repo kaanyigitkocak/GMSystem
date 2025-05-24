@@ -10,6 +10,14 @@ import type {
 
 const { useMock } = getServiceConfig();
 
+// User service functions
+export const getUserFromAuth = async () => {
+  if (useMock) {
+    return mockService.getUserFromAuthMock();
+  }
+  return apiService.getUserFromAuthApi();
+};
+
 // Service router functions
 export const getNotifications = async (): Promise<Notification[]> => {
   if (useMock) {
@@ -18,11 +26,36 @@ export const getNotifications = async (): Promise<Notification[]> => {
   return apiService.getNotificationsApi();
 };
 
+export const markNotificationAsRead = async (id: string): Promise<void> => {
+  if (useMock) {
+    return mockService.markNotificationAsReadMock(id);
+  }
+  return apiService.markNotificationAsReadApi(id);
+};
+
+export const markAllNotificationsAsRead = async (): Promise<void> => {
+  if (useMock) {
+    return mockService.markAllNotificationsAsReadMock();
+  }
+  return apiService.markAllNotificationsAsReadApi();
+};
+
 export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
   if (useMock) {
     return mockService.getGraduationRequestsMock();
   }
   return apiService.getGraduationRequestsApi();
+};
+
+export const updateGraduationRequestStatus = async (
+  id: string,
+  status: string,
+  notes?: string
+): Promise<GraduationRequest> => {
+  if (useMock) {
+    return mockService.updateGraduationRequestStatusMock(id, status, notes);
+  }
+  return apiService.updateGraduationRequestStatusApi(id, status, notes);
 };
 
 export const getStudentRankings = async (
@@ -76,12 +109,13 @@ export const uploadTranscript = async (file: File): Promise<TranscriptData> => {
 };
 
 export const uploadAndParsePDFTranscript = async (
-  file: File
+  file: File,
+  onProgress?: (progress: number) => void // Add optional onProgress callback
 ): Promise<TranscriptData> => {
   if (useMock) {
-    return mockService.uploadAndParsePDFTranscriptMock(file);
+    return mockService.uploadAndParsePDFTranscriptMock(file, onProgress); // Pass onProgress
   }
-  return apiService.uploadAndParsePDFTranscriptApi(file);
+  return apiService.uploadAndParsePDFTranscriptApi(file, onProgress); // Pass onProgress
 };
 
 export const submitParsedTranscript = async (
@@ -160,5 +194,8 @@ export const exportEligibleGraduatesPDF = async (): Promise<Blob> => {
 
 // Re-export types
 export type { Notification, GraduationRequest, StudentRanking, TranscriptData };
+
+// Transcript service
+export { getStudentTranscript } from "./transcriptService";
 
 // Add other service router functions as needed...

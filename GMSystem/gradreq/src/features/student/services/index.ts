@@ -131,3 +131,12 @@ export const getDisconnectionProcedures = async (): Promise<
   // API implementation would go here - for now just return mock data
   return getDisconnectionProceduresApi();
 };
+
+// Export types
+export type {
+  Notification,
+  GraduationRequirementsData,
+  TranscriptData,
+  GraduationStep,
+  DisconnectionItem,
+} from "./types";

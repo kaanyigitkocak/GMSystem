@@ -15,6 +15,27 @@ namespace Persistence.Seeds
             { "CC", 2.0 }, { "DC", 1.5 }, { "DD", 1.0 }, { "FF", 0.0 }
         };
 
+        // Tüm student user ID'lerini sıralı bir listede tutuyoruz
+        private static readonly List<Guid> StudentUserIds = new List<Guid>
+        {
+            UserSeeds.StudentUser1Id, UserSeeds.StudentUser2Id, UserSeeds.StudentUser3Id, UserSeeds.StudentUser4Id, UserSeeds.StudentUser5Id,
+            UserSeeds.StudentUser6Id, UserSeeds.StudentUser7Id, UserSeeds.StudentUser8Id, UserSeeds.StudentUser9Id, UserSeeds.StudentUser10Id,
+            UserSeeds.StudentUser11Id, UserSeeds.StudentUser12Id, UserSeeds.StudentUser13Id, UserSeeds.StudentUser14Id, UserSeeds.StudentUser15Id,
+            UserSeeds.StudentUser16Id, UserSeeds.StudentUser17Id, UserSeeds.StudentUser18Id, UserSeeds.StudentUser19Id, UserSeeds.StudentUser20Id,
+            UserSeeds.StudentUser21Id, UserSeeds.StudentUser22Id, UserSeeds.StudentUser23Id, UserSeeds.StudentUser24Id, UserSeeds.StudentUser25Id,
+            UserSeeds.StudentUser26Id, UserSeeds.StudentUser27Id, UserSeeds.StudentUser28Id, UserSeeds.StudentUser29Id, UserSeeds.StudentUser30Id,
+            UserSeeds.StudentUser31Id, UserSeeds.StudentUser32Id, UserSeeds.StudentUser33Id, UserSeeds.StudentUser34Id, UserSeeds.StudentUser35Id,
+            UserSeeds.StudentUser36Id, UserSeeds.StudentUser37Id, UserSeeds.StudentUser38Id, UserSeeds.StudentUser39Id, UserSeeds.StudentUser40Id,
+            UserSeeds.StudentUser41Id, UserSeeds.StudentUser42Id, UserSeeds.StudentUser43Id, UserSeeds.StudentUser44Id, UserSeeds.StudentUser45Id,
+            UserSeeds.StudentUser46Id, UserSeeds.StudentUser47Id, UserSeeds.StudentUser48Id, UserSeeds.StudentUser49Id, UserSeeds.StudentUser50Id,
+            UserSeeds.StudentUser51Id, UserSeeds.StudentUser52Id, UserSeeds.StudentUser53Id, UserSeeds.StudentUser54Id, UserSeeds.StudentUser55Id,
+            UserSeeds.StudentUser56Id, UserSeeds.StudentUser57Id, UserSeeds.StudentUser58Id, UserSeeds.StudentUser59Id, UserSeeds.StudentUser60Id,
+            UserSeeds.StudentUser61Id, UserSeeds.StudentUser62Id, UserSeeds.StudentUser63Id, UserSeeds.StudentUser64Id, UserSeeds.StudentUser65Id,
+            UserSeeds.StudentUser66Id, UserSeeds.StudentUser67Id, UserSeeds.StudentUser68Id, UserSeeds.StudentUser69Id, UserSeeds.StudentUser70Id,
+            UserSeeds.StudentUser71Id, UserSeeds.StudentUser72Id, UserSeeds.StudentUser73Id, UserSeeds.StudentUser74Id, UserSeeds.StudentUser75Id,
+            UserSeeds.StudentUser76Id, UserSeeds.StudentUser77Id, UserSeeds.StudentUser78Id, UserSeeds.StudentUser79Id, UserSeeds.StudentUser80Id
+        };
+
         public static IEnumerable<Student> GetSeeds()
         {
             var students = new List<Student>();
@@ -94,7 +115,7 @@ namespace Persistence.Seeds
                 }
 
                 students.Add(new Student(
-                    userId: UserSeeds.StudentUser1Id, // This will be corrected below
+                    userId: StudentUserIds[i - 1], // Doğru user ID'yi kullanıyoruz
                     studentNumber: $"2024{i:D5}", 
                     departmentId: DepartmentSeeds.ComputerEngineeringId, 
                     programName: "Undergraduate Program", 
@@ -106,91 +127,6 @@ namespace Persistence.Seeds
                 ));
             }
             
-            // Ensure unique UserId for each student by iterating through the predefined UserSeed Guids
-            // This is a bit manual, a more dynamic approach might be better if UserSeeds grows significantly
-            students[0].Id = UserSeeds.StudentUser1Id;
-            students[1].Id = UserSeeds.StudentUser2Id;
-            students[2].Id = UserSeeds.StudentUser3Id;
-            students[3].Id = UserSeeds.StudentUser4Id;
-            students[4].Id = UserSeeds.StudentUser5Id;
-            students[5].Id = UserSeeds.StudentUser6Id;
-            students[6].Id = UserSeeds.StudentUser7Id;
-            students[7].Id = UserSeeds.StudentUser8Id;
-            students[8].Id = UserSeeds.StudentUser9Id;
-            students[9].Id = UserSeeds.StudentUser10Id;
-            students[10].Id = UserSeeds.StudentUser11Id;
-            students[11].Id = UserSeeds.StudentUser12Id;
-            students[12].Id = UserSeeds.StudentUser13Id;
-            students[13].Id = UserSeeds.StudentUser14Id;
-            students[14].Id = UserSeeds.StudentUser15Id;
-            students[15].Id = UserSeeds.StudentUser16Id;
-            students[16].Id = UserSeeds.StudentUser17Id;
-            students[17].Id = UserSeeds.StudentUser18Id;
-            students[18].Id = UserSeeds.StudentUser19Id;
-            students[19].Id = UserSeeds.StudentUser20Id;
-            students[20].Id = UserSeeds.StudentUser21Id;
-            students[21].Id = UserSeeds.StudentUser22Id;
-            students[22].Id = UserSeeds.StudentUser23Id;
-            students[23].Id = UserSeeds.StudentUser24Id;
-            students[24].Id = UserSeeds.StudentUser25Id;
-            students[25].Id = UserSeeds.StudentUser26Id;
-            students[26].Id = UserSeeds.StudentUser27Id;
-            students[27].Id = UserSeeds.StudentUser28Id;
-            students[28].Id = UserSeeds.StudentUser29Id;
-            students[29].Id = UserSeeds.StudentUser30Id;
-            students[30].Id = UserSeeds.StudentUser31Id;
-            students[31].Id = UserSeeds.StudentUser32Id;
-            students[32].Id = UserSeeds.StudentUser33Id;
-            students[33].Id = UserSeeds.StudentUser34Id;
-            students[34].Id = UserSeeds.StudentUser35Id;
-            students[35].Id = UserSeeds.StudentUser36Id;
-            students[36].Id = UserSeeds.StudentUser37Id;
-            students[37].Id = UserSeeds.StudentUser38Id;
-            students[38].Id = UserSeeds.StudentUser39Id;
-            students[39].Id = UserSeeds.StudentUser40Id;
-
-            // Assign Ids for the new 40 students
-            students[40].Id = UserSeeds.StudentUser41Id;
-            students[41].Id = UserSeeds.StudentUser42Id;
-            students[42].Id = UserSeeds.StudentUser43Id;
-            students[43].Id = UserSeeds.StudentUser44Id;
-            students[44].Id = UserSeeds.StudentUser45Id;
-            students[45].Id = UserSeeds.StudentUser46Id;
-            students[46].Id = UserSeeds.StudentUser47Id;
-            students[47].Id = UserSeeds.StudentUser48Id;
-            students[48].Id = UserSeeds.StudentUser49Id;
-            students[49].Id = UserSeeds.StudentUser50Id;
-            students[50].Id = UserSeeds.StudentUser51Id;
-            students[51].Id = UserSeeds.StudentUser52Id;
-            students[52].Id = UserSeeds.StudentUser53Id;
-            students[53].Id = UserSeeds.StudentUser54Id;
-            students[54].Id = UserSeeds.StudentUser55Id;
-            students[55].Id = UserSeeds.StudentUser56Id;
-            students[56].Id = UserSeeds.StudentUser57Id;
-            students[57].Id = UserSeeds.StudentUser58Id;
-            students[58].Id = UserSeeds.StudentUser59Id;
-            students[59].Id = UserSeeds.StudentUser60Id;
-            students[60].Id = UserSeeds.StudentUser61Id;
-            students[61].Id = UserSeeds.StudentUser62Id;
-            students[62].Id = UserSeeds.StudentUser63Id;
-            students[63].Id = UserSeeds.StudentUser64Id;
-            students[64].Id = UserSeeds.StudentUser65Id;
-            students[65].Id = UserSeeds.StudentUser66Id;
-            students[66].Id = UserSeeds.StudentUser67Id;
-            students[67].Id = UserSeeds.StudentUser68Id;
-            students[68].Id = UserSeeds.StudentUser69Id;
-            students[69].Id = UserSeeds.StudentUser70Id;
-            students[70].Id = UserSeeds.StudentUser71Id;
-            students[71].Id = UserSeeds.StudentUser72Id;
-            students[72].Id = UserSeeds.StudentUser73Id;
-            students[73].Id = UserSeeds.StudentUser74Id;
-            students[74].Id = UserSeeds.StudentUser75Id;
-            students[75].Id = UserSeeds.StudentUser76Id;
-            students[76].Id = UserSeeds.StudentUser77Id;
-            students[77].Id = UserSeeds.StudentUser78Id;
-            students[78].Id = UserSeeds.StudentUser79Id;
-            students[79].Id = UserSeeds.StudentUser80Id;
-
             // Assign Computer Engineering advisors to more students if available
             var compEngAdvisorIds = new List<Guid?> { UserSeeds.StaffUser1Id, UserSeeds.StaffUser10Id }; // StaffUser10Id is CompEng Head, can also advise
             int advisorIndex = 0;

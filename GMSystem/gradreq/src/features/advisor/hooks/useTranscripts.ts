@@ -4,7 +4,7 @@ import {
   getStudentTranscript,
   type Student,
   type TranscriptData,
-} from "../services/transcriptService";
+} from "../services";
 
 interface TranscriptsState {
   students: Student[];

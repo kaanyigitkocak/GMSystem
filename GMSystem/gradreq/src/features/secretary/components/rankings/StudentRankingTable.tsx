@@ -8,13 +8,14 @@ import {
   TableContainer,
   TableHead,
   TableRow,
-  IconButton,
+  Button,
   CircularProgress,
   Chip,
   Box,
 } from '@mui/material';
 import {
-  Visibility as VisibilityIcon,
+  Check as CheckIcon,
+  Close as CloseIcon,
 } from '@mui/icons-material';
 
 // Updated StudentRanking type to include status
@@ -34,6 +35,8 @@ interface StudentRankingTableProps {
   loading: boolean;
   departmentName: string;
   onViewTranscript: (student: ExtendedStudentRanking) => void;
+  onApprove?: (studentId: string) => void;
+  onReject?: (studentId: string) => void;
   getStatusChipColor: (status: string) => 'default' | 'primary' | 'secondary' | 'error' | 'info' | 'success' | 'warning';
 }
 
@@ -42,6 +45,8 @@ const StudentRankingTable: React.FC<StudentRankingTableProps> = ({
   loading,
   departmentName,
   onViewTranscript,
+  onApprove,
+  onReject,
   getStatusChipColor,
 }) => {
   if (loading) {
@@ -94,14 +99,38 @@ const StudentRankingTable: React.FC<StudentRankingTableProps> = ({
                   />
                 </TableCell>
                 <TableCell align="center">
-                  <IconButton
-                    color="primary"
-                    onClick={() => onViewTranscript(student)}
-                    size="small"
-                    title="View Transcript"
-                  >
-                    <VisibilityIcon />
-                  </IconButton>
+                  <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={() => onViewTranscript(student)}
+                      sx={{ fontSize: '0.70rem', py: 0.25, minWidth: 80 }}
+                    >
+                      Transcript
+                    </Button>
+                    <Box sx={{ display: 'flex', gap: 0.5 }}>
+                      <Button
+                        size="small"
+                        color="success"
+                        onClick={() => onApprove?.(student.id)}
+                        startIcon={<CheckIcon fontSize="small" />}
+                        disabled={student.status === 'Approved'}
+                        sx={{ fontSize: '0.70rem', py: 0.25, minWidth: 70 }}
+                      >
+                        Approve
+                      </Button>
+                      <Button
+                        size="small"
+                        color="error"
+                        onClick={() => onReject?.(student.id)}
+                        startIcon={<CloseIcon fontSize="small" />}
+                        disabled={student.status === 'Rejected'}
+                        sx={{ fontSize: '0.70rem', py: 0.25, minWidth: 70 }}
+                      >
+                        Reject
+                      </Button>
+                    </Box>
+                  </Box>
                 </TableCell>
               </TableRow>
             ))}

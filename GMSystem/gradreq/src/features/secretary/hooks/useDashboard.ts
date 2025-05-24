@@ -1,11 +1,11 @@
 import { useState, useEffect, useCallback } from "react";
 import type { TranscriptData } from "../services/types";
 import {
-  getDashboardStatsApi,
-  getEligibleGraduatesApi,
-  exportEligibleGraduatesCSVApi,
-  exportEligibleGraduatesPDFApi,
-} from "../services/api/dashboardApi";
+  getDashboardStats,
+  getEligibleGraduates,
+  exportEligibleGraduatesCSV,
+  exportEligibleGraduatesPDF,
+} from "../services"; // Updated import
 
 interface DashboardStats {
   graduatesCount: number;
@@ -36,8 +36,8 @@ export const useDashboard = (): UseDashboardReturn => {
     setError(null);
     try {
       const [statsData, graduatesData] = await Promise.all([
-        getDashboardStatsApi(),
-        getEligibleGraduatesApi(),
+        getDashboardStats(), // Use service router
+        getEligibleGraduates(), // Use service router
       ]);
 
       setStats(statsData);
@@ -53,7 +53,7 @@ export const useDashboard = (): UseDashboardReturn => {
 
   const exportCSV = useCallback(async (): Promise<string> => {
     try {
-      return await exportEligibleGraduatesCSVApi();
+      return await exportEligibleGraduatesCSV(); // Use service router
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to export CSV");
       throw err;
@@ -62,7 +62,7 @@ export const useDashboard = (): UseDashboardReturn => {
 
   const exportPDF = useCallback(async (): Promise<Blob> => {
     try {
-      return await exportEligibleGraduatesPDFApi();
+      return await exportEligibleGraduatesPDF(); // Use service router
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to export PDF");
       throw err;

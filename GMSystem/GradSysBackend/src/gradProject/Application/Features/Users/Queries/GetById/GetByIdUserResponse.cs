@@ -9,6 +9,7 @@ public class GetByIdUserResponse : IResponse
     public string LastName { get; set; }
     public string Email { get; set; }
     public bool Status { get; set; }
+    public string? UserRole { get; set; }
 
     public GetByIdUserResponse()
     {
@@ -17,12 +18,13 @@ public class GetByIdUserResponse : IResponse
         Email = string.Empty;
     }
 
-    public GetByIdUserResponse(Guid id, string firstName, string lastName, string email, bool status)
+    public GetByIdUserResponse(Guid id, string firstName, string lastName, string email, bool status, string? userRole = null)
     {
         Id = id;
         FirstName = firstName;
         LastName = lastName;
         Email = email;
         Status = status;
+        UserRole = userRole;
     }
 }

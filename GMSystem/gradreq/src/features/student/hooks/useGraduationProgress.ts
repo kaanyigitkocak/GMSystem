@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getGraduationProgress, getDisconnectionProcedures } from "../services";
-import type { GraduationStep, DisconnectionItem } from "../services/types";
+import type { GraduationStep, DisconnectionItem } from "../services";
 
 interface GraduationProgressData {
   activeStep: number;

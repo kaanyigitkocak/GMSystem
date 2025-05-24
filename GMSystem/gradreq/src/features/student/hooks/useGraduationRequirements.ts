@@ -2,8 +2,8 @@ import { useState, useEffect } from "react";
 import {
   getGraduationRequirements,
   reportMissingFiles,
-  type GraduationRequirementsData,
-} from "../services/graduationRequirementsService";
+} from "../services";
+import type { GraduationRequirementsData } from "../services";
 
 interface GraduationRequirementsState {
   data: GraduationRequirementsData | null;

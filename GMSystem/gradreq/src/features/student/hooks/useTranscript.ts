@@ -3,7 +3,7 @@ import {
   getTranscript,
   // reportMissingDocuments,
 } from "../services";
-import type { TranscriptData } from "../services/types";
+import type { TranscriptData } from "../services";
 
 interface TranscriptState {
   data: TranscriptData | null;

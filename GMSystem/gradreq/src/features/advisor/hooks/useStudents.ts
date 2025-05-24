@@ -3,7 +3,7 @@ import {
   getStudents,
   sendEmailToStudent,
   type Student,
-} from "../services/studentService";
+} from "../services"; // Changed from "../services/studentService"
 
 interface StudentsState {
   students: Student[];
@@ -94,4 +94,4 @@ export const useStudents = () => {
     resetEmailState,
     ...emailState,
   };
-}; 
+};

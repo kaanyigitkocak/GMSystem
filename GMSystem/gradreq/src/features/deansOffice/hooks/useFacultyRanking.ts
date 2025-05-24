@@ -1,156 +1,242 @@
 // As per CODING_GUIDELINES.md: camelCase.ts for TS files.
-import { useState, useCallback } from 'react';
-import { StudentRecord, DepartmentRankingFile, FacultyRankingResult, FileUploadStatus, BatchFileUploadProcessingResult } from '../types';
-import { parseDepartmentCsv } from '../services/deansOfficeService';
+import { useState, useCallback, useEffect } from "react";
+import type {
+  StudentRecord,
+  UniversityRankingResult,
+  ApprovalAction,
+  FilterOptions,
+  SortOptions,
+  TranscriptReview,
+} from "../types";
 
 export const useFacultyRanking = () => {
-  const [uploadedFilesInfo, setUploadedFilesInfo] = useState<FileUploadStatus[]>([]);
-  const [facultyRanking, setFacultyRanking] = useState<FacultyRankingResult | null>(null);
+  const [universityRanking, setUniversityRanking] =
+    useState<UniversityRankingResult | null>(null);
+  const [filteredRankings, setFilteredRankings] = useState<StudentRecord[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [warning, setWarning] = useState<string | null>(null);
-  const [batchProcessingResult, setBatchProcessingResult] = useState<BatchFileUploadProcessingResult | null>(null);
+  const [filters, setFilters] = useState<FilterOptions>({});
+  const [sortOptions, setSortOptions] = useState<SortOptions>({
+    field: "rank",
+    direction: "asc",
+  });
 
-  const resetState = () => {
-    setError(null);
-    setWarning(null);
-    setFacultyRanking(null);
-    setUploadedFilesInfo([]);
-    setBatchProcessingResult(null);
-  };
-
-  const handleFileUpload = useCallback(async (files: FileList) => {
+  // Fetch university ranking data
+  const fetchUniversityRanking = useCallback(async () => {
     setIsLoading(true);
-    resetState();
+    setError(null);
 
-    if (!files || files.length === 0) {
-      setError("No files selected.");
+    try {
+      // TODO: Replace with actual API call
+      // const response = await universityRankingService.getRanking();
+
+      // Mock data for now
+      const mockData: UniversityRankingResult = {
+        rankings: [
+          {
+            id: "1",
+            studentId: "20201001",
+            name: "Ali",
+            surname: "Veli",
+            department: "Computer Engineering",
+            faculty: "Faculty of Engineering",
+            gpa: 3.95,
+            totalCredits: 240,
+            completedCredits: 238,
+            rank: 1,
+            graduationEligible: true,
+            transcriptStatus: "pending",
+            submissionDate: "2024-01-15",
+          },
+          {
+            id: "2",
+            studentId: "20201002",
+            name: "Ayşe",
+            surname: "Kaya",
+            department: "Electronics Engineering",
+            faculty: "Faculty of Engineering",
+            gpa: 3.87,
+            totalCredits: 240,
+            completedCredits: 240,
+            rank: 2,
+            graduationEligible: true,
+            transcriptStatus: "approved",
+            submissionDate: "2024-01-10",
+            reviewDate: "2024-01-12",
+            reviewNote: "All requirements met.",
+          },
+        ],
+        metadata: {
+          totalStudents: 150,
+          pendingReviews: 45,
+          approvedStudents: 89,
+          rejectedStudents: 16,
+          lastUpdated: new Date().toISOString(),
+        },
+      };
+
+      setUniversityRanking(mockData);
+      setFilteredRankings(mockData.rankings);
+    } catch (err) {
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to fetch university ranking"
+      );
+    } finally {
       setIsLoading(false);
-      return;
+    }
+  }, []);
+
+  // Apply filters and sorting
+  const applyFiltersAndSort = useCallback(() => {
+    if (!universityRanking) return;
+
+    let filtered = [...universityRanking.rankings];
+
+    // Apply filters
+    if (filters.faculty) {
+      filtered = filtered.filter(
+        (student) => student.faculty === filters.faculty
+      );
+    }
+    if (filters.department) {
+      filtered = filtered.filter(
+        (student) => student.department === filters.department
+      );
+    }
+    if (filters.status && filters.status !== "all") {
+      filtered = filtered.filter(
+        (student) => student.transcriptStatus === filters.status
+      );
+    }
+    if (typeof filters.minGpa === "number") {
+      filtered = filtered.filter((student) => student.gpa >= filters.minGpa!);
+    }
+    if (typeof filters.maxGpa === "number") {
+      filtered = filtered.filter((student) => student.gpa <= filters.maxGpa!);
     }
 
-    const fileProcessingPromises = Array.from(files).map(file => parseDepartmentCsv(file));
-    const results: DepartmentRankingFile[] = await Promise.all(fileProcessingPromises);
+    // Apply sorting
+    filtered.sort((a, b) => {
+      let aValue: any = a[sortOptions.field];
+      let bValue: any = b[sortOptions.field];
 
-    const currentFilesStatus: FileUploadStatus[] = [];
-    let allEligibleRecords: StudentRecord[] = [];
-    let hasAnyFileError = false;
-    let hasAnyFileWarning = false; // For warnings like mixed eligibility or empty files
-    let hasMixedEligibilityInBatch = false;
-    let allFilesProcessedEmptyOrNonEligible = true;
+      if (sortOptions.field === "name") {
+        aValue = `${a.name} ${a.surname}`;
+        bValue = `${b.name} ${b.surname}`;
+      }
 
-    results.forEach(result => {
-      if (result.error) {
-        currentFilesStatus.push({ fileName: result.fileName, status: 'error', message: result.error });
-        hasAnyFileError = true;
+      if (typeof aValue === "string") {
+        aValue = aValue.toLowerCase();
+        bValue = bValue.toLowerCase();
+      }
+
+      if (sortOptions.direction === "asc") {
+        return aValue > bValue ? 1 : -1;
       } else {
-        const eligibleInFile = result.records.filter(r => r.isEligible);
-        const nonEligibleInFile = result.records.filter(r => !r.isEligible);
-
-        if (result.records.length === 0 || result.warning?.includes("File is empty")) {
-             currentFilesStatus.push({ fileName: result.fileName, status: 'warning_empty_eligible', message: result.warning || 'File is empty or contains no processable records.' });
-             hasAnyFileWarning = true;
-        } else if (eligibleInFile.length === 0) {
-          currentFilesStatus.push({ fileName: result.fileName, status: 'warning_empty_eligible', message: 'No eligible students found in this file.', processedRecords: result.records });
-          hasAnyFileWarning = true;
-        } else {
-          allFilesProcessedEmptyOrNonEligible = false; // At least one file has eligible students
-          allEligibleRecords.push(...eligibleInFile);
-          if (nonEligibleInFile.length > 0) {
-            currentFilesStatus.push({ fileName: result.fileName, status: 'warning_mixed_eligibility', message: 'Contains non-eligible students (excluded).', processedRecords: eligibleInFile });
-            hasMixedEligibilityInBatch = true;
-            hasAnyFileWarning = true;
-          } else {
-            currentFilesStatus.push({ fileName: result.fileName, status: 'uploaded', processedRecords: eligibleInFile });
-          }
-        }
+        return aValue < bValue ? 1 : -1;
       }
     });
 
-    setUploadedFilesInfo(currentFilesStatus);
+    setFilteredRankings(filtered);
+  }, [universityRanking, filters, sortOptions]);
 
-    const studentIdCounts = new Map<string, number>();
-    allEligibleRecords.forEach(record => {
-      studentIdCounts.set(record.id, (studentIdCounts.get(record.id) || 0) + 1);
-    });
-    const hasDuplicatesInBatch = Array.from(studentIdCounts.values()).some(count => count > 1);
+  // Handle transcript approval/rejection
+  const handleTranscriptAction = useCallback(
+    async (action: ApprovalAction) => {
+      setIsLoading(true);
+      setError(null);
 
-    let overallMessageParts: string[] = [];
-    if (files.length > 0 && allEligibleRecords.length === 0 && !hasAnyFileError) {
-        overallMessageParts.push("No eligible students found in any uploaded files.");
-        if (!hasAnyFileWarning) hasAnyFileWarning = true; // Make sure warning state is set
-    }
-    if (hasAnyFileError) overallMessageParts.push("Some files had errors and were not fully processed.");
-    if (hasDuplicatesInBatch) overallMessageParts.push("Duplicate student IDs found across files; GPAs will be averaged for ranking.");
-    if (hasMixedEligibilityInBatch) overallMessageParts.push("Non-eligible students were excluded from processing.");
-    
-    let finalOverallMessage = "";
-    if (overallMessageParts.length > 0) {
-        finalOverallMessage = overallMessageParts.join(' ');
-    } else if (!hasAnyFileError && !hasAnyFileWarning && allEligibleRecords.length > 0) {
-        finalOverallMessage = "All files processed successfully. Ready for ranking.";
-    } else if (!hasAnyFileError && hasAnyFileWarning && allEligibleRecords.length > 0) {
-        finalOverallMessage = "Files processed with warnings. Ready for ranking.";
-    }
+      try {
+        // TODO: Replace with actual API call
+        // await transcriptService.updateStatus(action);
 
+        // Update local state
+        if (universityRanking) {
+          const updatedRankings = universityRanking.rankings.map((student) => {
+            if (student.studentId === action.studentId) {
+              return {
+                ...student,
+                transcriptStatus:
+                  action.action === "approve"
+                    ? ("approved" as const)
+                    : ("rejected" as const),
+                reviewDate: new Date().toISOString(),
+                reviewNote: action.note || "",
+              };
+            }
+            return student;
+          });
 
-    if (hasAnyFileError) setError(finalOverallMessage || "Errors occurred during file processing.");
-    else if (hasAnyFileWarning || (finalOverallMessage && finalOverallMessage !== "All files processed successfully. Ready for ranking.")) setWarning(finalOverallMessage || "File processing completed with warnings.");
-    else if (finalOverallMessage) setWarning(finalOverallMessage); // For success with info like duplicates
+          const updatedMetadata = {
+            ...universityRanking.metadata,
+            pendingReviews: universityRanking.metadata.pendingReviews - 1,
+            approvedStudents:
+              action.action === "approve"
+                ? universityRanking.metadata.approvedStudents + 1
+                : universityRanking.metadata.approvedStudents,
+            rejectedStudents:
+              action.action === "reject"
+                ? universityRanking.metadata.rejectedStudents + 1
+                : universityRanking.metadata.rejectedStudents,
+            lastUpdated: new Date().toISOString(),
+          };
 
-    setBatchProcessingResult({
-      allFilesStatus: currentFilesStatus,
-      validRecords: allEligibleRecords,
-      hasDuplicates: hasDuplicatesInBatch,
-      overallMessage: finalOverallMessage,
-      proceedWithRanking: allEligibleRecords.length > 0 && !hasAnyFileError, // Only proceed if no critical errors and some data
-    });
-    setIsLoading(false);
+          setUniversityRanking({
+            rankings: updatedRankings,
+            metadata: updatedMetadata,
+          });
+        }
+      } catch (err) {
+        setError(
+          err instanceof Error
+            ? err.message
+            : "Failed to update transcript status"
+        );
+      } finally {
+        setIsLoading(false);
+      }
+    },
+    [universityRanking]
+  );
+
+  // Update filters
+  const updateFilters = useCallback((newFilters: Partial<FilterOptions>) => {
+    setFilters((prev) => ({ ...prev, ...newFilters }));
   }, []);
 
-  const generateFacultyRanking = useCallback(() => {
-    if (!batchProcessingResult || !batchProcessingResult.proceedWithRanking || batchProcessingResult.validRecords.length === 0) {
-      const errorMsg = "Ranking could not be created: No eligible students available or critical errors in file processing.";
-      setFacultyRanking({ rankedStudents: [], warnings: [], errors: [errorMsg] });
-      setError(errorMsg); // Set main error state
-      return;
-    }
-    setIsLoading(true);
+  // Update sort options
+  const updateSort = useCallback((newSort: Partial<SortOptions>) => {
+    setSortOptions((prev) => ({ ...prev, ...newSort }));
+  }, []);
 
-    let recordsToRank = [...batchProcessingResult.validRecords];
-    
-    // Sort by GPA
-    recordsToRank.sort((a, b) => b.gpa - a.gpa);
-    
-    // Assign ranks after sorting
-    recordsToRank.forEach((student, index) => {
-      student.rank = index + 1;
-    });
+  // Clear filters
+  const clearFilters = useCallback(() => {
+    setFilters({});
+  }, []);
 
-    const rankingWarnings: string[] = [];
-    if (batchProcessingResult.overallMessage?.includes("Non-eligible students")) {
-      rankingWarnings.push("Only eligible students are included in the ranking.");
-    }
-    if (recordsToRank.length === 0) {
-      rankingWarnings.push("No students to display in the ranking after processing.");
-    }
+  // Apply filters and sorting when dependencies change
+  useEffect(() => {
+    applyFiltersAndSort();
+  }, [applyFiltersAndSort]);
 
-    setFacultyRanking({
-      rankedStudents: recordsToRank,
-      warnings: rankingWarnings,
-      errors: []
-    });
-    setIsLoading(false);
-  }, [batchProcessingResult]);
+  // Initial fetch
+  useEffect(() => {
+    fetchUniversityRanking();
+  }, [fetchUniversityRanking]);
 
   return {
-    uploadedFilesInfo,
-    facultyRanking,
+    universityRanking,
+    filteredRankings,
     isLoading,
     error,
-    warning,
-    batchProcessingResult,
-    handleFileUpload,
-    generateFacultyRanking,
+    filters,
+    sortOptions,
+    fetchUniversityRanking,
+    handleTranscriptAction,
+    updateFilters,
+    updateSort,
+    clearFilters,
   };
 };

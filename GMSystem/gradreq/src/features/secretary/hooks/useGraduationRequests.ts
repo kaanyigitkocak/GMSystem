@@ -1,9 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import type { GraduationRequest } from "../services/types";
 import {
-  getGraduationRequestsApi,
-  updateGraduationRequestStatusApi,
-} from "../services/api/graduationRequestsApi";
+  getGraduationRequests,
+  updateGraduationRequestStatus,
+} from "../services"; // Updated import
 
 interface UseGraduationRequestsReturn {
   requests: GraduationRequest[];
@@ -27,7 +27,7 @@ export const useGraduationRequests = (): UseGraduationRequestsReturn => {
     setLoading(true);
     setError(null);
     try {
-      const data = await getGraduationRequestsApi();
+      const data = await getGraduationRequests(); // Use service router
       setRequests(data);
     } catch (err) {
       setError(
@@ -43,7 +43,7 @@ export const useGraduationRequests = (): UseGraduationRequestsReturn => {
   const updateRequestStatus = useCallback(
     async (id: string, status: string, notes?: string) => {
       try {
-        const updatedRequest = await updateGraduationRequestStatusApi(
+        const updatedRequest = await updateGraduationRequestStatus( // Use service router
           id,
           status,
           notes

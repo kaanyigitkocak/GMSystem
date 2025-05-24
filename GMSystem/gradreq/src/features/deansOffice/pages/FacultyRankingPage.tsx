@@ -1,422 +1,172 @@
-import { useState, useEffect } from 'react';
-import {
-  Box,
-  Typography,
-  Paper,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  TablePagination,
-  TableSortLabel,
-  Button,
-  Card,
-  CardContent,
-  Divider,
-  Alert,
-  AlertTitle,
-  TextField,
-  InputAdornment,
-  MenuItem,
-  Chip,
-  CircularProgress
-} from '@mui/material';
-import {
-  Search as SearchIcon,
-  FileDownload as FileDownloadIcon,
-  Refresh as RefreshIcon,
-  Check as CheckIcon,
-  Close as CloseIcon
-} from '@mui/icons-material';
+import React, { useState } from 'react';
+import { Box, Typography, Alert, AlertTitle } from '@mui/material';
 import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
-import type { StudentRanking, RankingMetadata } from '../services/deansOfficeService';
-import { getFacultyRankings } from '../services/deansOfficeService';
-import { faculties } from '../../../shared/faculties';
+import { useFacultyRanking } from '../hooks/useFacultyRanking';
+import RankingsSearchAndActions from '../components/RankingsSearchAndActions';
+import UniversityRankingsTable from '../components/UniversityRankingsTable';
+import TranscriptDialog from '../components/TranscriptDialog';
+import { exportUniversityRankingsToCSV } from '../utils/exportUtils';
+import { getStudentTranscript } from '../services/transcriptService';
+import type { StudentRecord } from '../types';
+import type { StudentTranscript } from '../components/TranscriptDialog';
 
-// Sıralama tipi
-type Order = 'asc' | 'desc';
-
-// Add approval status type
-interface ApprovalStatus {
-  [studentId: string]: 'approved' | 'disapproved' | undefined;
-}
-
-const FacultyRankingPage = () => {
-  // State'ler
-  const [order, setOrder] = useState<Order>('desc');
-  const [orderBy, setOrderBy] = useState<keyof StudentRanking>('gpa');
-  const [page, setPage] = useState(0);
-  const [rowsPerPage, setRowsPerPage] = useState(10);
+const FacultyRankingPage: React.FC = () => {
+  const [transcriptDialogOpen, setTranscriptDialogOpen] = useState(false);
+  const [selectedTranscript, setSelectedTranscript] = useState<StudentTranscript | null>(null);
+  const [loadingTranscript, setLoadingTranscript] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [selectedDepartment, setSelectedDepartment] = useState<string>('');
-  const [rankingMetadata, setRankingMetadata] = useState<RankingMetadata | null>(null);
-  const [error, setError] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [studentRankings, setStudentRankings] = useState<StudentRanking[]>([]);
-  const [approvalStatus, setApprovalStatus] = useState<ApprovalStatus>({});
 
-  // Sadece Mühendislik Fakültesi
-  const facultyName = 'Faculty of Engineering';
-  const faculty = faculties.find(f => f.name === facultyName);
-  const departments = faculty ? faculty.departments : [];
+  const {
+    universityRanking,
+    filteredRankings,
+    isLoading,
+    error,
+    filters,
+    sortOptions,
+    fetchUniversityRanking,
+    handleTranscriptAction,
+    updateFilters,
+    updateSort,
+    clearFilters,
+  } = useFacultyRanking();
 
-  // Veriyi yükle
-  useEffect(() => {
-    const loadData = async () => {
-      setIsLoading(true);
-      try {
-        const result = await getFacultyRankings();
-        setStudentRankings(result.rankings);
-        setRankingMetadata(result.metadata);
-      } catch {
-        setError('Ranking data could not be loaded.');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    loadData();
-  }, []);
-
-  // Filtreleme
-  const filtered = studentRankings.filter(s =>
-    s.faculty === facultyName &&
-    (selectedDepartment ? s.department === selectedDepartment : true) &&
-    (
-      searchQuery === '' ||
-      s.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      s.studentId.includes(searchQuery) ||
-      s.department.toLowerCase().includes(searchQuery.toLowerCase())
-    )
+  // Filter by search query
+  const searchFilteredData = filteredRankings.filter(student => 
+    searchQuery === '' ||
+    student.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.surname.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    student.studentId.includes(searchQuery) ||
+    student.department.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
-  // Sıralama
-  const sorted = [...filtered].sort((a, b) => {
-    const aStatus = approvalStatus[a.id];
-    const bStatus = approvalStatus[b.id];
-    if (aStatus === 'approved' && bStatus !== 'approved') return -1;
-    if (aStatus !== 'approved' && bStatus === 'approved') return 1;
-    if (aStatus === 'disapproved' && bStatus !== 'disapproved') return 1;
-    if (aStatus !== 'disapproved' && bStatus === 'disapproved') return -1;
-    if (orderBy === 'rank') return order === 'asc' ? a.rank - b.rank : b.rank - a.rank;
-    if (orderBy === 'gpa') return order === 'asc' ? a.gpa - b.gpa : b.gpa - a.gpa;
-    if (orderBy === 'credits') return order === 'asc' ? a.credits - b.credits : b.credits - a.credits;
-    const aVal = a[orderBy] as string;
-    const bVal = b[orderBy] as string;
-    return order === 'asc' ? aVal.localeCompare(bVal) : bVal.localeCompare(aVal);
-  });
-
-  // Sayfalama
-  const paginated = sorted.slice(page * rowsPerPage, page * rowsPerPage + rowsPerPage);
-
-  // Yenile
-  const handleRefresh = async () => {
-    setIsLoading(true);
+  // Handle export to CSV
+  const handleExportRankings = () => {
     try {
-      const result = await getFacultyRankings();
-      setStudentRankings(result.rankings);
-      setRankingMetadata(result.metadata);
-    } catch {
-      setError('Ranking data could not be loaded.');
-    } finally {
-      setIsLoading(false);
+      exportUniversityRankingsToCSV(searchFilteredData);
+    } catch (err) {
+      console.error('Export failed:', err);
     }
   };
 
-  // Export
-  const handleExport = () => {
-    if (filtered.length === 0) return setError('No data to export.');
-    const headers = ['Rank', 'Student ID', 'Name', 'Department', 'Faculty', 'GPA', 'Credits'];
-    const csv = [
-      headers.join(','),
-      ...sorted.map(s => [s.rank, s.studentId, `"${s.name}"`, `"${s.department}"`, `"${s.faculty}"`, s.gpa, s.credits].join(','))
-    ].join('\n');
-    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `faculty_ranking_${new Date().toISOString().split('T')[0]}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  // Handle view transcript with dialog - like Student Affairs
+  const handleViewTranscript = async (studentId: string) => {
+    const student = searchFilteredData.find(s => s.studentId === studentId);
+    if (!student) return;
+
+    setLoadingTranscript(true);
+    try {
+      const transcript = await getStudentTranscript(
+        student.studentId,
+        `${student.name} ${student.surname}`,
+        student.department,
+        student.faculty,
+        student.gpa,
+        student.totalCredits
+      );
+      setSelectedTranscript(transcript);
+      setTranscriptDialogOpen(true);
+    } catch (err) {
+      console.error('Failed to load transcript:', err);
+    } finally {
+      setLoadingTranscript(false);
+    }
   };
 
-  // Sıralama başlığı tıklama
-  const handleRequestSort = (property: keyof StudentRanking) => {
-    const isAsc = orderBy === property && order === 'asc';
-    setOrder(isAsc ? 'desc' : 'asc');
-    setOrderBy(property);
+  // Handle close transcript dialog
+  const handleCloseTranscriptDialog = () => {
+    setTranscriptDialogOpen(false);
+    setSelectedTranscript(null);
   };
 
-  // Sayfa değiştir
-  const handleChangePage = (_: unknown, newPage: number) => setPage(newPage);
-  const handleChangeRowsPerPage = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setRowsPerPage(parseInt(e.target.value, 10));
-    setPage(0);
+  // Handle approve student
+  const handleApprove = async (studentId: string) => {
+    await handleTranscriptAction({
+      studentId,
+      action: 'approve'
+    });
   };
 
-  // Approve/disapprove handlers
-  const handleApprove = (studentId: string) => {
-    setApprovalStatus(prev => ({ ...prev, [studentId]: 'approved' }));
+  // Handle disapprove student  
+  const handleDisapprove = async (studentId: string) => {
+    await handleTranscriptAction({
+      studentId,
+      action: 'reject'
+    });
   };
-  const handleDisapprove = (studentId: string) => {
-    setApprovalStatus(prev => ({ ...prev, [studentId]: 'disapproved' }));
+
+  // Handle approve all eligible students
+  const handleApproveAll = () => {
+    const eligibleStudents = searchFilteredData.filter(s => 
+      s.graduationEligible && s.transcriptStatus === 'pending'
+    );
+    
+    eligibleStudents.forEach(student => {
+      handleTranscriptAction({
+        studentId: student.studentId,
+        action: 'approve'
+      });
+    });
   };
 
   return (
     <DeansOfficeDashboardLayout>
-      {/* Error message */}
+      <Box sx={{ mb: 4 }}>
+        <Typography variant="h4" gutterBottom>
+          University Rankings
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          View and manage university-wide student rankings for graduation approval
+        </Typography>
+      </Box>
+      
+      {/* Error alert */}
       {error && (
-        <Alert severity="error" sx={{ mb: 2 }} onClose={() => setError(null)}>
+        <Alert 
+          severity="error" 
+          sx={{ mb: 3 }}
+          onClose={() => window.location.reload()}
+        >
           <AlertTitle>Error</AlertTitle>
           {error}
         </Alert>
       )}
+      
+      {/* Search and Actions */}
+      <RankingsSearchAndActions
+        searchQuery={searchQuery}
+        onSearchChange={setSearchQuery}
+        isLoading={isLoading}
+        onRefresh={fetchUniversityRanking}
+        onApproveAll={handleApproveAll}
+        onExport={handleExportRankings}
+        filteredData={searchFilteredData}
+        filters={filters}
+        updateFilters={updateFilters}
+        clearFilters={clearFilters}
+        universityRanking={universityRanking}
+      />
+      
+      {/* Rankings Table */}
+      <UniversityRankingsTable
+        filteredData={searchFilteredData}
+        isLoading={isLoading || loadingTranscript}
+        
+        // Sorting
+        sortOptions={sortOptions}
+        onRequestSort={updateSort}
+        
+        // Actions
+        onApprove={handleApprove}
+        onDisapprove={handleDisapprove}
+        onViewTranscript={handleViewTranscript}
+      />
 
-      {/* Ranking Info card - now at the top */}
-      <Card sx={{ width: '100%', mb: 2, boxShadow: 1 }}>
-        <CardContent>
-          <Typography variant="h6" gutterBottom>Ranking Information</Typography>
-          <Divider sx={{ mb: 2 }} />
-          {rankingMetadata && (
-            <Box sx={{ mb: 2 }}>
-              <Typography variant="subtitle2" color="text.secondary">
-                Students Ranked
-              </Typography>
-              <Typography variant="body1">
-                {rankingMetadata.eligibleStudents} / {rankingMetadata.totalStudents}
-              </Typography>
-            </Box>
-          )}
-          <Typography variant="subtitle2" sx={{ mt: 2, mb: 1 }}>
-            Filter by Department
-          </Typography>
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-            {departments.map(dept => (
-              <Chip
-                key={dept}
-                label={dept}
-                onClick={() => setSelectedDepartment(dept)}
-                variant={selectedDepartment === dept ? 'filled' : 'outlined'}
-                color={selectedDepartment === dept ? 'primary' : 'default'}
-              />
-            ))}
-            {selectedDepartment && (
-              <Chip
-                label="Clear"
-                onClick={() => setSelectedDepartment('')}
-                variant="outlined"
-              />
-            )}
-          </Box>
-          {rankingMetadata && (
-            <Alert severity="info" sx={{ mt: 3 }}>
-              <Typography variant="caption">
-                Last updated: {rankingMetadata.lastUpdated.toLocaleDateString()} {rankingMetadata.lastUpdated.toLocaleTimeString()}
-              </Typography>
-            </Alert>
-          )}
-        </CardContent>
-      </Card>
-
-      {/* Filters and buttons */}
-      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, alignItems: 'center', mb: 2, mt: 1 }}>
-        <TextField
-          label="Search Student"
-          variant="outlined"
-          size="small"
-          value={searchQuery}
-          onChange={e => setSearchQuery(e.target.value)}
-          InputProps={{
-            startAdornment: (
-              <InputAdornment position="start">
-                <SearchIcon fontSize="small" />
-              </InputAdornment>
-            ),
-          }}
-          sx={{ minWidth: 220 }}
-        />
-        <TextField
-          select
-          label="Department"
-          value={selectedDepartment}
-          onChange={e => setSelectedDepartment(e.target.value)}
-          size="small"
-          sx={{ minWidth: 180 }}
-        >
-          <MenuItem value="">All Departments</MenuItem>
-          {departments.map(dept => (
-            <MenuItem key={dept} value={dept}>{dept}</MenuItem>
-          ))}
-        </TextField>
-        <Button variant="outlined" startIcon={<RefreshIcon />} onClick={handleRefresh} disabled={isLoading}>
-          {isLoading ? 'Refreshing...' : 'Refresh'}
-        </Button>
-        <Button variant="contained" color="success" onClick={() => {}}>
-          Approve
-        </Button>
-        <Button variant="contained" startIcon={<FileDownloadIcon />} onClick={handleExport}>
-          Export
-        </Button>
-      </Box>
-
-      {/* Table */}
-      <Paper sx={{ width: '100%', overflow: 'auto', boxShadow: 2, p: 0, m: 0 }}>
-        <TableContainer sx={{ maxHeight: 600, p: 0, m: 0 }}>
-          <Table stickyHeader aria-label="faculty ranking table">
-            <TableHead>
-              <TableRow>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'rank'}
-                    direction={orderBy === 'rank' ? order : 'asc'}
-                    onClick={() => handleRequestSort('rank')}
-                  >
-                    Rank
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'studentId'}
-                    direction={orderBy === 'studentId' ? order : 'asc'}
-                    onClick={() => handleRequestSort('studentId')}
-                  >
-                    Student ID
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'name'}
-                    direction={orderBy === 'name' ? order : 'asc'}
-                    onClick={() => handleRequestSort('name')}
-                  >
-                    Name
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'department'}
-                    direction={orderBy === 'department' ? order : 'asc'}
-                    onClick={() => handleRequestSort('department')}
-                  >
-                    Department
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>
-                  <TableSortLabel
-                    active={orderBy === 'faculty'}
-                    direction={orderBy === 'faculty' ? order : 'asc'}
-                    onClick={() => handleRequestSort('faculty')}
-                  >
-                    Faculty
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="right">
-                  <TableSortLabel
-                    active={orderBy === 'gpa'}
-                    direction={orderBy === 'gpa' ? order : 'asc'}
-                    onClick={() => handleRequestSort('gpa')}
-                  >
-                    GPA
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell align="right">
-                  <TableSortLabel
-                    active={orderBy === 'credits'}
-                    direction={orderBy === 'credits' ? order : 'asc'}
-                    onClick={() => handleRequestSort('credits')}
-                  >
-                    Credits
-                  </TableSortLabel>
-                </TableCell>
-                <TableCell>Actions</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {isLoading ? (
-                <TableRow>
-                  <TableCell colSpan={9} align="center" sx={{ py: 4 }}>
-                    <CircularProgress size={40} />
-                    <Typography variant="body2" sx={{ mt: 2 }}>
-                      Loading...
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              ) : paginated.length > 0 ? (
-                paginated.map(student => {
-                  const status = approvalStatus[student.id];
-                  return (
-                    <TableRow
-                      key={student.id}
-                      hover
-                      sx={
-                        status === 'approved'
-                          ? { backgroundColor: 'rgba(56, 142, 60, 0.12)' }
-                          : status === 'disapproved'
-                          ? { backgroundColor: 'rgba(211, 47, 47, 0.12)' }
-                          : {}
-                      }
-                    >
-                      <TableCell>{student.rank}</TableCell>
-                      <TableCell>{student.studentId}</TableCell>
-                      <TableCell>{student.name}</TableCell>
-                      <TableCell>{student.department}</TableCell>
-                      <TableCell>{student.faculty}</TableCell>
-                      <TableCell align="right">{student.gpa.toFixed(2)}</TableCell>
-                      <TableCell align="right">{student.credits}</TableCell>
-                      <TableCell>
-                        <Button size="small" variant="outlined" onClick={() => {}}>
-                          Transcript
-                        </Button>
-                      </TableCell>
-                      <TableCell>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
-                          <Button
-                            size="small"
-                            color="success"
-                            onClick={() => handleApprove(student.id)}
-                            startIcon={<CheckIcon />}
-                            disabled={status === 'approved'}
-                          >
-                            Approve
-                          </Button>
-                          <Button
-                            size="small"
-                            color="error"
-                            onClick={() => handleDisapprove(student.id)}
-                            startIcon={<CloseIcon />}
-                            disabled={status === 'disapproved'}
-                          >
-                            Disapprove
-                          </Button>
-                        </Box>
-                      </TableCell>
-                    </TableRow>
-                  );
-                })
-              ) : (
-                <TableRow>
-                  <TableCell colSpan={9} align="center">
-                    <Typography variant="body2" color="text.secondary" sx={{ py: 2 }}>
-                      No records found.
-                    </Typography>
-                  </TableCell>
-                </TableRow>
-              )}
-            </TableBody>
-          </Table>
-        </TableContainer>
-        <TablePagination
-          rowsPerPageOptions={[10, 25, 50]}
-          component="div"
-          count={filtered.length}
-          rowsPerPage={rowsPerPage}
-          page={page}
-          onPageChange={handleChangePage}
-          onRowsPerPageChange={handleChangeRowsPerPage}
-        />
-      </Paper>
+      {/* Transcript Dialog - Student Affairs style */}
+      <TranscriptDialog
+        open={transcriptDialogOpen}
+        transcript={selectedTranscript}
+        onClose={handleCloseTranscriptDialog}
+      />
     </DeansOfficeDashboardLayout>
   );
 };

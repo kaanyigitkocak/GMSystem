@@ -22,6 +22,8 @@ import {
 import {
   getNotificationsMock,
   markNotificationAsReadMock,
+  markAllNotificationsAsReadMock,
+  deleteNotificationMock,
   getGraduationRequestsMock,
   getStudentRankingsMock,
   updateStudentRankingMock,
@@ -64,6 +66,24 @@ export const markNotificationAsRead = async (id: string): Promise<void> => {
     return markNotificationAsReadMock(id);
   }
   return markNotificationAsReadApi(id);
+};
+
+export const markAllNotificationsAsRead = async (): Promise<void> => {
+  if (useMock) {
+    return markAllNotificationsAsReadMock();
+  }
+  // Note: markAllNotificationsAsReadApi doesn't exist in the API imports above
+  // You may need to add it or implement it
+  throw new Error("markAllNotificationsAsReadApi not implemented");
+};
+
+export const deleteNotification = async (id: string): Promise<void> => {
+  if (useMock) {
+    return deleteNotificationMock(id);
+  }
+  // Note: deleteNotificationApi doesn't exist in the API imports above
+  // You may need to add it or implement it
+  throw new Error("deleteNotificationApi not implemented");
 };
 
 // Graduation requests service

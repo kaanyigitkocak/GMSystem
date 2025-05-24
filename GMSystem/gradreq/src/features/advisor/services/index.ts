@@ -5,6 +5,8 @@ import * as petitionApiService from "./api/petitionApi";
 import * as petitionMockService from "./mock/petitionMock";
 import * as transcriptApiService from "./api/transcriptApi";
 import * as transcriptMockService from "./mock/transcriptMock";
+import * as notificationApiService from "./api/notificationsApi";
+import * as notificationMockService from "./mock/notificationMock";
 
 import type {
   Student,
@@ -14,6 +16,7 @@ import type {
   Course,
   StudentInfo,
   TranscriptData,
+  Notification,
 } from "./types";
 
 const { useMock } = getServiceConfig();
@@ -75,6 +78,35 @@ export const getStudentTranscript = async (
   return transcriptApiService.getStudentTranscriptApi(studentId);
 };
 
+// Notification service functions
+export const getNotifications = async (): Promise<Notification[]> => {
+  if (useMock) {
+    return notificationMockService.getNotificationsMock();
+  }
+  return notificationApiService.getNotificationsApi();
+};
+
+export const markNotificationAsRead = async (id: string): Promise<void> => {
+  if (useMock) {
+    return notificationMockService.markNotificationAsReadMock(id);
+  }
+  return notificationApiService.markNotificationAsReadApi(id);
+};
+
+export const markAllNotificationsAsRead = async (): Promise<void> => {
+  if (useMock) {
+    return notificationMockService.markAllNotificationsAsReadMock();
+  }
+  return notificationApiService.markAllNotificationsAsReadApi();
+};
+
+export const deleteNotification = async (id: string): Promise<void> => {
+  if (useMock) {
+    return notificationMockService.deleteNotificationMock(id);
+  }
+  return notificationApiService.deleteNotificationApi(id);
+};
+
 // Re-export types
 export type {
   Student,
@@ -84,4 +116,5 @@ export type {
   Course,
   StudentInfo,
   TranscriptData,
+  Notification,
 };
