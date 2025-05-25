@@ -211,18 +211,18 @@ export const getFacultyStudentsWithEligibilityApi = async (
   }
 
   try {
-    // First, fetch all students for the faculty using the new paginated endpoint
-    // We'll fetch all pages for simplicity here, but in a real app, you might paginate the UI too.
+    // Fetch all students for the faculty using the paginated endpoint
+    // This endpoint already returns graduation process information
     let allStudents: Student[] = [];
     let pageIndex = 0;
     let hasNextPage = true;
     const pageSize = 2000; // Fetch in larger chunks to get all students
 
     console.log(
-      `[DeansOfficeAPI] Fetching all students for faculty ${finalFacultyId} before eligibility`
+      `[DeansOfficeAPI] Fetching all students for faculty ${finalFacultyId} with graduation process info`
     );
 
-    // First, get the basic list of students for the faculty
+    // Get the complete list of students for the faculty with graduation process info
     while (hasNextPage) {
       const response = await fetch(
         `${apiBaseUrl}/Students?facultyId=${finalFacultyId}&PageIndex=${pageIndex}&PageSize=${pageSize}`,
@@ -241,7 +241,58 @@ export const getFacultyStudentsWithEligibilityApi = async (
       }>(response);
 
       if (paginatedData && paginatedData.items) {
-        allStudents = allStudents.concat(paginatedData.items);
+        // Transform the API response to match our Student interface
+        const transformedStudents = paginatedData.items.map(
+          (apiStudent: any) => {
+            // Debug: Log first student's data to verify graduation process info
+            if (
+              pageIndex === 0 &&
+              paginatedData.items.indexOf(apiStudent) === 0
+            ) {
+              console.log(
+                "🔍 [DeansOfficeAPI] Sample student data from GetList API:",
+                apiStudent
+              );
+              console.log(
+                "🔍 [DeansOfficeAPI] activeGraduationProcessStatus:",
+                apiStudent.activeGraduationProcessStatus
+              );
+            }
+
+            return {
+              id: apiStudent.id,
+              studentNumber: apiStudent.studentNumber,
+              firstName: apiStudent.firstName,
+              lastName: apiStudent.lastName,
+              name: `${apiStudent.firstName} ${apiStudent.lastName}`,
+              email: apiStudent.email,
+              departmentId: apiStudent.departmentId,
+              departmentName: apiStudent.departmentName,
+              department: apiStudent.departmentName,
+              facultyId: apiStudent.facultyId,
+              facultyName: apiStudent.facultyName,
+              programName: apiStudent.programName,
+              enrollDate: apiStudent.enrollDate,
+              currentGpa: apiStudent.currentGpa,
+              gpa: apiStudent.currentGpa,
+              currentEctsCompleted: apiStudent.currentEctsCompleted,
+              graduationStatus: apiStudent.graduationStatus,
+              status: apiStudent.graduationStatus?.toString() || "Unknown",
+              assignedAdvisorUserId: apiStudent.assignedAdvisorUserId,
+              activeGraduationProcessId: apiStudent.activeGraduationProcessId,
+              activeGraduationProcessStatus:
+                apiStudent.activeGraduationProcessStatus,
+              activeGraduationProcessAcademicTerm:
+                apiStudent.activeGraduationProcessAcademicTerm,
+              activeGraduationProcessInitiationDate:
+                apiStudent.activeGraduationProcessInitiationDate,
+              activeGraduationProcessLastUpdateDate:
+                apiStudent.activeGraduationProcessLastUpdateDate,
+            } as Student;
+          }
+        );
+
+        allStudents = allStudents.concat(transformedStudents);
         hasNextPage = paginatedData.hasNextPage;
         pageIndex++;
       } else {
@@ -250,59 +301,7 @@ export const getFacultyStudentsWithEligibilityApi = async (
     }
 
     console.log(
-      `[DeansOfficeAPI] Fetched ${allStudents.length} basic student records. Now fetching detailed data for each student...`
-    );
-
-    // Now fetch detailed data for each student to get graduation process information
-    const detailedStudents = await Promise.all(
-      allStudents.map(async (basicStudent) => {
-        try {
-          // Fetch individual student data to get graduation process
-          const studentResponse = await fetch(
-            `${apiBaseUrl}/Students/${basicStudent.id}`,
-            {
-              ...fetchOptions,
-              method: "GET",
-              headers: {
-                ...fetchOptions.headers,
-                Authorization: `Bearer ${authToken}`,
-              },
-            }
-          );
-
-          const studentDetailData = await handleApiResponse<any>(
-            studentResponse
-          );
-
-          // Debug: Log first student's detailed data
-          if (basicStudent === allStudents[0]) {
-            console.log(
-              "🔍 [DeansOfficeAPI] Sample detailed student data:",
-              studentDetailData
-            );
-            console.log(
-              "🔍 [DeansOfficeAPI] activeGraduationProcessStatus:",
-              studentDetailData.activeGraduationProcessStatus
-            );
-          }
-
-          return studentDetailData;
-        } catch (error) {
-          console.error(
-            `[DeansOfficeAPI] Failed to fetch detailed data for student ${basicStudent.id}:`,
-            error
-          );
-          // Return basic student data if detailed fetch fails
-          return basicStudent;
-        }
-      })
-    );
-
-    // Update allStudents with detailed data
-    allStudents = detailedStudents;
-
-    console.log(
-      `[DeansOfficeAPI] Fetched ${allStudents.length} total students for faculty ${finalFacultyId}. Now fetching eligibility.`
+      `[DeansOfficeAPI] Fetched ${allStudents.length} students for faculty ${finalFacultyId} with graduation process info. Now fetching eligibility.`
     );
 
     if (allStudents.length === 0) {

@@ -37,3 +37,16 @@
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/refint/Domain.dll
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.pdb
 /Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/ref/Domain.dll
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/bin/Debug/net8.0/Domain.deps.json
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/bin/Debug/net8.0/Domain.dll
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/bin/Debug/net8.0/Domain.pdb
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.csproj.AssemblyReference.cache
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.GeneratedMSBuildEditorConfig.editorconfig
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.AssemblyInfoInputs.cache
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.AssemblyInfo.cs
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.csproj.CoreCompileInputs.cache
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.sourcelink.json
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.dll
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/refint/Domain.dll
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/Domain.pdb
+/Users/dkwns/Desktop/GraduationManagementSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/Debug/net8.0/ref/Domain.dll

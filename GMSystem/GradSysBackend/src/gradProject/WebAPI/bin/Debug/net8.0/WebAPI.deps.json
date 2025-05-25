@@ -2064,10 +2064,7 @@
           "NArchitecture.Core.Security.DependencyInjection": "1.2.0"
         },
         "runtime": {
-          "Application.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "Application.dll": {}
         }
       },
       "Domain/1.0.0": {
@@ -2076,10 +2073,7 @@
           "NArchitecture.Core.Security": "1.3.1"
         },
         "runtime": {
-          "Domain.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "Domain.dll": {}
         }
       },
       "Infrastructure/1.0.0": {
@@ -2089,10 +2083,7 @@
           "CloudinaryDotNet": "1.26.2"
         },
         "runtime": {
-          "Infrastructure.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "Infrastructure.dll": {}
         }
       },
       "Persistence/1.0.0": {
@@ -2109,10 +2100,7 @@
           "Npgsql.EntityFrameworkCore.PostgreSQL": "8.0.0"
         },
         "runtime": {
-          "Persistence.dll": {
-            "assemblyVersion": "1.0.0.0",
-            "fileVersion": "1.0.0.0"
-          }
+          "Persistence.dll": {}
         }
       }
     }
