@@ -51,12 +51,48 @@ const getCachedData = <T>(key: string): T | null => {
   return null;
 };
 
-// Set data to cache in localStorage
+// Set data to cache in localStorage with quota management
 const setCachedData = <T>(key: string, data: T): void => {
   try {
-    localStorage.setItem(key, JSON.stringify(data));
+    const serializedData = JSON.stringify(data);
+    localStorage.setItem(key, serializedData);
   } catch (error) {
-    console.warn("Failed to cache data:", error);
+    if (error instanceof DOMException && error.name === "QuotaExceededError") {
+      console.warn(
+        "🚨 [Cache] localStorage quota exceeded, clearing old cache data..."
+      );
+
+      // Clear old cache entries to make space
+      try {
+        // Clear eligibility cache first (usually the largest)
+        localStorage.removeItem(ELIGIBILITY_CACHE_KEY);
+        console.log("🧹 [Cache] Cleared eligibility cache");
+
+        // Try again after clearing
+        localStorage.setItem(key, JSON.stringify(data));
+        console.log("✅ [Cache] Successfully cached data after cleanup");
+      } catch (retryError) {
+        console.warn(
+          "🚨 [Cache] Still failed after cleanup, clearing all secretary caches..."
+        );
+
+        // If still failing, clear all secretary-related caches
+        clearAllCaches();
+
+        // Final attempt with minimal data
+        try {
+          localStorage.setItem(key, JSON.stringify(data));
+          console.log("✅ [Cache] Successfully cached data after full cleanup");
+        } catch (finalError) {
+          console.error(
+            "❌ [Cache] Failed to cache data even after full cleanup:",
+            finalError
+          );
+        }
+      }
+    } else {
+      console.warn("Failed to cache data:", error);
+    }
   }
 };
 
@@ -534,12 +570,28 @@ export const getStudentEligibilityResultsApi = async (
       `🔍 [SecretaryApiDebug] Mapped EligibilityCheckResults for student ${studentUserId}: ${results.length} items`
     );
 
+    // Cache management: limit cache size to prevent quota exceeded errors
     const currentCache = getCachedData<CachedEligibilityData>(
       ELIGIBILITY_CACHE_KEY
     ) || {
       results: {},
       timestamp: Date.now(),
     };
+
+    // If cache is getting too large, clear old entries
+    const cacheKeys = Object.keys(currentCache.results);
+    const MAX_CACHE_ENTRIES = 50; // Limit to 50 students to prevent quota issues
+
+    if (cacheKeys.length >= MAX_CACHE_ENTRIES) {
+      console.log(
+        `🧹 [Cache] Cache has ${cacheKeys.length} entries, clearing to prevent quota issues`
+      );
+      // Keep only the most recent 25 entries
+      const sortedKeys = cacheKeys.sort();
+      const keysToRemove = sortedKeys.slice(0, cacheKeys.length - 25);
+      keysToRemove.forEach((key) => delete currentCache.results[key]);
+    }
+
     currentCache.results[studentUserId] = results;
     currentCache.timestamp = Date.now();
     setCachedData(ELIGIBILITY_CACHE_KEY, currentCache);
@@ -733,16 +785,64 @@ export const performEligibilityChecksForAllStudentsApi = async (): Promise<{
 // Clear eligibility cache
 export const clearEligibilityCache = (): void => {
   localStorage.removeItem(ELIGIBILITY_CACHE_KEY);
-  // localStorage.removeItem(STUDENTS_CACHE_KEY); // Student listesi genellikle daha stabil, bunu silmeyebiliriz
-  console.log("🔍 [SecretaryApiDebug] Eligibility cache cleared");
+  console.log("🧹 [SecretaryApiDebug] Eligibility cache cleared");
 };
 
 // Clear all caches (including students cache)
 export const clearAllCaches = (): void => {
-  localStorage.removeItem(ELIGIBILITY_CACHE_KEY);
-  localStorage.removeItem(STUDENTS_CACHE_KEY);
-  localStorage.removeItem(SECRETARY_CACHE_KEY);
-  console.log("🔍 [SecretaryApiDebug] All caches cleared");
+  try {
+    localStorage.removeItem(ELIGIBILITY_CACHE_KEY);
+    localStorage.removeItem(STUDENTS_CACHE_KEY);
+    localStorage.removeItem(SECRETARY_CACHE_KEY);
+    console.log("🧹 [SecretaryApiDebug] All secretary caches cleared");
+  } catch (error) {
+    console.warn("Failed to clear some caches:", error);
+  }
+};
+
+// Function to check and clean localStorage if it's getting full
+export const cleanupLocalStorageIfNeeded = (): void => {
+  try {
+    // Test if localStorage is near quota
+    const testKey = "quota_test";
+    const testData = "x".repeat(1024 * 100); // 100KB test
+
+    try {
+      localStorage.setItem(testKey, testData);
+      localStorage.removeItem(testKey);
+    } catch (error) {
+      if (
+        error instanceof DOMException &&
+        error.name === "QuotaExceededError"
+      ) {
+        console.warn(
+          "🚨 [Cache] localStorage quota nearly exceeded, performing cleanup..."
+        );
+
+        // Clear all secretary-related caches
+        clearAllCaches();
+
+        // Also clear any other large cache entries that might exist
+        Object.keys(localStorage).forEach((key) => {
+          if (
+            key.includes("eligibility") ||
+            key.includes("students") ||
+            key.includes("cache")
+          ) {
+            try {
+              localStorage.removeItem(key);
+            } catch (e) {
+              console.warn(`Failed to remove cache key ${key}:`, e);
+            }
+          }
+        });
+
+        console.log("✅ [Cache] localStorage cleanup completed");
+      }
+    }
+  } catch (error) {
+    console.warn("Failed to check localStorage quota:", error);
+  }
 };
 
 // API function to approve students by secretary

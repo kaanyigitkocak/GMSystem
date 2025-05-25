@@ -37,7 +37,7 @@ import { useState, useCallback, useEffect } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import type { Student, EligibilityCheckType, CourseTaken } from '../../advisor/services/types';
 import { useEligibility } from '../contexts/EligibilityContext';
-import { getStudentCourseTakensApi, clearAllCaches, setSecretaryApprovedApi } from '../services/api/studentsApi';
+import { getStudentCourseTakensApi, clearAllCaches, setSecretaryApprovedApi, cleanupLocalStorageIfNeeded } from '../services/api/studentsApi';
 import { getSecretaryData } from '../services/api/studentsApi';
 import TranscriptDialog from '../components/rankings/TranscriptDialog';
 import { LoadingOverlay } from '../../../shared/components';
@@ -280,6 +280,9 @@ const ApprovalRankingPage = () => {
 
   const handleRefreshWithClearCache = useCallback(async () => {
     try {
+      // Check and cleanup localStorage if needed before refresh
+      cleanupLocalStorageIfNeeded();
+      
       // Clear all caches including students cache to force fresh data with graduation process
       clearAllCaches();
       await refreshEligibilityData(true);
@@ -327,6 +330,9 @@ const ApprovalRankingPage = () => {
   const handleApproveStudent = useCallback(async (student: Student) => {
     try {
       console.log("🔍 [SecretaryApprovalRanking] Approving student:", student.id);
+      
+      // Check and cleanup localStorage if needed before approval
+      cleanupLocalStorageIfNeeded();
       
       // Get secretary data
       const secretaryData = await getSecretaryData();
