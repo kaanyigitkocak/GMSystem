@@ -76,6 +76,12 @@ const isStudentRejectedBySecretary = (student: Student): boolean => {
   return isRejected;
 };
 
+// Helper function to check if student is rejected by advisor
+const isStudentRejectedByAdvisor = (student: Student): boolean => {
+  const processStatus = student.graduationProcess?.status;
+  return processStatus === 6; // Status 6: Advisor Rejected
+};
+
 // Helper function to check if student is waiting for advisor approval
 const isWaitingForAdvisorApproval = (student: Student): boolean => {
   const processStatus = student.graduationProcess?.status;
@@ -89,9 +95,9 @@ const getRowBackgroundColor = (student: Student): string => {
   const processStatus = student.graduationProcess?.status;
   
   // Priority: Rejected (red) > Approved (green) > Waiting for advisor (light gray) > Normal (transparent)
-  if (isStudentRejectedBySecretary(student)) {
+  if (isStudentRejectedBySecretary(student) || isStudentRejectedByAdvisor(student)) { // Added advisor rejection check
     console.log(`Setting RED background for student ${student.name} - status: ${processStatus}`);
-    return '#ffebee'; // Light red background for rejected students (status = 9)
+    return '#ffebee'; // Light red background for rejected students (status = 9 or 6)
   }
   
   if (isStudentApprovedBySecretary(student)) {
@@ -113,6 +119,9 @@ const getRowOpacity = (student: Student): number => {
   if (isWaitingForAdvisorApproval(student)) {
     return 0.6; // Make row appear faded when waiting for advisor approval
   }
+  if (isStudentRejectedByAdvisor(student)) { // Added advisor rejection check
+    return 0.7; // Slightly faded for advisor rejected, but still prominent
+  }
   return 1; // Normal opacity for other statuses
 };
 
@@ -122,6 +131,21 @@ const getSecretaryStatusChip = (student: Student) => {
   
   // Keep main debug log to track graduation process data
   console.log(`🔍 [SecretaryStatusChip] Student ${student.name}: processStatus=${processStatus}, graduationProcess=`, student.graduationProcess);
+  
+  if (isStudentRejectedByAdvisor(student)) { // Added advisor rejection check
+    return (
+      <Chip
+        label="Advisor Rejected"
+        color="error"
+        size="small"
+        sx={{ 
+          backgroundColor: '#d32f2f', // Consistent red for rejections
+          color: 'white',
+          fontWeight: 'bold'
+        }}
+      />
+    );
+  }
   
   if (isStudentRejectedBySecretary(student)) {
     return (

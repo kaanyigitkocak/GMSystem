@@ -64,6 +64,7 @@ export interface FileValidationResult {
 // Re-export common types or define DeansOffice specific types here if needed
 export {
   EligibilityCheckType, // Enum olduğu için doğrudan export
+  GraduationProcessStatus,
 } from "../../../advisor/services/types";
 
 export type {

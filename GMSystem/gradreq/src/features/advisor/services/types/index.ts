@@ -21,6 +21,22 @@ export enum EligibilityCheckType {
   FAILED_COURSE_LIMIT = 7,
 }
 
+export enum GraduationProcessStatus {
+  AWAITING_DEPT_SECRETARY_TRANSCRIPT_UPLOAD = 1,
+  TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK = 3,
+  TRANSCRIPT_PARSE_ERROR_AWAITING_REUPLOAD = 4,
+  ADVISOR_ELIGIBLE = 5,
+  ADVISOR_NOT_ELIGIBLE = 6,
+  DEPT_SECRETARY_APPROVED_PENDING_DEAN = 8,
+  DEPT_SECRETARY_REJECTED_PROCESS = 9,
+  DEANS_OFFICE_APPROVED = 11,
+  DEANS_OFFICE_REJECTED = 12,
+  STUDENT_AFFAIRS_APPROVED = 14,
+  STUDENT_AFFAIRS_REJECTED = 15,
+  COMPLETED_GRADUATED = 18,
+  PROCESS_TERMINATED_BY_ADMIN = 19,
+}
+
 export interface EligibilityCheckResult {
   id: string;
   processId: string;
@@ -61,23 +77,25 @@ export interface GraduationProcess {
 // Types for student data
 export interface Student {
   id: string;
-  name: string;
-  department: string;
-  gpa: string;
-  status:
-    | "Normal Öğrenim"
-    | "Şartlı Geçme"
-    | "Mezuniyet Aşaması"
-    | "Mezun"
-    | "Ayrıldı";
-  email?: string;
-  phone?: string;
-  lastMeeting?: string;
-  studentNumber?: string;
-  ectsCompleted?: number;
-  enrollDate?: string;
-  graduationStatus?: number;
-  graduationProcess?: GraduationProcess;
+  studentNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  departmentId: string;
+  departmentName: string;
+  facultyId: string;
+  facultyName: string;
+  programName: string;
+  enrollDate: string;
+  currentGpa: number;
+  currentEctsCompleted: number;
+  graduationStatus: GraduationProcessStatus;
+  assignedAdvisorUserId: string | null;
+  activeGraduationProcessId: string | null;
+  activeGraduationProcessStatus: GraduationProcessStatus | null;
+  activeGraduationProcessAcademicTerm: string | null;
+  activeGraduationProcessInitiationDate: string | null;
+  activeGraduationProcessLastUpdateDate: string | null;
   eligibilityStatus?: StudentEligibilityStatus;
 }
 
@@ -95,7 +113,10 @@ export interface CourseTaken {
 }
 
 // Types for petition
-export type PetitionStudent = Pick<Student, "id" | "name" | "department">;
+export type PetitionStudent = Pick<
+  Student,
+  "id" | "firstName" | "lastName" | "departmentName"
+>;
 
 export interface PetitionData {
   type: string;
