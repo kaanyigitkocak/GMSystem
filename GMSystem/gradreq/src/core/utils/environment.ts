@@ -29,27 +29,32 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
   }
 
   const environment = determineEnvironment(mode, apiSource);
-  const useMock = apiSource === "mock";
+  const useMock = apiSource === "mock" && mode !== "production";
   const isDevelopment = mode === "development" || mode === "mock";
   const isProduction = mode === "production";
 
   let apiBaseUrl: string;
 
-  switch (apiSource) {
-    case "mock":
-      apiBaseUrl = "http://localhost:5173"; // Not used in mock mode
-      break;
-    case "test":
-    case "development":
-      apiBaseUrl = configuredBaseUrl || "http://localhost:5278/api";
-      break;
-    case "production":
-      apiBaseUrl =
-        configuredBaseUrl || "https://gradsysbackend.onrender.com/api";
-      break;
-    default:
-      apiBaseUrl =
-        configuredBaseUrl || "https://gradsysbackend.onrender.com/api";
+  // If mode is production, always use production API regardless of apiSource
+  if (mode === "production") {
+    apiBaseUrl = configuredBaseUrl || "https://gradsysbackend.onrender.com/api";
+  } else {
+    switch (apiSource) {
+      case "mock":
+        apiBaseUrl = "http://localhost:5173"; // Not used in mock mode
+        break;
+      case "test":
+      case "development":
+        apiBaseUrl = configuredBaseUrl || "http://localhost:5278/api";
+        break;
+      case "production":
+        apiBaseUrl =
+          configuredBaseUrl || "https://gradsysbackend.onrender.com/api";
+        break;
+      default:
+        apiBaseUrl =
+          configuredBaseUrl || "https://gradsysbackend.onrender.com/api";
+    }
   }
 
   return {
@@ -66,12 +71,14 @@ export const getEnvironmentConfig = (): EnvironmentConfig => {
  * Determine environment based on mode and API source
  */
 function determineEnvironment(mode: string, apiSource: string): Environment {
+  // If mode is production, always use production environment
+  if (mode === "production") return "production";
+
   if (apiSource === "mock") return "mock";
   if (apiSource === "production") return "production";
   if (apiSource === "test") return "test";
 
   // Fallback logic
-  if (mode === "production") return "production";
   if (mode === "development") return "development";
 
   return "mock";
