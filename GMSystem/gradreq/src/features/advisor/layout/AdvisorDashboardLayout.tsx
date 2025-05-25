@@ -141,9 +141,8 @@ const AdvisorDashboardLayout = () => {
               sx={{ mr: 2, display: { sm: 'none' } }}
             >
               <MenuIcon />
-            </IconButton>
-            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
-              {user?.name || 'Danışman'}
+            </IconButton>            <Typography variant="h6" noWrap component="div" sx={{ flexGrow: 1 }}>
+              Advisor Panel
             </Typography>
             
             <Box sx={{ display: 'flex', alignItems: 'center' }}>

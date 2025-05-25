@@ -106,66 +106,67 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
 
   const drawer = (
     <>
-      <Box sx={{ display: 'flex', alignItems: 'center', p: 2 }}>
-        <img 
+      <Box 
+        sx={{ 
+          display: 'flex', 
+          flexDirection: 'column', 
+          alignItems: 'center', 
+          p: 2, 
+          borderBottom: `1px solid ${theme.palette.divider}` 
+        }}
+      >
+        <Box 
+          component="img" 
           src={iyteLogoPng} 
           alt="IYTE Logo" 
-          style={{ 
-            height: 40, 
-            marginRight: 12,
-            filter: 'brightness(0) invert(1)'
-          }} 
+          sx={{ width: 120, height: 'auto', mb: 1 }}
         />
-        <Box>
-          <Typography variant="h6" sx={{ fontWeight: 'bold', fontSize: '1rem', color: 'white' }}>
-            IYTE
-          </Typography>
-          <Typography variant="caption" sx={{ color: 'rgba(255,255,255,0.7)', lineHeight: 1 }}>
-            Graduation Management System
-          </Typography>
-        </Box>
+        <Typography variant="h6" sx={{ fontWeight: 600, color: theme.palette.primary.main, textAlign: 'center' }}>
+          Graduation Management System
+        </Typography>
       </Box>
       
-      <Divider sx={{ borderColor: 'rgba(255,255,255,0.12)' }} />
+      <Divider />
       
-      <List sx={{ px: 2, py: 1 }}>
+      <List>
         {navItems.map((item) => (
-          <ListItem key={item.path} disablePadding sx={{ mb: 0.5 }}>
+          <ListItem key={item.path} disablePadding>
             <ListItemButton
               component={RouterLink}
               to={item.path}
               selected={isActive(item.path, item.exact)}
               sx={{
-                borderRadius: 2,
+                paddingLeft: theme.spacing(2.5),
+                paddingRight: theme.spacing(2.5),
                 '&.Mui-selected': {
-                  bgcolor: 'rgba(255,255,255,0.08)',
+                  backgroundColor: theme.palette.action.selected,
+                  borderLeft: `4px solid ${theme.palette.primary.main}`,
+                  color: theme.palette.primary.main,
+                  paddingLeft: `calc(${theme.spacing(2.5)} - 4px)`,
+                  '& .MuiListItemIcon-root': {
+                    color: theme.palette.primary.main,
+                  },
                   '&:hover': {
-                    bgcolor: 'rgba(255,255,255,0.12)',
+                    backgroundColor: theme.palette.action.hover,
                   },
                 },
                 '&:hover': {
-                  bgcolor: 'rgba(255,255,255,0.04)',
+                  backgroundColor: theme.palette.action.hover,
                 },
               }}
             >
-              <ListItemIcon sx={{ color: 'inherit', minWidth: 40 }}>
-                {item.icon}
-              </ListItemIcon>
-              <ListItemText 
-                primary={item.label}
-                primaryTypographyProps={{
-                  fontSize: '0.875rem',
-                  fontWeight: isActive(item.path, item.exact) ? 600 : 400,
-                }}
-              />
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
             </ListItemButton>
           </ListItem>
         ))}
       </List>
       
+      <Box sx={{ flexGrow: 1 }} />
+      
       <List sx={{ mt: 'auto' }}>
         <ListItem disablePadding>
-          <ListItemButton onClick={handleLogout}>
+          <ListItemButton onClick={handleLogout} sx={{ paddingLeft: theme.spacing(2.5) }}>
             <ListItemIcon>
               <LogoutIcon />
             </ListItemIcon>
@@ -193,12 +194,10 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
               onClose={toggleDrawer}
               ModalProps={{ keepMounted: true }}
               sx={{
+                display: { xs: 'block', sm: 'none' },
                 '& .MuiDrawer-paper': { 
                   width: drawerWidth,
-                  boxSizing: 'border-box',
-                  border: 'none',
-                  background: 'linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%)',
-                  color: 'white',
+                  boxSizing: 'border-box' 
                 },
               }}
             >
@@ -209,12 +208,10 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
               variant="permanent"
               open
               sx={{
+                display: { xs: 'none', sm: 'block' },
                 '& .MuiDrawer-paper': { 
                   width: drawerWidth,
                   boxSizing: 'border-box',
-                  border: 'none',
-                  background: 'linear-gradient(180deg, #d32f2f 0%, #b71c1c 100%)',
-                  color: 'white',
                 },
               }}
             >
