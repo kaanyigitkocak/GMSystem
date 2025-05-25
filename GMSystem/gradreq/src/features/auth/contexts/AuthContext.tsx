@@ -36,9 +36,28 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     if (storedToken && storedUser) {
       try {
         const userData = JSON.parse(storedUser);
-        console.log('Found stored token and user data');
-        setUser(userData);
-        setToken(storedToken);
+        console.log('Found stored token and user data:', userData);
+        
+        // Validate user data structure and role
+        if (userData && userData.role && userData.email) {
+          // Check if the role is valid
+          const validRoles = ['student', 'admin', 'advisor', 'secretary', 'deans_office', 'student_affairs'];
+          if (validRoles.includes(userData.role)) {
+            console.log('Valid user data found, setting user:', userData);
+            setUser(userData);
+            setToken(storedToken);
+          } else {
+            console.warn('Invalid user role found in localStorage:', userData.role);
+            // Clear invalid auth data
+            localStorage.removeItem('authToken');
+            localStorage.removeItem('authUser');
+          }
+        } else {
+          console.warn('Incomplete user data found in localStorage');
+          // Clear invalid auth data
+          localStorage.removeItem('authToken');
+          localStorage.removeItem('authUser');
+        }
       } catch (error) {
         console.error('Failed to parse stored user data', error);
         // Clear invalid auth data

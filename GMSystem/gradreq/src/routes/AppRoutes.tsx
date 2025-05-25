@@ -84,23 +84,38 @@ const DashboardRouter = () => {
   const { user } = useAuth();
   
   if (!user) {
+    console.log('[DashboardRouter] No user found, redirecting to login');
     return <Navigate to="/login" replace />;
   }
   
+  console.log('[DashboardRouter] User found:', user);
+  console.log('[DashboardRouter] User role:', user.role);
+  
   switch (user.role) {
     case UserType.STUDENT:
+      console.log('[DashboardRouter] Redirecting to student dashboard');
       return <Navigate to="/student" replace />;
     case UserType.SECRETARY:
+      console.log('[DashboardRouter] Redirecting to secretary dashboard');
       return <Navigate to="/secretary" replace />;
     case UserType.DEANS_OFFICE:
+      console.log('[DashboardRouter] Redirecting to deans office dashboard');
       return <Navigate to="/deansoffice" replace />;
     case UserType.STUDENT_AFFAIRS:
+      console.log('[DashboardRouter] Redirecting to student affairs dashboard');
       return <Navigate to="/student-affairs" replace />;
     case UserType.ADVISOR:
+      console.log('[DashboardRouter] Redirecting to advisor dashboard');
       return <Navigate to="/advisor" replace />;
     case UserType.ADMIN:
+      console.log('[DashboardRouter] Redirecting to admin dashboard');
       return <Navigate to="/admin" replace />;
     default:
+      console.error('[DashboardRouter] Unknown user role:', user.role);
+      console.error('[DashboardRouter] Full user object:', user);
+      // Clear invalid user data and redirect to login
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('authUser');
       return <Navigate to="/login" replace />;
   }
 };

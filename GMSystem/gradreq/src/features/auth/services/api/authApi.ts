@@ -143,6 +143,15 @@ export const loginUserApi = async (
         (accessTokenObj && accessTokenObj.userRole) ||
         (accessTokenObj && accessTokenObj.UserRole);
 
+      // Validate that we have a user role
+      if (!userRole) {
+        console.error("No user role found in API response:", data);
+        throw new ServiceError(
+          "Invalid response format from login API: No user role found",
+          500
+        );
+      }
+
       // Map backend role names to frontend UserType enum values
       const normalizeRole = (backendRole: string): UserType => {
         // Map backend role names to frontend role names
@@ -160,11 +169,14 @@ export const loginUserApi = async (
           case "SYSTEM_ADMIN":
             return UserType.ADMIN;
           default:
-            // Default to student to avoid type errors, but this should be handled better in a real app
-            console.warn(
+            // Don't default to student - throw an error for unknown roles
+            console.error(
               `Unknown role type received from backend: ${backendRole}`
             );
-            return UserType.STUDENT;
+            throw new ServiceError(
+              `Invalid user role received from server: ${backendRole}. Please contact support.`,
+              500
+            );
         }
       };
 
@@ -174,7 +186,7 @@ export const loginUserApi = async (
           id: data.id || "",
           email: email, // Use the email we know
           name: "", // We might not have this info yet
-          role: userRole ? normalizeRole(userRole) : UserType.STUDENT,
+          role: normalizeRole(userRole),
           department: data.department || "",
         },
         token: token,
