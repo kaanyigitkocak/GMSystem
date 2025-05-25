@@ -35,7 +35,7 @@ import {
   CheckCircle as CheckCircleIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 import { useNotifications } from '../hooks';
 import { EligibilityProvider } from '../contexts/EligibilityContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';

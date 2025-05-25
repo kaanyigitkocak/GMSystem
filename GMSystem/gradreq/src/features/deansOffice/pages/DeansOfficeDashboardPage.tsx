@@ -13,7 +13,7 @@ import {
 import { Refresh, PlayArrow, ClearAll, BarChart, People, AssignmentTurnedIn, HourglassEmpty } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 import { useDeansOfficeEligibility } from '../contexts/DeansOfficeEligibilityContext';
 
 const Grid = MuiGrid as any; // MuiGrid type issue workaround

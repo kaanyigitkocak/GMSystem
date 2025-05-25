@@ -2,7 +2,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import theme from '../core/styles/theme';
-import { useAuth } from '../features/auth/contexts/AuthContext';
+import { useAuth } from '../core/hooks/useAuth';
 import { UserType } from '../features/auth/types';
 import AdvisorDashboardLayout from '../features/advisor/layout/AdvisorDashboardLayout';
 import ErrorBoundary from '../shared/components/ErrorBoundary';

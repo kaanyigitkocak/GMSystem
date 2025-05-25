@@ -29,7 +29,7 @@ import {
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink } from 'react-router-dom';
 import { useState } from 'react';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import { EligibilityProvider } from '../contexts/EligibilityContext';
 

@@ -34,16 +34,16 @@ import {
   Description 
 } from '@mui/icons-material';
 import { useState, useCallback, useEffect } from 'react';
-import type { Student, EligibilityCheckType, CourseTaken } from '../services/types';
-import { 
-  getFacultyStudentsWithEligibilityApi, 
-  getStudentCourseTakensApi, 
-  clearDeansOfficeEligibilityCache,
-  setDeansOfficeApprovedApi,
-  setDeansOfficeRejectedApi,
-  getDeanFacultyInfo,
-  performFacultyEligibilityChecksForMissingStudentsApi
-} from '../services/api/studentsApi';
+import type { Student, EligibilityCheckType } from '../services/types';
+import {
+  useDeanFacultyInfo,
+  useStudentsWithEligibility,
+  // useStudentTranscript, // Used in TranscriptDialog component
+  useApproveStudents,
+  useRejectStudents,
+  usePerformEligibilityChecks,
+  useClearStudentCache,
+} from '../hooks/useStudents';
 import TranscriptDialog from '../components/TranscriptDialog';
 import { LoadingOverlay } from '../../../shared/components';
 import RejectDialog from '../components/RejectDialog';
@@ -309,109 +309,68 @@ const sortStudentsByEligibilityAndGPA = (students: Student[]): Student[] => {
 };
 
 const ApprovalRankingPage = () => {
-  const [students, setStudents] = useState<Student[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [performingChecks, setPerformingChecks] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [facultyId, setFacultyId] = useState<string | null>(null);
+  // React Query hooks
+  const { data: facultyInfo, isLoading: facultyLoading, error: facultyError } = useDeanFacultyInfo();
+  const { 
+    data: studentsData = [], 
+    isLoading: studentsLoading, 
+    error: studentsError,
+    refetch: refetchStudents 
+  } = useStudentsWithEligibility(facultyInfo?.facultyId);
 
+  // Mutations
+  const approveStudents = useApproveStudents();
+  const rejectStudents = useRejectStudents();
+  const performEligibilityChecks = usePerformEligibilityChecks();
+  const clearCache = useClearStudentCache();
+
+  // Local state for UI
   const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
   const [eligibilityDialogOpen, setEligibilityDialogOpen] = useState(false);
   const [transcriptDialogOpen, setTranscriptDialogOpen] = useState(false);
-  const [transcriptData, setTranscriptData] = useState<CourseTaken[]>([]);
-  const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
 
-  // Get faculty ID on component mount
-  useEffect(() => {
-    const fetchFacultyId = async () => {
-      try {
-        const facultyInfo = await getDeanFacultyInfo();
-        setFacultyId(facultyInfo.facultyId);
-      } catch (err) {
-        console.error('Failed to get faculty ID:', err);
-        setError('Failed to get faculty information');
-      }
-    };
-    fetchFacultyId();
-  }, []);
+  // Computed values
+  const students = sortStudentsByEligibilityAndGPA(studentsData);
+  const loading = facultyLoading || studentsLoading;
+  const error = facultyError || studentsError;
+  const performingChecks = performEligibilityChecks.isPending;
 
-  // Fetch students data
-  const fetchStudentsData = useCallback(async () => {
-    if (!facultyId) return;
-    
-    setLoading(true);
-    setError(null);
-    
-    try {
-      console.log("🔍 [DeanApprovalRanking] Fetching students for faculty:", facultyId);
-      const studentsData = await getFacultyStudentsWithEligibilityApi(facultyId);
-      
-            // Show ALL students in the faculty (no filtering by status)
-      console.log(`🔍 [DeanApprovalRanking] Fetched ${studentsData.length} total students for faculty`);
-      
-      setStudents(sortStudentsByEligibilityAndGPA(studentsData));
-      
-      if (studentsData.length === 0) {
-        setErrorMessage("No students found for your faculty.");
-      } else {
-        console.log(`🔍 [DeanApprovalRanking] Displaying all ${studentsData.length} students from faculty`);
-      }
-    } catch (err: any) {
-      console.error('Failed to fetch students:', err);
-      setError('Failed to load student data. Please try refreshing.');
-      setErrorMessage('Failed to load student data.');
-    } finally {
-      setLoading(false);
-    }
-  }, [facultyId]);
-
-  // Fetch data when faculty ID is available
-  useEffect(() => {
-    if (facultyId) {
-      fetchStudentsData();
-    }
-  }, [facultyId, fetchStudentsData]);
+  // Show message if no students found
+  if (studentsData.length === 0 && !loading && !error) {
+    setErrorMessage("No students found for your faculty.");
+  }
 
   const handlePerformEligibilityChecks = useCallback(async () => {
-    if (!facultyId) return;
+    if (!facultyInfo?.facultyId) return;
     
     try {
-      setPerformingChecks(true);
       console.log("🔍 [DeanApprovalRanking] Starting eligibility checks for missing students...");
-      const result = await performFacultyEligibilityChecksForMissingStudentsApi(facultyId);
+      const result = await performEligibilityChecks.mutateAsync(facultyInfo.facultyId);
       setSuccessMessage(
         `Eligibility checks completed for ${result.processedStudents.length} students. Results are being processed...`
       );
       console.log("✅ [DeanApprovalRanking] Eligibility checks completed, list will be updated automatically");
-      
-      // Refresh data after checks
-      setTimeout(() => {
-        fetchStudentsData();
-      }, 2000);
     } catch (err) {
       setErrorMessage('Failed to perform eligibility checks. Please try again.');
       console.error('Failed to perform eligibility checks:', err);
-    } finally {
-      setPerformingChecks(false);
     }
-  }, [facultyId, fetchStudentsData]);
+  }, [facultyInfo?.facultyId, performEligibilityChecks]);
 
   const handleRefreshWithClearCache = useCallback(async () => {
-    if (!facultyId) return;
+    if (!facultyInfo?.facultyId) return;
     
     try {
-      await clearDeansOfficeEligibilityCache(facultyId);
-      await fetchStudentsData();
+      await clearCache.mutateAsync(facultyInfo.facultyId);
       setSuccessMessage('All data refreshed successfully.');
     } catch (err) {
       setErrorMessage('Failed to refresh data. Please try again.');
       console.error('Failed to refresh data:', err);
     }
-  }, [facultyId, fetchStudentsData]);
+  }, [facultyInfo?.facultyId, clearCache]);
 
   const handleViewEligibilityDetails = useCallback((student: Student) => {
     setSelectedStudent(student);
@@ -423,49 +382,33 @@ const ApprovalRankingPage = () => {
     setSelectedStudent(null);
   }, []);
 
-  const handleViewTranscript = useCallback(async (student: Student) => {
-    try {
-      setTranscriptLoading(true);
-      setSelectedStudent(student);
-      console.log("🔍 [DeanApprovalRanking] Fetching transcript for student:", student.id);
-      const courses = await getStudentCourseTakensApi(student.id);
-      setTranscriptData(courses);
-      setTranscriptDialogOpen(true);
-    } catch (err) {
-      console.error('Failed to fetch transcript:', err);
-      setErrorMessage('Failed to fetch student transcript. Please try again.');
-    } finally {
-      setTranscriptLoading(false);
-    }
+  const handleViewTranscript = useCallback((student: Student) => {
+    setSelectedStudent(student);
+    setTranscriptDialogOpen(true);
   }, []);
 
   const handleCloseTranscriptDialog = useCallback(() => {
     setTranscriptDialogOpen(false);
     setSelectedStudent(null);
-    setTranscriptData([]);
   }, []);
 
   const handleApproveStudent = useCallback(async (student: Student) => {
-    if (!facultyId) return;
+    if (!facultyInfo?.deanId) return;
     
     try {
       console.log("🔍 [DeanApprovalRanking] Approving student:", student.id);
       
-      // Get dean data
-      const deanInfo = await getDeanFacultyInfo();
-      
-      // Call API to approve student
-      await setDeansOfficeApprovedApi([student.id], deanInfo.deanId!);
+      await approveStudents.mutateAsync({
+        studentUserIds: [student.id],
+        deansOfficeUserId: facultyInfo.deanId,
+      });
       
       setSuccessMessage(`Student ${student.firstName} ${student.lastName} (${student.studentNumber}) has been approved for graduation.`);
-      
-      // Refresh data to show updated status
-      await fetchStudentsData();
     } catch (err) {
       setErrorMessage('Failed to approve student. Please try again.');
       console.error('Failed to approve student:', err);
     }
-  }, [facultyId, fetchStudentsData]);
+  }, [facultyInfo?.deanId, approveStudents]);
 
   const handleOpenRejectDialog = useCallback((student: Student) => {
     setStudentToReject(student);
@@ -478,27 +421,25 @@ const ApprovalRankingPage = () => {
   }, []);
 
   const handleConfirmReject = useCallback(async (rejectionReason: string) => {
-    if (!studentToReject || !facultyId) return;
+    if (!studentToReject || !facultyInfo?.deanId) return;
 
     try {
       console.log(`🔍 [DeanApprovalRanking] Confirming rejection for student: ${studentToReject.id} with reason: ${rejectionReason}`);
       
-      const deanInfo = await getDeanFacultyInfo();
-      
-      await setDeansOfficeRejectedApi([studentToReject.id], deanInfo.deanId!, rejectionReason);
+      await rejectStudents.mutateAsync({
+        studentUserIds: [studentToReject.id],
+        deansOfficeUserId: facultyInfo.deanId,
+        rejectionReason,
+      });
 
       setSuccessMessage(`Student ${studentToReject.firstName} ${studentToReject.lastName} (${studentToReject.studentNumber}) has been rejected.`);
-      
-      // Refresh data to show updated status
-      await fetchStudentsData();
-
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to reject student. Please try again.');
       console.error('Failed to reject student:', err);
     } finally {
       handleCloseRejectDialog();
     }
-  }, [studentToReject, facultyId, fetchStudentsData, handleCloseRejectDialog]);
+  }, [studentToReject, facultyInfo?.deanId, rejectStudents, handleCloseRejectDialog]);
 
   const handleCloseSuccessMessage = useCallback(() => {
     setSuccessMessage('');
@@ -555,9 +496,9 @@ const ApprovalRankingPage = () => {
     return (
       <Box sx={{ p: 3, textAlign: 'center' }}>
         <Alert severity="error" sx={{ mb: 2, justifyContent: 'center' }}>
-          {error}
+          {error?.message || 'An error occurred'}
         </Alert>
-        <Button variant="contained" onClick={() => fetchStudentsData()}>
+        <Button variant="contained" onClick={() => refetchStudents()}>
           Retry Loading Data
         </Button>
       </Box>
@@ -661,7 +602,7 @@ const ApprovalRankingPage = () => {
                     <Tooltip title="Refresh Data (from cache)">
                       <span>
                       <IconButton 
-                        onClick={() => fetchStudentsData()}
+                        onClick={() => refetchStudents()}
                         disabled={loading || performingChecks}
                         color="primary"
                         size="small"
@@ -736,7 +677,7 @@ const ApprovalRankingPage = () => {
                   </Button>
                   <Button
                     variant="outlined"
-                    onClick={() => fetchStudentsData()}
+                    onClick={() => refetchStudents()}
                     disabled={loading || performingChecks}
                     startIcon={(loading && !performingChecks) ? <CircularProgress size={16} /> : <Refresh />}
                   >
@@ -988,8 +929,6 @@ const ApprovalRankingPage = () => {
         open={transcriptDialogOpen}
         onClose={handleCloseTranscriptDialog}
         student={selectedStudent}
-        courses={transcriptData}
-        isLoading={transcriptLoading}
       />
 
       {/* Reject Confirmation Dialog */}

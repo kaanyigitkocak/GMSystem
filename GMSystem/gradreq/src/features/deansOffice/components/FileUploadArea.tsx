@@ -9,7 +9,7 @@ import {
 
 interface FileUploadAreaProps {
   dragActive: boolean;
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement>;
   onDrag: (e: React.DragEvent<HTMLDivElement>) => void;
   onDrop: (e: React.DragEvent<HTMLDivElement>) => void;
   onFileChange: (e: React.ChangeEvent<HTMLInputElement>) => void;

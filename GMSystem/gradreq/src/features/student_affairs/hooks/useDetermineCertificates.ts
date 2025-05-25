@@ -26,7 +26,7 @@ interface UseDetermineCertificatesReturn {
   notifications: NotificationState;
 
   // Refs
-  fileInputRef: React.RefObject<HTMLInputElement | null>;
+  fileInputRef: React.RefObject<HTMLInputElement>;
 
   // Actions
   handleLoadRankings: () => void;
@@ -42,7 +42,7 @@ interface UseDetermineCertificatesReturn {
 }
 
 export const useDetermineCertificates = (): UseDetermineCertificatesReturn => {
-  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null!);
 
   // Data state
   const [filesLoaded, setFilesLoaded] = useState(false);

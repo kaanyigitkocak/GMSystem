@@ -33,7 +33,7 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon
 } from '@mui/icons-material';
-import { useAuth } from '../../../features/auth/contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 import { Link as RouterLink } from 'react-router-dom';
 import { useNotifications } from '../hooks/useNotifications';

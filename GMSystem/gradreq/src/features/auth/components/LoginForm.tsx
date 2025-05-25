@@ -14,7 +14,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { Visibility, VisibilityOff } from '@mui/icons-material';
-import { useAuth } from '../contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 import theme from '../../../core/styles/theme';
 import { useNavigate } from 'react-router-dom';

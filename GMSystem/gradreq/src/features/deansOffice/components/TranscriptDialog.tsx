@@ -22,28 +22,27 @@ import {
   Cancel as CancelIcon,
 } from '@mui/icons-material';
 import { LoadingOverlay } from '../../../shared/components';
-import type { CourseTaken } from '../../advisor/services/types';
+// import type { CourseTaken } from '../../advisor/services/types'; // Now fetched via hook
 import type { Student } from '../../advisor/services/types';
+import { useStudentTranscript } from '../hooks/useStudents';
 
 interface TranscriptDialogProps {
   open: boolean;
   student: Student | null;
-  courses: CourseTaken[] | null;
   onClose: () => void;
   onApprove?: () => void;
   onReject?: () => void;
-  isLoading?: boolean;
 }
 
 const TranscriptDialog: React.FC<TranscriptDialogProps> = ({
   open,
   student,
-  courses,
   onClose,
   onApprove,
   onReject,
-  isLoading = false,
 }) => {
+  // Use React Query hook to fetch transcript data
+  const { data: courses, isLoading } = useStudentTranscript(student?.id);
   const getGradeChipColor = (grade: string): 'success' | 'warning' | 'error' | 'default' => {
     const upperGrade = grade.toUpperCase();
     if (['AA', 'BA', 'BB', 'CB', 'CC'].includes(upperGrade)) return 'success';
