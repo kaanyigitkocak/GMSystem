@@ -1,4 +1,5 @@
 import { getServiceConfig } from "./utils/serviceUtils";
+import { getServiceConfig as getCommonServiceConfig } from "../../common/utils/serviceUtils";
 import * as advisorStudentDataApiService from "./api/advisorStudentDataApi";
 import * as advisorStudentCourseApiService from "./api/advisorStudentCourseApi";
 import * as advisorStudentEligibilityApiService from "./api/advisorStudentEligibilityApi";
@@ -234,11 +235,14 @@ export const setAdvisorEligible = async (
   studentUserIds: string[],
   advisorUserId: string
 ): Promise<void> => {
+  const { apiBaseUrl } = getCommonServiceConfig();
+  const fullUrl = `${apiBaseUrl}/GraduationProcesses/SetAdvisorEligible`;
+
   // Log the request parameters
   console.log("🔍 [API Request] setAdvisorEligible - Parameters:", {
     studentUserIds,
     advisorUserId,
-    endpoint: "/api/GraduationProcesses/SetAdvisorEligible",
+    endpoint: fullUrl,
   });
 
   try {
@@ -248,17 +252,14 @@ export const setAdvisorEligible = async (
       throw new Error("No authentication token found");
     }
 
-    const response = await fetch(
-      "/api/GraduationProcesses/SetAdvisorEligible",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({ studentUserIds, advisorUserId }),
-      }
-    );
+    const response = await fetch(fullUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({ studentUserIds, advisorUserId }),
+    });
 
     // Log the raw response
     console.log(
@@ -300,12 +301,15 @@ export const setAdvisorNotEligible = async (
   advisorUserId: string,
   rejectionReason: string
 ): Promise<void> => {
+  const { apiBaseUrl } = getCommonServiceConfig();
+  const fullUrl = `${apiBaseUrl}/GraduationProcesses/SetAdvisorNotEligible`;
+
   // Log the request parameters
   console.log("🔍 [API Request] setAdvisorNotEligible - Parameters:", {
     studentUserIds,
     advisorUserId,
     rejectionReason,
-    endpoint: "/api/GraduationProcesses/SetAdvisorNotEligible",
+    endpoint: fullUrl,
   });
 
   try {
@@ -315,21 +319,18 @@ export const setAdvisorNotEligible = async (
       throw new Error("No authentication token found");
     }
 
-    const response = await fetch(
-      "/api/GraduationProcesses/SetAdvisorNotEligible",
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${authToken}`,
-        },
-        body: JSON.stringify({
-          studentUserIds,
-          advisorUserId,
-          rejectionReason,
-        }),
-      }
-    );
+    const response = await fetch(fullUrl, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify({
+        studentUserIds,
+        advisorUserId,
+        rejectionReason,
+      }),
+    });
 
     // Log the raw response
     console.log(
@@ -375,9 +376,10 @@ export const setAdvisorNotEligible = async (
 
 // New service function to get Advisor ID
 export const getAdvisorId = async (): Promise<string | null> => {
-  console.log(
-    "🔍 [API Request] getAdvisorId - Fetching from /api/Users/GetFromAuth"
-  );
+  const { apiBaseUrl } = getCommonServiceConfig();
+  const fullUrl = `${apiBaseUrl}/Users/GetFromAuth`;
+
+  console.log("🔍 [API Request] getAdvisorId - Fetching from", fullUrl);
 
   try {
     // Get auth token from localStorage
@@ -386,7 +388,7 @@ export const getAdvisorId = async (): Promise<string | null> => {
       throw new Error("No authentication token found");
     }
 
-    const response = await fetch("/api/Users/GetFromAuth", {
+    const response = await fetch(fullUrl, {
       method: "GET",
       headers: {
         "Content-Type": "application/json",
