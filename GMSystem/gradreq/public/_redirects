@@ -1,6 +1,11 @@
+# SPA Fallback for React Router
 /*    /index.html   200
-/advisor/*    /index.html   200
+
+# Specific routes for better SEO
+/login    /index.html   200
 /student/*    /index.html   200
 /secretary/*    /index.html   200
+/advisor/*    /index.html   200
+/deansoffice/*    /index.html   200
 /student-affairs/*    /index.html   200
-/deans-office/*    /index.html   200
+/admin/*    /index.html   200

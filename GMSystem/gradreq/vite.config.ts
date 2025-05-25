@@ -31,8 +31,20 @@ export default defineConfig(({ mode }) => {
     allowedHosts: ["5d24-193-140-250-85.ngrok-free.app"],
   };
 
-  // Add SPA fallback for development
-  serverConfig.historyApiFallback = true;
+  // Add SPA fallback for development - proper configuration
+  serverConfig.historyApiFallback = {
+    index: "/index.html",
+    disableDotRule: true,
+    rewrites: [
+      { from: /^\/login/, to: "/index.html" },
+      { from: /^\/student/, to: "/index.html" },
+      { from: /^\/secretary/, to: "/index.html" },
+      { from: /^\/advisor/, to: "/index.html" },
+      { from: /^\/deansoffice/, to: "/index.html" },
+      { from: /^\/student-affairs/, to: "/index.html" },
+      { from: /^\/admin/, to: "/index.html" },
+    ],
+  };
 
   // Only add proxy if we're not in mock mode
   if (proxyTarget) {
@@ -67,7 +79,19 @@ export default defineConfig(({ mode }) => {
     preview: {
       port: 4173,
       host: true,
-      historyApiFallback: true,
+      historyApiFallback: {
+        index: "/index.html",
+        disableDotRule: true,
+        rewrites: [
+          { from: /^\/login/, to: "/index.html" },
+          { from: /^\/student/, to: "/index.html" },
+          { from: /^\/secretary/, to: "/index.html" },
+          { from: /^\/advisor/, to: "/index.html" },
+          { from: /^\/deansoffice/, to: "/index.html" },
+          { from: /^\/student-affairs/, to: "/index.html" },
+          { from: /^\/admin/, to: "/index.html" },
+        ],
+      },
     },
   };
 });
