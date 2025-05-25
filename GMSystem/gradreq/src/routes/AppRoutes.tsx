@@ -205,6 +205,7 @@ const AppRoutes = () => {
           <Route index element={<SecretaryDashboard />} />
           <Route path="transcripts" element={<TranscriptProcessingPage />} />
           <Route path="ranking" element={<SecretaryApprovalRankingPage />} />
+          <Route path="approval-ranking" element={<SecretaryApprovalRankingPage />} />
           <Route path="notifications" element={<NotificationsPage />} />
         </Route>
         

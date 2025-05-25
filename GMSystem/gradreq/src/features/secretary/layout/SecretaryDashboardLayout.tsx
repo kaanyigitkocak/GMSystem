@@ -59,8 +59,8 @@ const SecretaryDashboardLayout = () => {
   const pathname = window.location.pathname;
   const navItems = [
     { path: '/secretary', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/secretary/transcript-management', icon: <CloudUploadIcon />, label: 'Transcript Management' },
-    { path: '/secretary/graduation-requests', icon: <FormatListNumberedIcon />, label: 'Graduation Requests' },
+    { path: '/secretary/transcripts', icon: <CloudUploadIcon />, label: 'Transcript Processing' },
+    { path: '/secretary/approval-ranking', icon: <FormatListNumberedIcon />, label: 'Approval & Ranking' },
     { path: '/secretary/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
 
