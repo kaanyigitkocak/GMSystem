@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import type { ReactNode } from 'react';
 import { 
   Box, 
   Typography, 
@@ -6,7 +7,6 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Avatar,
   AppBar,
   Toolbar,
   List,
@@ -18,7 +18,7 @@ import {
   useMediaQuery,
   ListItemButton,
   Badge,
-  CircularProgress,
+  CircularProgress
 } from '@mui/material';
 import { 
   Menu as MenuIcon,
@@ -26,21 +26,25 @@ import {
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
   Logout as LogoutIcon,
-  AccountCircle as AccountCircleIcon,
   Dashboard as DashboardIcon,
   Close as CloseIcon,
   Notifications as NotificationsIcon,
-  Upload as UploadIcon,
+  Email as EmailIcon,
   Warning as WarningIcon,
-  Error as ErrorIcon,
+  Error as ErrorIcon
 } from '@mui/icons-material';
 import { useAuth } from '../../../features/auth/contexts/AuthContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 import { Link as RouterLink } from 'react-router-dom';
 import { useNotifications } from '../hooks/useNotifications';
 
+interface StudentDashboardLayoutProps {
+  children: ReactNode;
+  title?: string;
+}
+
 // Main StudentDashboardLayout component
-const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) => {
+const StudentDashboardLayout = ({ children }: StudentDashboardLayoutProps) => {
   const { user, logout } = useAuth();
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -50,21 +54,16 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
   const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
   const unreadCount = notifications.filter(n => !n.read).length;
   
-  // Menu anchor states
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
+  // Notifications menu state
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
+  const notificationsOpen = Boolean(notificationsAnchor);
+  
+  // Messages menu state - removed unused variables
   
   // Current active path for highlighting navigation
   const pathname = window.location.pathname;
   
   // Menu handlers
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
-  
-  const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
   
   const handleNotificationsOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchor(event.currentTarget);
@@ -75,7 +74,7 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
   };
   
   const handleLogout = () => {
-    handleProfileMenuClose();
+    handleNotificationsClose();
     logout();
   };
   
@@ -91,7 +90,7 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
     { path: '/student/transcript', icon: <DescriptionIcon />, label: 'My Transcript' },
     { path: '/student/requirements', icon: <SchoolIcon />, label: 'Graduation Requirements' },
     { path: '/student/manual-check', icon: <CheckCircleIcon />, label: 'Manual Check' },
-    { path: '/student/disengagement', icon: <UploadIcon />, label: 'Disengagement Certificates' },
+    { path: '/student/disengagement', icon: <EmailIcon />, label: 'Disengagement Certificates' },
     { path: '/student/notifications', icon: <NotificationsIcon />, label: 'Notifications' }
   ];
   
@@ -262,12 +261,10 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
               </Typography>
             </Box>
             
-
-            
             {/* Notifications Menu */}
             <Menu
               anchorEl={notificationsAnchor}
-              open={Boolean(notificationsAnchor)}
+              open={notificationsOpen}
               onClose={handleNotificationsClose}
               transformOrigin={{ horizontal: 'right', vertical: 'top' }}
               anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}

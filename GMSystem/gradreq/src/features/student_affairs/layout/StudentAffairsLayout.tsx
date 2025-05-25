@@ -13,7 +13,6 @@ import {
   ListItemText, 
   IconButton, 
   Badge,
-  Avatar,
   Menu,
   MenuItem,
   Tooltip,
@@ -45,10 +44,10 @@ const StudentAffairsLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
+  const [, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   
   // Notifications hook
@@ -71,9 +70,6 @@ const StudentAffairsLayout = () => {
     setDrawerOpen(!drawerOpen);
   };
 
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
 
   const handleProfileMenuClose = () => {
     setProfileMenuAnchor(null);

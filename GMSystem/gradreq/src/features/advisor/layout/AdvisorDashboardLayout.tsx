@@ -15,7 +15,6 @@ import {
   Badge,
   Menu,
   MenuItem,
-  Avatar,
   CircularProgress,
 } from '@mui/material';
 import {
@@ -24,7 +23,6 @@ import {
   Group as GroupIcon,
   Logout as LogoutIcon,
   Notifications as NotificationsIcon,
-  AccountCircle as AccountCircleIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
   CheckCircle as CheckCircleIcon,
@@ -42,7 +40,7 @@ interface AdvisorDashboardLayoutProps {
 }
 
 const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
   
@@ -51,7 +49,6 @@ const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
   const unreadCount = notifications.filter(n => !n.read).length;
   
   // Menu anchor states
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
 
   const handleDrawerToggle = () => {
@@ -69,14 +66,6 @@ const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
   };
   
   // Menu handlers
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
-  
-  const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
-  
   const handleNotificationsOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchor(event.currentTarget);
   };

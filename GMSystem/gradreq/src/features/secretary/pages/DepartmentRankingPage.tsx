@@ -11,7 +11,7 @@ import {
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
-import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
+
 import { useStudentRankings } from '../hooks';
 import { getStudentTranscript } from '../services';
 import { LoadingOverlay } from '../../../shared/components';
@@ -294,59 +294,57 @@ const DepartmentRankingPage = () => {
 
 
   return (
-    <SecretaryDashboardLayout>
-      <Box sx={{ width: '100%', maxWidth: '100%', position: 'relative' }}>
-        <LoadingOverlay 
-          isLoading={loading} 
-          message="Loading student rankings..."
-          color="info"
-        />
-        <LoadingOverlay 
-          isLoading={isProcessingAction} 
-          message="Processing student action..."
-          color="warning"
+    <Box sx={{ width: '100%', maxWidth: '100%', position: 'relative' }}>
+      <LoadingOverlay 
+        isLoading={loading} 
+        message="Loading student rankings..."
+        color="info"
+      />
+      <LoadingOverlay 
+        isLoading={isProcessingAction} 
+        message="Processing student action..."
+        color="warning"
+      />
+      
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+        {/* Actions Section */}
+        <RankingActions
+          departmentName={departmentName}
+          studentCount={students.length}
+          onGeneratePDF={handleGeneratePDF}
+          onExportCSV={handleExportCSV}
+          onApproveAll={handleApproveAll}
         />
         
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-          {/* Actions Section */}
-          <RankingActions
-            departmentName={departmentName}
-            studentCount={students.length}
-            onGeneratePDF={handleGeneratePDF}
-            onExportCSV={handleExportCSV}
-            onApproveAll={handleApproveAll}
-          />
-          
-          {/* Error Alert */}
-          {error && (
-            <Alert 
-              severity="error" 
-              icon={<ErrorIcon />}
-              action={
-                <Button 
-                  color="inherit" 
-                  size="small" 
-                  onClick={() => window.location.reload()}
-                >
-                  RETRY
-                </Button>
-              }
-            >
-              {error}
-            </Alert>
-          )}
-          
-          {/* Student Rankings Table */}
-          <StudentRankingTable
-            students={students}
-            loading={false} // We handle loading via overlay now
-            departmentName={departmentName}
-            onViewTranscript={handleViewTranscript}
-            onApprove={handleTableApprove}
-            onReject={handleTableReject}
-            getStatusChipColor={getStatusChipColor}
-          />
-        </Box>
+        {/* Error Alert */}
+        {error && (
+          <Alert 
+            severity="error" 
+            icon={<ErrorIcon />}
+            action={
+              <Button 
+                color="inherit" 
+                size="small" 
+                onClick={() => window.location.reload()}
+              >
+                RETRY
+              </Button>
+            }
+          >
+            {error}
+          </Alert>
+        )}
+        
+        {/* Student Rankings Table */}
+        <StudentRankingTable
+          students={students}
+          loading={false} // We handle loading via overlay now
+          departmentName={departmentName}
+          onViewTranscript={handleViewTranscript}
+          onApprove={handleTableApprove}
+          onReject={handleTableReject}
+          getStatusChipColor={getStatusChipColor}
+        />
       </Box>
       
       {/* View Transcript Dialog */}
@@ -367,7 +365,7 @@ const DepartmentRankingPage = () => {
         onClose={() => setSnackbarOpen(false)}
         message={snackbarMessage}
       />
-    </SecretaryDashboardLayout>
+    </Box>
   );
 };
 

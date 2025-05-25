@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink, useNavigate, Outlet } from 'react-router-dom';
 import {
   Box,
   Drawer,
@@ -15,12 +15,11 @@ import {
   ListItemText,
   useTheme,
   useMediaQuery,
-  Avatar,
-  Menu,
-  MenuItem,
   Badge,
   Tooltip,
   CircularProgress,
+  Menu,
+  MenuItem,
   Paper,
   Alert,
   Button
@@ -43,28 +42,25 @@ import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 
 const drawerWidth = 240;
 
-interface SecretaryDashboardLayoutProps {
-  children: React.ReactNode;
-}
-
-const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) => {
+const SecretaryDashboardLayout = () => {
   const theme = useTheme();
   const isMobile = useMediaQuery(theme.breakpoints.down('sm'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const [renderError, setRenderError] = useState<Error | null>(null);
   
-  const { user, logout } = useAuth();
+  const { logout } = useAuth();
   const navigate = useNavigate();
-  const { notifications, unreadCount, loading: notificationsLoading, markAsRead } = useNotifications();
+  
+  // Notifications hook
+  const { notifications, loading: notificationsLoading, markAsRead } = useNotifications();
+  const unreadCount = notifications.filter(n => !n.read).length;
   
   const pathname = window.location.pathname;
-
   const navItems = [
     { path: '/secretary', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/secretary/transcripts', icon: <CloudUploadIcon />, label: 'Transcript Processing' },
-    { path: '/secretary/ranking', icon: <FormatListNumberedIcon />, label: 'Approval & Ranking' },
+    { path: '/secretary/transcript-management', icon: <CloudUploadIcon />, label: 'Transcript Management' },
+    { path: '/secretary/graduation-requests', icon: <FormatListNumberedIcon />, label: 'Graduation Requests' },
     { path: '/secretary/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
 
@@ -76,14 +72,6 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
   const toggleDrawer = () => {
     setDrawerOpen(!drawerOpen);
   };
-
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
-
-  const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
   
   const handleNotificationsOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchor(event.currentTarget);
@@ -94,7 +82,6 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
   };
 
   const handleLogout = () => {
-    handleProfileMenuClose();
     logout();
     navigate('/login');
   };
@@ -102,7 +89,7 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
   // Handle errors in children rendering
   useEffect(() => {
     setRenderError(null);
-  }, [children]);
+  }, []);
 
   const drawer = (
     <>
@@ -255,8 +242,6 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
                   </Badge>
                 </IconButton>
               </Tooltip>
-              
-
             </Box>
             
             {/* Notifications Menu */}
@@ -398,8 +383,6 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
                 </MenuItem>
               </Paper>
             </Menu>
-            
-
           </Toolbar>
         </AppBar>
         
@@ -433,25 +416,8 @@ const SecretaryDashboardLayout = ({ children }: SecretaryDashboardLayoutProps) =
             </Box>
           ) : null}
           
-          {/* Render children in a try-catch block */}
-          {(() => {
-            try {
-              return children;
-            } catch (error) {
-              if (error instanceof Error) {
-                console.error('Error rendering children:', error);
-                setRenderError(error);
-                return (
-                  <Box sx={{ p: 3, textAlign: 'center' }}>
-                    <Typography color="error">
-                      Failed to load content. Please try reloading the page.
-                    </Typography>
-                  </Box>
-                );
-              }
-              return null;
-            }
-          })()}
+          {/* Render outlet content */}
+          <Outlet />
         </Box>
       </Box>
     </EligibilityProvider>

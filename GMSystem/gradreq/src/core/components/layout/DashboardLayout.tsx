@@ -6,7 +6,6 @@ import {
   IconButton,
   Menu,
   MenuItem,
-  Avatar,
   AppBar,
   Toolbar,
   List,
@@ -26,7 +25,6 @@ import {
   School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
   Logout as LogoutIcon,
-  AccountCircle as AccountCircleIcon,
   Dashboard as DashboardIcon,
   Close as CloseIcon,
   Notifications as NotificationsIcon,
@@ -46,10 +44,6 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   
-  // Profile menu state
-  const [profileMenuAnchor, setProfileMenuAnchor] = useState<null | HTMLElement>(null);
-  const profileMenuOpen = Boolean(profileMenuAnchor);
-  
   // Notifications menu state
   const [notificationsAnchor, setNotificationsAnchor] = useState<null | HTMLElement>(null);
   const notificationsOpen = Boolean(notificationsAnchor);
@@ -57,14 +51,6 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
   // Messages menu state
   const [messagesAnchor, setMessagesAnchor] = useState<null | HTMLElement>(null);
   const messagesOpen = Boolean(messagesAnchor);
-  
-  const handleProfileMenuOpen = (event: React.MouseEvent<HTMLElement>) => {
-    setProfileMenuAnchor(event.currentTarget);
-  };
-  
-  const handleProfileMenuClose = () => {
-    setProfileMenuAnchor(null);
-  };
   
   const handleNotificationsOpen = (event: React.MouseEvent<HTMLElement>) => {
     setNotificationsAnchor(event.currentTarget);
@@ -83,7 +69,6 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
   };
   
   const handleLogout = () => {
-    handleProfileMenuClose();
     logout();
   };
   

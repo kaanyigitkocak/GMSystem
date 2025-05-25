@@ -196,56 +196,17 @@ const AppRoutes = () => {
             <ProtectedRoute 
               element={
                 <ErrorBoundary>
-                  <SecretaryDashboardLayout>
-                    <SecretaryDashboard />
-                  </SecretaryDashboardLayout>
+                  <SecretaryDashboardLayout />
                 </ErrorBoundary>
               } 
             />
-          } 
-        />
-        <Route 
-          path="/secretary/transcripts" 
-          element={
-            <ProtectedRoute 
-              element={
-                <ErrorBoundary>
-                  <SecretaryDashboardLayout>
-                    <TranscriptProcessingPage />
-                  </SecretaryDashboardLayout>
-                </ErrorBoundary>
-              } 
-            />
-          } 
-        />
-        <Route 
-          path="/secretary/ranking" 
-          element={
-            <ProtectedRoute 
-              element={
-                <ErrorBoundary>
-                  <SecretaryDashboardLayout>
-                    <SecretaryApprovalRankingPage />
-                  </SecretaryDashboardLayout>
-                </ErrorBoundary>
-              } 
-            />
-          } 
-        />
-        <Route 
-          path="/secretary/notifications" 
-          element={
-            <ProtectedRoute 
-              element={
-                <ErrorBoundary>
-                  <SecretaryDashboardLayout>
-                    <NotificationsPage />
-                  </SecretaryDashboardLayout>
-                </ErrorBoundary>
-              } 
-            />
-          } 
-        />
+          }
+        >
+          <Route index element={<SecretaryDashboard />} />
+          <Route path="transcripts" element={<TranscriptProcessingPage />} />
+          <Route path="ranking" element={<SecretaryApprovalRankingPage />} />
+          <Route path="notifications" element={<NotificationsPage />} />
+        </Route>
         
         {/* Dean's Office Dashboard routes */}
         <Route 

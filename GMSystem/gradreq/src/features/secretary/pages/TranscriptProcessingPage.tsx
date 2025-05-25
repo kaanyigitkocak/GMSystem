@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Box } from '@mui/material';
 
-import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
+
 import { useTranscripts, useTranscriptConflicts } from '../hooks';
 import { validateTranscriptFile, formatTranscriptMetaInfo, parseTranscriptCSV } from '../utils/transcriptUtils';
 import {
@@ -275,47 +275,45 @@ const TranscriptProcessingPage = () => {
   };
 
   return (
-    <SecretaryDashboardLayout>
-      <Box sx={{ width: '100%', maxWidth: '100%' }}>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
-          {/* Upload Section */}
-          <FileUploadSection
-            file={file}
-            processing={processing}
-            successMessage={successMessage}
-            errorMessage={errorMessage}
-            onFileChange={handleFileChange}
-            onUpload={handleUpload}
-            onClearFile={() => setFile(null)}
-            onClearSuccessMessage={() => setSuccessMessage('')}
-            onClearErrorMessage={() => setErrorMessage('')}
+    <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
+        {/* Upload Section */}
+        <FileUploadSection
+          file={file}
+          processing={processing}
+          successMessage={successMessage}
+          errorMessage={errorMessage}
+          onFileChange={handleFileChange}
+          onUpload={handleUpload}
+          onClearFile={() => setFile(null)}
+          onClearSuccessMessage={() => setSuccessMessage('')}
+          onClearErrorMessage={() => setErrorMessage('')}
+        />
+        
+        {/* File Preview */}
+        {file && (
+          <FilePreview 
+            file={file} 
+            onClearFile={() => setFile(null)} 
           />
-          
-          {/* File Preview */}
-          {file && (
-            <FilePreview 
-              file={file} 
-              onClearFile={() => setFile(null)} 
-            />
-          )}
-          
-          {/* Conflicts Section */}
-          <ConflictsSection
-            conflicts={conflicts}
-            onResolveConflict={(conflict) => {
-              setSelectedConflict(conflict);
-              setIsConflictResolutionDialogOpen(true);
-            }}
-          />
-          
-          {/* Transcripts List */}
-          <TranscriptsTable
-            transcripts={transcripts}
-            loading={loading}
-            onDelete={handleDelete}
-            formatTranscriptMetaInfo={formatTranscriptMetaInfo}
-          />
-        </Box>
+        )}
+        
+        {/* Conflicts Section */}
+        <ConflictsSection
+          conflicts={conflicts}
+          onResolveConflict={(conflict) => {
+            setSelectedConflict(conflict);
+            setIsConflictResolutionDialogOpen(true);
+          }}
+        />
+        
+        {/* Transcripts List */}
+        <TranscriptsTable
+          transcripts={transcripts}
+          loading={loading}
+          onDelete={handleDelete}
+          formatTranscriptMetaInfo={formatTranscriptMetaInfo}
+        />
       </Box>
 
       {/* Conflict Resolution Dialog */}
@@ -339,7 +337,7 @@ const TranscriptProcessingPage = () => {
         }}
         onConfirm={handleConfirmTranscriptAnalysis}
       />
-    </SecretaryDashboardLayout>
+    </Box>
   );
 };
 
