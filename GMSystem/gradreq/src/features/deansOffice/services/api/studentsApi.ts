@@ -200,8 +200,13 @@ export const getFacultyStudentsWithEligibilityApi = async (
     console.log(
       `[DeansOfficeAPI] Using cached student list with eligibility for faculty ${finalFacultyId}`
     );
+    console.log(`[DeansOfficeAPI] Sample cached student:`, cached.students[0]);
     return cached.students;
   }
+
+  console.log(
+    `[DeansOfficeAPI] Cache miss or invalid, fetching fresh data for faculty ${finalFacultyId}`
+  );
 
   const { apiBaseUrl, fetchOptions } = getServiceConfig();
   const authToken = localStorage.getItem("authToken");
@@ -291,6 +296,18 @@ export const getFacultyStudentsWithEligibilityApi = async (
             } as Student;
           }
         );
+
+        // Debug: Log first transformed student
+        if (pageIndex === 0 && transformedStudents.length > 0) {
+          console.log(
+            "🔍 [DeansOfficeAPI] Sample transformed student:",
+            transformedStudents[0]
+          );
+          console.log(
+            "🔍 [DeansOfficeAPI] Transformed activeGraduationProcessStatus:",
+            transformedStudents[0].activeGraduationProcessStatus
+          );
+        }
 
         allStudents = allStudents.concat(transformedStudents);
         hasNextPage = paginatedData.hasNextPage;
@@ -383,6 +400,18 @@ export const getFacultyStudentsWithEligibilityApi = async (
     console.log(
       `[DeansOfficeAPI] Processed eligibility for ${studentsWithEligibility.length} students.`
     );
+
+    // Debug: Log final result before caching
+    if (studentsWithEligibility.length > 0) {
+      console.log(
+        "🔍 [DeansOfficeAPI] Sample final student before caching:",
+        studentsWithEligibility[0]
+      );
+      console.log(
+        "🔍 [DeansOfficeAPI] Final activeGraduationProcessStatus:",
+        studentsWithEligibility[0].activeGraduationProcessStatus
+      );
+    }
 
     setCachedData(cacheKey, {
       students: studentsWithEligibility,
@@ -531,10 +560,16 @@ export const clearDeansOfficeEligibilityCache = async (
   // Clear faculty info cache
   localStorage.removeItem(DEANS_OFFICE_FACULTY_INFO_KEY);
 
-  // If a specific faculty was identified, clear that faculty's student cache
+  // Clear all cache keys related to this faculty
   if (actualFacultyId) {
     localStorage.removeItem(
       `${DEANS_OFFICE_STUDENTS_CACHE_KEY_PREFIX}${actualFacultyId}`
+    );
+    localStorage.removeItem(
+      `${DEANS_OFFICE_STUDENTS_CACHE_KEY_PREFIX}${actualFacultyId}_with_eligibility`
+    );
+    localStorage.removeItem(
+      `${DEANS_OFFICE_ELIGIBILITY_CACHE_KEY_PREFIX}${actualFacultyId}`
     );
   } else {
     // Otherwise try to clear all faculty caches by scanning localStorage for matching keys
@@ -542,8 +577,10 @@ export const clearDeansOfficeEligibilityCache = async (
     Object.keys(localStorage).forEach((key) => {
       if (
         key.startsWith(DEANS_OFFICE_STUDENTS_CACHE_KEY_PREFIX) ||
-        key.startsWith(DEANS_OFFICE_ELIGIBILITY_CACHE_KEY_PREFIX)
+        key.startsWith(DEANS_OFFICE_ELIGIBILITY_CACHE_KEY_PREFIX) ||
+        key === DEANS_OFFICE_FACULTY_INFO_KEY
       ) {
+        console.log(`[DeansOfficeAPI] Removing cache key: ${key}`);
         localStorage.removeItem(key);
       }
     });
