@@ -1,5 +1,5 @@
 import { Box, Paper, Typography, CircularProgress, Alert } from '@mui/material';
-import { useAuth } from "../../auth/contexts/AuthContext";
+import { useAuth } from "../../../core/hooks/useAuth";
 import { useStudentAffairsDashboard } from "../hooks";
 import DashboardStats from "../components/DashboardStats";
 import QuickActions from "../components/QuickActions";

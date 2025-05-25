@@ -12,6 +12,7 @@ import { DeansOfficeEligibilityProvider } from '../features/deansOffice/contexts
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
+const NotFoundPage = lazy(() => import('../shared/components/NotFoundPage'));
 
 // Student pages
 const StudentDashboard = lazy(() => import('../features/student/pages/StudentDashboardPage'));
@@ -90,6 +91,13 @@ const DashboardRouter = () => {
   
   console.log('[DashboardRouter] User found:', user);
   console.log('[DashboardRouter] User role:', user.role);
+  console.log('[DashboardRouter] User role type:', typeof user.role);
+  console.log('[DashboardRouter] UserType.ADVISOR:', UserType.ADVISOR);
+  console.log('[DashboardRouter] UserType.STUDENT:', UserType.STUDENT);
+  console.log('[DashboardRouter] UserType.SECRETARY:', UserType.SECRETARY);
+  console.log('[DashboardRouter] Role comparison - ADVISOR:', user.role === UserType.ADVISOR);
+  console.log('[DashboardRouter] Role comparison - STUDENT:', user.role === UserType.STUDENT);
+  console.log('[DashboardRouter] Role comparison - SECRETARY:', user.role === UserType.SECRETARY);
   
   switch (user.role) {
     case UserType.STUDENT:
@@ -113,6 +121,13 @@ const DashboardRouter = () => {
     default:
       console.error('[DashboardRouter] Unknown user role:', user.role);
       console.error('[DashboardRouter] Full user object:', user);
+      console.error('[DashboardRouter] Available UserType values:', Object.values(UserType));
+      console.error('[DashboardRouter] Role is one of UserType values?', Object.values(UserType).includes(user.role as UserType));
+      
+      // For debugging purposes, let's not clear the data immediately in production
+      // Instead, show an error message and redirect to login
+      alert(`Unknown user role: ${user.role}. Please contact support. Full user data: ${JSON.stringify(user)}`);
+      
       // Clear invalid user data and redirect to login
       localStorage.removeItem('authToken');
       localStorage.removeItem('authUser');
@@ -256,8 +271,8 @@ const AppRoutes = () => {
         {/* Redirect root to appropriate dashboard or login */}
         <Route path="/" element={<DashboardRouter />} />
         
-        {/* Catch all route */}
-        <Route path="*" element={<Navigate to="/" replace />} />
+        {/* Catch all route - 404 page */}
+        <Route path="*" element={<NotFoundPage />} />
       </Routes>
     </Suspense>
   );

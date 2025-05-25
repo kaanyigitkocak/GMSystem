@@ -1,5 +1,5 @@
 import { Typography, Paper, Container, Grid as MuiGrid } from '@mui/material';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 
 // Define Grid component with proper typing
 const Grid = MuiGrid as any;

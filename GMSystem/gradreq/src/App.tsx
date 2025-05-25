@@ -2,7 +2,7 @@ import { BrowserRouter } from 'react-router-dom';
 import { ThemeProvider } from '@mui/material/styles';
 import CssBaseline from '@mui/material/CssBaseline';
 import theme from './core/styles/theme';
-// import { AuthProvider } from './features/auth/contexts/AuthContext'; // Replaced with Zustand
+import { AuthProvider } from './features/auth/contexts/AuthContext';
 import { QueryProvider } from './core/providers/QueryProvider';
 import AppRoutes from './routes/AppRoutes';
 
@@ -11,9 +11,11 @@ function App() {
     <BrowserRouter>
       <ThemeProvider theme={theme}>
         <CssBaseline />
-        <QueryProvider>
-          <AppRoutes />
-        </QueryProvider>
+        <AuthProvider>
+          <QueryProvider>
+            <AppRoutes />
+          </QueryProvider>
+        </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>
   );

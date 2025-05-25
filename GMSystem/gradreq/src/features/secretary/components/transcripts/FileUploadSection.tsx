@@ -46,7 +46,7 @@ const FileUploadSection: React.FC<FileUploadSectionProps> = ({
         if students meet all graduation criteria.
       </Typography>
       
-      <Typography variant="body2" sx={{ mb: 2, color: 'text.secondary' }}>
+      <Typography variant="body2" component="div" sx={{ mb: 2, color: 'text.secondary' }}>
         <strong>Supported formats:</strong>
         <ul>
           <li>PDF - İzmir Yüksek Teknoloji Enstitüsü transcript format</li>

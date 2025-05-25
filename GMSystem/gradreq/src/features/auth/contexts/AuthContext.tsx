@@ -72,8 +72,10 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       console.log(`Attempting login for: ${email}`);
       // Use our auth service to log in
       const { user: userData, token: authToken } = await loginUser(email, password);
-      console.log('Login successful, user:', userData);
-      console.log('Generated token:', authToken);
+      console.log('[AuthContext] Login successful, user:', userData);
+      console.log('[AuthContext] User role:', userData.role);
+      console.log('[AuthContext] User role type:', typeof userData.role);
+      console.log('[AuthContext] Generated token:', authToken);
       
       // Store token and user in localStorage for persistence
       localStorage.setItem('authToken', authToken);

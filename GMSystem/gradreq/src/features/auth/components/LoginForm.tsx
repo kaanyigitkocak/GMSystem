@@ -50,26 +50,8 @@ const LoginForm = ({ onForgotPasswordClick, onRegisterClick }: LoginFormProps) =
       // Use the auth context login function which uses the service
       await login(email, password);
       
-      // Redirect based on user role
-      const storedUser = localStorage.getItem('authUser');
-      if (storedUser) {
-        const user = JSON.parse(storedUser);
-        if (user.role === 'student') {
-          navigate('/student');
-        } else if (user.role === 'secretary' || user.role === 'DEPARTMENT_SECRETARY') {
-          navigate('/secretary');
-        } else if (user.role === 'advisor') {
-          navigate('/advisor');
-        } else if (user.role === 'deans_office') {
-          navigate('/deansoffice');
-        } else if (user.role === 'student_affairs') {
-          navigate('/student-affairs');
-        } else if (user.role === 'admin') {
-          navigate('/admin');
-        } else {
-          navigate('/dashboard');
-        }
-      }
+      // Let DashboardRouter handle the role-based redirection
+      navigate('/');
     } catch (err) {
       setError('Login failed. Please check your email and password.');
     } finally {

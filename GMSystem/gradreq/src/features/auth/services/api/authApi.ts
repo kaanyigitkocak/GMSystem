@@ -154,24 +154,50 @@ export const loginUserApi = async (
 
       // Map backend role names to frontend UserType enum values
       const normalizeRole = (backendRole: string): UserType => {
+        console.log("[normalizeRole] Input backend role:", backendRole);
+        console.log("[normalizeRole] Backend role type:", typeof backendRole);
+
+        // Normalize to uppercase for consistent comparison
+        const normalizedBackendRole =
+          backendRole?.toUpperCase?.() || backendRole;
+        console.log(
+          "[normalizeRole] Normalized backend role:",
+          normalizedBackendRole
+        );
+
         // Map backend role names to frontend role names
-        switch (backendRole) {
+        switch (normalizedBackendRole) {
           case "DEPARTMENT_SECRETARY":
+            console.log(
+              "[normalizeRole] Mapping DEPARTMENT_SECRETARY to SECRETARY"
+            );
             return UserType.SECRETARY;
           case "STUDENT":
+            console.log("[normalizeRole] Mapping STUDENT to STUDENT");
             return UserType.STUDENT;
           case "ADVISOR":
+            console.log("[normalizeRole] Mapping ADVISOR to ADVISOR");
             return UserType.ADVISOR;
           case "DEANS_OFFICE_STAFF":
+            console.log(
+              "[normalizeRole] Mapping DEANS_OFFICE_STAFF to DEANS_OFFICE"
+            );
             return UserType.DEANS_OFFICE;
           case "STUDENT_AFFAIRS_STAFF":
+            console.log(
+              "[normalizeRole] Mapping STUDENT_AFFAIRS_STAFF to STUDENT_AFFAIRS"
+            );
             return UserType.STUDENT_AFFAIRS;
           case "SYSTEM_ADMIN":
+            console.log("[normalizeRole] Mapping SYSTEM_ADMIN to ADMIN");
             return UserType.ADMIN;
           default:
             // Don't default to student - throw an error for unknown roles
             console.error(
-              `Unknown role type received from backend: ${backendRole}`
+              `[normalizeRole] Unknown role type received from backend: ${backendRole} (normalized: ${normalizedBackendRole})`
+            );
+            console.error(
+              `[normalizeRole] Available backend role mappings: DEPARTMENT_SECRETARY, STUDENT, ADVISOR, DEANS_OFFICE_STAFF, STUDENT_AFFAIRS_STAFF, SYSTEM_ADMIN`
             );
             throw new ServiceError(
               `Invalid user role received from server: ${backendRole}. Please contact support.`,

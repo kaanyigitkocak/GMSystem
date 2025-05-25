@@ -33,7 +33,7 @@ import {
   CheckCircle as CheckCircleIcon,
 } from '@mui/icons-material';
 import { useNavigate, Link as RouterLink, Outlet } from 'react-router-dom';
-import { useAuth } from '../../auth/contexts/AuthContext';
+import { useAuth } from '../../../core/hooks/useAuth';
 import { useNotifications } from '../hooks/useNotifications';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 
