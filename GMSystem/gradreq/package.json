@@ -11,6 +11,7 @@
     "build:mock": "tsc -b && vite build --mode mock",
     "build:test": "tsc -b && vite build --mode development",
     "build:prod": "tsc -b && vite build --mode production",
+    "build:deploy": "npm run build:prod && cp public/_redirects dist/",
     "lint": "eslint .",
     "preview": "vite preview"
   },

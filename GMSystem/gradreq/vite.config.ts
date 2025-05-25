@@ -4,12 +4,12 @@ import react from "@vitejs/plugin-react";
 // https://vite.dev/config/
 export default defineConfig(({ mode }) => {
   // Load env file based on `mode` in the current working directory.
-  const env = loadEnv(mode, process.cwd(), '');
-  
+  const env = loadEnv(mode, process.cwd(), "");
+
   // Determine proxy target based on environment
   const getProxyTarget = () => {
     const apiSource = env.VITE_API_SOURCE || "mock";
-    
+
     switch (apiSource) {
       case "test":
       case "development":
@@ -23,7 +23,7 @@ export default defineConfig(({ mode }) => {
   };
 
   const proxyTarget = getProxyTarget();
-  
+
   // Build the config object properly
   const serverConfig: any = {
     host: true, // Allow connections from any host
@@ -34,24 +34,31 @@ export default defineConfig(({ mode }) => {
   // Only add proxy if we're not in mock mode
   if (proxyTarget) {
     serverConfig.proxy = {
-      '/api': {
+      "/api": {
         target: proxyTarget,
         changeOrigin: true,
         secure: true,
-        rewrite: (path: string) => path.replace(/^\/api/, '/api'),
-      }
+        rewrite: (path: string) => path.replace(/^\/api/, "/api"),
+      },
     };
   }
 
-  console.log('Vite Config:', {
+  console.log("Vite Config:", {
     mode,
     apiSource: env.VITE_API_SOURCE,
     proxyTarget,
-    hasProxy: !!proxyTarget
+    hasProxy: !!proxyTarget,
   });
 
   return {
     plugins: [react()],
-    server: serverConfig
+    server: serverConfig,
+    build: {
+      rollupOptions: {
+        output: {
+          manualChunks: undefined,
+        },
+      },
+    },
   };
 });
