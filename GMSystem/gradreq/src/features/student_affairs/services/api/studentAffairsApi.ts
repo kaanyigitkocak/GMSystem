@@ -563,7 +563,7 @@ export const getStudentAffairsUserInfoApi = async (): Promise<{
         throw new ServiceError("No authentication token found");
       }
 
-      const response = await fetch(`${apiBaseUrl}/Users/current`, {
+      const response = await fetch(`${apiBaseUrl}/Users/GetFromAuth`, {
         ...fetchOptions,
         method: "GET",
         headers: {
