@@ -37,10 +37,12 @@ import { useState, useCallback, useEffect } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import type { Student, EligibilityCheckType, CourseTaken } from '../../advisor/services/types';
 import { useEligibility } from '../contexts/EligibilityContext';
-import { getStudentCourseTakensApi, clearAllCaches, setSecretaryApprovedApi, setSecretaryRejectedApi } from '../services/api/studentsApi';
+import { getStudentCourseTakensApi, clearAllCaches, setSecretaryApprovedApi } from '../services/api/studentsApi';
 import { getSecretaryData } from '../services/api/studentsApi';
 import TranscriptDialog from '../components/rankings/TranscriptDialog';
 import { LoadingOverlay } from '../../../shared/components';
+import RejectDialog from '../components/RejectDialog';
+import { setDeptSecretaryRejected } from '../services/graduationProcessService';
 
 const Grid = MuiGrid as any;
 
@@ -231,6 +233,8 @@ const ApprovalRankingPage = () => {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [studentToReject, setStudentToReject] = useState<Student | null>(null);
 
   // console.log("[ApprovalRankingPage] performingChecks from context:", performingChecks);
   // console.log("[ApprovalRankingPage] loading from context:", loading);
@@ -324,25 +328,50 @@ const ApprovalRankingPage = () => {
     }
   }, [setSuccessMessage, setErrorMessage, fetchEligibilityData]);
 
-  const handleRejectStudent = useCallback(async (student: Student) => {
+  const handleOpenRejectDialog = useCallback((student: Student) => {
+    setStudentToReject(student);
+    setRejectDialogOpen(true);
+  }, []);
+
+  const handleCloseRejectDialog = useCallback(() => {
+    setStudentToReject(null);
+    setRejectDialogOpen(false);
+  }, []);
+
+  const handleConfirmReject = useCallback(async (rejectionReason: string) => {
+    if (!studentToReject) return;
+
     try {
-      console.log("🔍 [SecretaryApprovalRanking] Rejecting student:", student.id);
+      console.log(`🔍 [SecretaryApprovalRanking] Confirming rejection for student: ${studentToReject.id} with reason: ${rejectionReason}`);
       
-      // Get secretary data
       const secretaryData = await getSecretaryData();
       
-      // Call API to reject student (you might want to add a rejection reason dialog)
-      await setSecretaryRejectedApi([student.id], secretaryData.secretaryId, "Rejected by secretary");
+      const response = await setDeptSecretaryRejected({
+        studentUserIds: [studentToReject.id],
+        deptSecretaryUserId: secretaryData.secretaryId,
+        rejectionReason: rejectionReason,
+      });
+
+      if (response.successfullyProcessedCount > 0) {
+        setSuccessMessage(response.overallMessage || `Student ${studentToReject.name} (${studentToReject.studentNumber}) has been rejected.`);
+      } else if (response.failedToProcessCount > 0 && response.processSummaries.length > 0) {
+        setErrorMessage(response.processSummaries[0].message || `Failed to reject student ${studentToReject.name}.`);
+      } else {
+        setErrorMessage(response.overallMessage || `An unexpected error occurred while rejecting student ${studentToReject.name}.`);
+      }
       
-      setSuccessMessage(`Student ${student.name} (${student.studentNumber}) has been rejected for graduation.`);
-      
-      // Refresh data to show updated status
-      await fetchEligibilityData(true);
-    } catch (err) {
-      setErrorMessage('Failed to reject student. Please try again.');
+      // Refresh data to show updated status - MODIFIED LINE
+      console.log("Attempting to clear caches and refresh eligibility data after rejection attempt.");
+      clearAllCaches(); // Ensure caches are cleared
+      await refreshEligibilityData(true); // Use the more comprehensive refresh function
+
+    } catch (err: any) {
+      setErrorMessage(err.message || 'Failed to reject student. Please try again.');
       console.error('Failed to reject student:', err);
+    } finally {
+      handleCloseRejectDialog();
     }
-  }, [setSuccessMessage, setErrorMessage, fetchEligibilityData]);
+  }, [studentToReject, refreshEligibilityData, handleCloseRejectDialog]); // Ensure refreshEligibilityData is in dependency array
 
   const handleCloseSuccessMessage = useCallback(() => {
     setSuccessMessage('');
@@ -674,7 +703,7 @@ const ApprovalRankingPage = () => {
                               }>
                                 <span>
                                 <IconButton
-                                  onClick={() => handleRejectStudent(student)}
+                                  onClick={() => handleOpenRejectDialog(student)}
                                   disabled={(() => {
                                     const hasResults = student.eligibilityStatus?.hasResults;
                                     const isApproved = isStudentApprovedBySecretary(student);
@@ -803,6 +832,16 @@ const ApprovalRankingPage = () => {
         courses={transcriptData}
         isLoading={transcriptLoading}
       />
+
+      {/* Reject Confirmation Dialog */}
+      {studentToReject && (
+        <RejectDialog
+          open={rejectDialogOpen}
+          onClose={handleCloseRejectDialog}
+          onConfirm={handleConfirmReject}
+          studentName={studentToReject.name}
+        />
+      )}
 
       {/* Success Snackbar */}
       <Snackbar
