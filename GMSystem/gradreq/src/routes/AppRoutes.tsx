@@ -37,7 +37,7 @@ const DeansOfficeNotificationsPage = lazy(() => import('../features/deansOffice/
 
 // Student Affairs pages
 const StudentAffairsDashboard = lazy(() => import('../features/student_affairs/pages/StudentAffairsDashboardPage'));
-const StudentAffairsDashboardLayout = lazy(() => import('../features/student_affairs/layout/StudentAffairsDashboardLayout'));
+const StudentAffairsLayout = lazy(() => import('../features/student_affairs/layout/StudentAffairsLayout'));
 const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
 const UniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/UniversityRankingsPage'));
 const StudentAffairsNotificationsPage = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
@@ -240,77 +240,31 @@ const AppRoutes = () => {
             <ProtectedRoute 
               element={
                 <DeansOfficeEligibilityProvider>
-                  <DeansOfficeDashboard />
+                  <DeansOfficeDashboardLayout />
                 </DeansOfficeEligibilityProvider>
               } 
             />
-          } 
-        />
-        <Route 
-          path="/deansoffice/approval-ranking" 
-          element={
-            <ProtectedRoute 
-              element={
-                <DeansOfficeEligibilityProvider>
-                  <DeansOfficeApprovalRankingPage />
-                </DeansOfficeEligibilityProvider>
-              } 
-            />
-          } 
-        />
-        <Route 
-          path="/deansoffice/notifications" 
-          element={
-            <ProtectedRoute 
-              element={
-                <DeansOfficeEligibilityProvider>
-                  <DeansOfficeDashboardLayout>
-                    <DeansOfficeNotificationsPage />
-                  </DeansOfficeDashboardLayout>
-                </DeansOfficeEligibilityProvider>
-              } 
-            />
-          } 
-        />
+          }
+        >
+          <Route index element={<DeansOfficeDashboard />} />
+          <Route path="approval-ranking" element={<DeansOfficeApprovalRankingPage />} />
+          <Route path="notifications" element={<DeansOfficeNotificationsPage />} />
+        </Route>
 
         {/* Student Affairs Dashboard routes */}
-        <Route path="/student-affairs" element={<ProtectedRoute element={<StudentAffairsDashboard />} />} />
         <Route 
-          path="/student-affairs/upload-graduation-decisions" 
+          path="/student-affairs" 
           element={
             <ProtectedRoute 
-              element={
-                <StudentAffairsDashboardLayout>
-                  <UploadGraduationDecisionsPage />
-                </StudentAffairsDashboardLayout>
-              } 
+              element={<StudentAffairsLayout />} 
             />
-          } 
-        />
-        <Route 
-          path="/student-affairs/university-rankings" 
-          element={
-            <ProtectedRoute 
-              element={
-                <StudentAffairsDashboardLayout>
-                  <UniversityRankingsPage />
-                </StudentAffairsDashboardLayout>
-              } 
-            />
-          } 
-        />
-        <Route 
-          path="/student-affairs/notifications" 
-          element={
-            <ProtectedRoute 
-              element={
-                <StudentAffairsDashboardLayout>
-                  <StudentAffairsNotificationsPage />
-                </StudentAffairsDashboardLayout>
-              } 
-            />
-          } 
-        />
+          }
+        >
+          <Route index element={<StudentAffairsDashboard />} />
+          <Route path="upload-graduation-decisions" element={<UploadGraduationDecisionsPage />} />
+          <Route path="university-rankings" element={<UniversityRankingsPage />} />
+          <Route path="notifications" element={<StudentAffairsNotificationsPage />} />
+        </Route>
         
         {/* Advisor Dashboard routes */}
         <Route path="/advisor" element={<ProtectedRoute element={<AdvisorDashboardLayout />} />}>

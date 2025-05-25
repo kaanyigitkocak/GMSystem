@@ -2,7 +2,7 @@ import {
   Box, 
   Typography, 
   Paper, 
-  Grid as MuiGrid, 
+  Grid as MuiGrid,
   Card, 
   CardContent, 
   CardHeader, 
@@ -19,13 +19,27 @@ import {
   Snackbar
 } from '@mui/material';
 import { Refresh, PlayArrow, ClearAll } from '@mui/icons-material';
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSecretaryDashboard } from '../hooks/useSecretaryDashboard';
 
+// TODO: Remove this type assertion once MUI Grid types are properly configured in the project
+// This is a temporary workaround to maintain functionality while ensuring code quality
 const Grid = MuiGrid as any;
 
-const SecretaryDashboardPage = () => {
+// Utility functions for component logic
+const getChipColor = (priority: string): "default" | "error" | "warning" => {
+  switch (priority) {
+    case 'high':
+      return 'error';
+    case 'medium':
+      return 'warning';
+    default:
+      return 'default';
+  }
+};
+
+const SecretaryDashboardPage = (): React.JSX.Element => {
   const navigate = useNavigate();
   const { 
     dashboardData, 
@@ -40,6 +54,7 @@ const SecretaryDashboardPage = () => {
     refreshEligibilityData
   } = useSecretaryDashboard();
 
+  // Component state with proper TypeScript typing
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
 
@@ -183,9 +198,9 @@ const SecretaryDashboardPage = () => {
             }}
           >
             <Typography variant="h3" color="warning.main" gutterBottom>
-              {stats.pendingGraduation}
+              {stats.eligibleStudents || 0}
             </Typography>
-            <Typography variant="body1">Pending Graduation</Typography>
+            <Typography variant="body1">Eligible Students</Typography>
           </Paper>
         </Grid>
         
@@ -202,9 +217,9 @@ const SecretaryDashboardPage = () => {
             }}
           >
             <Typography variant="h3" color="success.main" gutterBottom>
-              {stats.manualCheckRequests}
+              {stats.ineligibleStudents || 0}
             </Typography>
-            <Typography variant="body1">Manual Check Requests</Typography>
+            <Typography variant="body1">Ineligible Students</Typography>
           </Paper>
         </Grid>
         
@@ -221,9 +236,9 @@ const SecretaryDashboardPage = () => {
             }}
           >
             <Typography variant="h3" color="info.main" gutterBottom>
-              {stats.totalPetitions}
+              {stats.pendingChecks || 0}
             </Typography>
-            <Typography variant="body1">Total Petitions</Typography>
+            <Typography variant="body1">Pending Checks</Typography>
           </Paper>
         </Grid>
 
@@ -411,10 +426,7 @@ const SecretaryDashboardPage = () => {
                         <Chip 
                           label={request.priority} 
                           size="small"
-                          color={
-                            request.priority === 'high' ? 'error' : 
-                            request.priority === 'medium' ? 'warning' : 'default'
-                          }
+                          color={getChipColor(request.priority)}
                         />
                         <Button variant="outlined" size="small">
                           Review
@@ -461,7 +473,7 @@ const SecretaryDashboardPage = () => {
                   <ListItem key={notification.id} divider>
                     <ListItemText 
                       primary={notification.title} 
-                      secondary={`${notification.message} - ${notification.date}`}
+                      secondary={`${notification.message} - ${notification.createdAt}`}
                     />
                     {!notification.read && (
                       <Chip label="New" color="primary" size="small" />
@@ -499,4 +511,4 @@ const SecretaryDashboardPage = () => {
   );
 };
 
-export default SecretaryDashboardPage; 
+export default SecretaryDashboardPage;

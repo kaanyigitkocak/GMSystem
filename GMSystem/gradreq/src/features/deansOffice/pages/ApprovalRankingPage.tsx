@@ -36,8 +36,8 @@ import {
 import { useState, useCallback } from 'react';
 import type { Student, EligibilityCheckType, CourseTaken } from '../services/types';
 import { useDeansOfficeEligibility } from '../contexts/DeansOfficeEligibilityContext';
-import { getStudentCourseTakensApi } from '../services/api/studentsApi';
-import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
+// Import the new API function
+import { getStudentTranscriptByIdApi } from '../services/api/studentsApi';
 
 const Grid = MuiGrid as any;
 
@@ -142,8 +142,32 @@ const DeansOfficeApprovalRankingPage = () => {
       setTranscriptLoading(true);
       setSelectedStudent(student);
       console.log("🔍 [DeansOfficeApprovalRanking] Fetching transcript for student:", student.id);
-      const courses = await getStudentCourseTakensApi(student.id);
-      setTranscriptData(courses);
+      // Use the new API function
+      const response = await getStudentTranscriptByIdApi(student.id);
+      
+      // Handle paginated response structure
+      let courses: CourseTaken[] = [];
+      if (response && typeof response === 'object' && 'items' in response) {
+        // API returned a paginated response with items array
+        courses = (response as any).items || [];
+        console.log(`🔍 [DeansOfficeApprovalRanking] Paginated response - Total count: ${(response as any).count}, Items in current page: ${courses.length}`);
+      } else if (Array.isArray(response)) {
+        // API returned a direct array
+        courses = response;
+      } else {
+        console.warn(
+          `[DeansOfficeApprovalRanking] Unexpected response format:`, 
+          response, 
+          `for student ${student.id}. Defaulting to empty array.`
+        );
+        courses = [];
+      }
+
+      // De-duplicate courses based on course.id
+      const uniqueCourses = Array.from(new Map(courses.map(course => [course.id, course])).values());
+      console.log(`🔍 [DeansOfficeApprovalRanking] Original course count from new API: ${courses.length}, Unique course count: ${uniqueCourses.length}`);
+
+      setTranscriptData(uniqueCourses);
       setTranscriptDialogOpen(true);
     } catch (err) {
       console.error('Failed to fetch transcript:', err);
@@ -196,18 +220,15 @@ const DeansOfficeApprovalRankingPage = () => {
   if (loading && !eligibilityData) {
     console.log("[DeansOfficeApprovalRankingPage] Rendering: Initial Loading Screen");
     return (
-      <DeansOfficeDashboardLayout>
-        <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
-          <CircularProgress size={60} />
-          <Typography sx={{ ml: 2 }}>Loading faculty eligibility data...</Typography>
-        </Box>
-      </DeansOfficeDashboardLayout>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 'calc(100vh - 200px)' }}>
+        <CircularProgress size={60} />
+        <Typography sx={{ ml: 2 }}>Loading faculty eligibility data...</Typography>
+      </Box>
     );
   }
 
   return (
-    <DeansOfficeDashboardLayout>
-      <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3 }}>
         <Box sx={{ mb: 4 }}>
           <Typography variant="h4" gutterBottom>
             Faculty Approval & Ranking
@@ -657,9 +678,8 @@ const DeansOfficeApprovalRankingPage = () => {
             {errorMessage}
           </Alert>
         </Snackbar>
-      </Box>
-    </DeansOfficeDashboardLayout>
+    </Box>
   );
 };
 
-export default DeansOfficeApprovalRankingPage; 
+export default DeansOfficeApprovalRankingPage;

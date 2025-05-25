@@ -653,6 +653,289 @@ export const getStudentCourseTakensApi = async (
   }
 };
 
-// Dekanlık için diğer öğrenci ile ilgili API fonksiyonları buraya eklenebilir
-// Örneğin, belirli bir öğrencinin detaylarını getirme, transkriptini getirme vb.
-// export const getDeansOfficeStudentDetailsApi = async (studentId: string): Promise<Student> => { ... };
+// New function to get student transcript by student ID
+export const getStudentTranscriptByIdApi = async (
+  studentId: string
+): Promise<CourseTaken[]> => {
+  const config = getServiceConfig(); // Ensure this returns the correct type with apiBaseUrl
+  if (!config || !config.apiBaseUrl) {
+    throw new ServiceError(
+      "Service configuration is not available. User might not be logged in or endpoint is missing.",
+      500 // Using a generic server error status code
+    );
+  }
+
+  const { apiBaseUrl } = config; // Use apiBaseUrl from the config
+  const token = localStorage.getItem("authToken"); // Corrected token key
+
+  if (!token) {
+    throw new ServiceError("Authentication token not found.", 401); // Unauthorized status
+  }
+
+  try {
+    // Add pagination parameters to get all courses
+    const maxPageSize = 2147483647; // Integer.MAX_VALUE
+    const response = await fetch(
+      `${apiBaseUrl}/CourseTakens/by-student/${studentId}?PageIndex=0&PageSize=${maxPageSize}`, // Added pagination parameters
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+
+    // The API returns a paginated response, so we need to extract the items
+    const data = await handleApiResponse<{
+      items: CourseTaken[];
+      index: number;
+      size: number;
+      count: number;
+      pages: number;
+      hasPrevious: boolean;
+      hasNext: boolean;
+    }>(response);
+
+    // Return the items array from the paginated response
+    return data?.items || [];
+  } catch (error) {
+    console.error(
+      `[DeansOfficeAPI] Error fetching transcript for student ${studentId}:`,
+      error
+    );
+    if (error instanceof ServiceError) {
+      throw error; // Re-throw if it's already a ServiceError (e.g., from handleApiResponse)
+    }
+    // For other types of errors (e.g., network issues before fetch completes)
+    throw new ServiceError(
+      `Failed to fetch transcript for student ${studentId}.`,
+      503 // Service Unavailable or a generic network error code
+    );
+  }
+};
+
+// Get all students for the dean\\'s faculty
+export const getStudentsForDeanFaculty = async (
+  facultyId?: string // Optional parameter - if not provided, we'll get it from auth
+): Promise<Student[]> => {
+  let actualFacultyId = facultyId;
+
+  if (!actualFacultyId) {
+    // If facultyId is not explicitly provided, get it from the authenticated user
+    console.log(
+      `[DeansOfficeAPI] No faculty ID provided, getting from authenticated user...`
+    );
+    const facultyInfo = await getDeanFacultyInfo();
+    actualFacultyId = facultyInfo.facultyId;
+    console.log(
+      `[DeansOfficeAPI] Using faculty ID from auth: ${actualFacultyId}`
+    );
+  }
+
+  if (!actualFacultyId) {
+    throw new ServiceError(
+      "Faculty ID is required and could not be determined from user authentication."
+    );
+  }
+
+  console.log(
+    `[DeansOfficeAPI] Fetching students with eligibility for faculty: ${actualFacultyId}`
+  );
+
+  const studentCacheKey = `${DEANS_OFFICE_STUDENTS_CACHE_KEY_PREFIX}${actualFacultyId}`;
+  const cachedStudentsData = getCachedData<CachedStudentsData>(studentCacheKey);
+  if (cachedStudentsData && isCacheValid(cachedStudentsData.timestamp)) {
+    console.log(
+      `[DeansOfficeAPI] Returning cached student list for faculty ${actualFacultyId}`
+    );
+    return cachedStudentsData.students;
+  }
+
+  const { apiBaseUrl, fetchOptions } = getServiceConfig();
+  const authToken = localStorage.getItem("authToken");
+
+  if (!authToken) {
+    throw new ServiceError("No authentication token found");
+  }
+
+  try {
+    const maxPageSize = 2147483647; // Integer.MAX_VALUE for "get all"
+    const studentsResponse = await fetch(
+      `${apiBaseUrl}/Students?facultyId=${actualFacultyId}&PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`,
+      {
+        ...fetchOptions,
+        method: "GET",
+        headers: {
+          ...fetchOptions.headers,
+          Authorization: `Bearer ${authToken}`,
+        },
+      }
+    );
+
+    const studentsData = await handleApiResponse<{ items: any[] }>(
+      studentsResponse
+    );
+    const studentListFromApi = studentsData.items || [];
+
+    if (!Array.isArray(studentListFromApi)) {
+      console.error(
+        "[DeansOfficeAPI] Student list from API is not an array:",
+        studentListFromApi
+      );
+      throw new ServiceError("Received invalid student list from server.");
+    }
+
+    console.log(
+      `[DeansOfficeAPI] Retrieved ${studentListFromApi.length} students for faculty ${actualFacultyId}`
+    );
+
+    const studentsWithEligibility: Student[] = await Promise.all(
+      studentListFromApi.map(async (studentDto: any) => {
+        try {
+          // Get eligibility check results for this student
+          const eligibilityChecks =
+            await getStudentEligibilityResultsForDeanApi(
+              studentDto.id.toString(),
+              actualFacultyId,
+              authToken,
+              apiBaseUrl,
+              fetchOptions
+            );
+
+          // Group and get latest check result for each check type
+          // This handles cases where there are multiple checks of the same type with different dates
+          const latestResults = new Map<number, EligibilityCheckResult>();
+          eligibilityChecks.forEach((result) => {
+            const existing = latestResults.get(result.checkType);
+            if (
+              !existing ||
+              new Date(result.checkDate) > new Date(existing.checkDate)
+            ) {
+              latestResults.set(result.checkType, result);
+            }
+          });
+          const latestResultsArray = Array.from(latestResults.values());
+
+          // Determine overall eligibility status
+          const hasResults = latestResultsArray.length > 0;
+          const isEligible =
+            hasResults && latestResultsArray.every((check) => check.isMet);
+
+          // Get the date of the most recent check
+          const lastCheckDate = hasResults
+            ? latestResultsArray.reduce((latest, current) =>
+                new Date(current.checkDate) > new Date(latest.checkDate)
+                  ? current
+                  : latest
+              ).checkDate
+            : undefined;
+
+          // Construct eligibility status object
+          const eligibilityStatus: StudentEligibilityStatus = {
+            studentId: studentDto.id.toString(),
+            hasResults,
+            isEligible,
+            eligibilityChecks: latestResultsArray,
+            lastCheckDate,
+          };
+
+          // Map and return the complete student object with eligibility
+          return {
+            id: studentDto.id.toString(),
+            name:
+              `${studentDto.firstName || ""} ${
+                studentDto.lastName || ""
+              }`.trim() ||
+              studentDto.name ||
+              "N/A",
+            department:
+              studentDto.department?.name || studentDto.departmentName || "N/A",
+            gpa:
+              studentDto.currentGpa?.toFixed(2) ||
+              studentDto.gpa?.toString() ||
+              "N/A",
+            status: mapStudentStatus(
+              studentDto.graduationStatus || studentDto.status
+            ),
+            email: studentDto.email,
+            studentNumber: studentDto.studentNo || studentDto.studentNumber,
+            ectsCompleted:
+              studentDto.currentEctsCompleted || studentDto.ectsCompleted,
+            enrollDate: studentDto.enrollDate,
+            graduationStatus: studentDto.graduationStatus,
+            eligibilityStatus,
+          };
+        } catch (error: any) {
+          console.error(
+            `[DeansOfficeAPI] Failed to fetch or process eligibility for student ${studentDto.id}:`,
+            error.message
+          );
+          // Return student without eligibility data if there was an error
+          return {
+            id: studentDto.id.toString(),
+            name:
+              `${studentDto.firstName || ""} ${
+                studentDto.lastName || ""
+              }`.trim() ||
+              studentDto.name ||
+              "N/A",
+            department:
+              studentDto.department?.name || studentDto.departmentName || "N/A",
+            gpa:
+              studentDto.currentGpa?.toFixed(2) ||
+              studentDto.gpa?.toString() ||
+              "N/A",
+            status: mapStudentStatus(
+              studentDto.graduationStatus || studentDto.status
+            ),
+            email: studentDto.email,
+            studentNumber: studentDto.studentNo || studentDto.studentNumber,
+            ectsCompleted:
+              studentDto.currentEctsCompleted || studentDto.ectsCompleted,
+            enrollDate: studentDto.enrollDate,
+            graduationStatus: studentDto.graduationStatus,
+            eligibilityStatus: {
+              studentId: studentDto.id.toString(),
+              hasResults: false,
+              isEligible: false,
+              eligibilityChecks: [],
+            },
+          };
+        }
+      })
+    );
+
+    // Cache the results
+    setCachedData(studentCacheKey, {
+      students: studentsWithEligibility,
+      timestamp: Date.now(),
+    });
+
+    // Log some statistics about eligibility
+    const eligibleCount = studentsWithEligibility.filter(
+      (s) => s.eligibilityStatus?.isEligible
+    ).length;
+    const notEligibleCount = studentsWithEligibility.filter(
+      (s) => s.eligibilityStatus?.hasResults && !s.eligibilityStatus.isEligible
+    ).length;
+    const pendingCount = studentsWithEligibility.filter(
+      (s) => !s.eligibilityStatus?.hasResults
+    ).length;
+
+    console.log(
+      `[DeansOfficeAPI] Faculty ${actualFacultyId} eligibility summary: ${studentsWithEligibility.length} total, ${eligibleCount} eligible, ${notEligibleCount} not eligible, ${pendingCount} pending`
+    );
+
+    return studentsWithEligibility;
+  } catch (error: any) {
+    console.error(
+      `[DeansOfficeAPI] Failed to fetch faculty students or their eligibility:`,
+      error.message
+    );
+    if (error instanceof ServiceError) throw error;
+    throw new ServiceError(
+      `Failed to fetch data for faculty ${actualFacultyId}: ${error.message}`
+    );
+  }
+};

@@ -29,11 +29,12 @@ export const getNotificationsApi = async (): Promise<Notification[]> => {
     // First get current user ID
     const currentUser = await getUserFromAuthApi();
 
-    // Build query parameters
+    // Build query parameters to match the API format from the curl request
     const params = new URLSearchParams({
-      "PageRequest.PageIndex": "0",
-      "PageRequest.PageSize": "100",
+      PageIndex: "0",
+      PageSize: "10",
       recipientUserId: currentUser.id,
+      isRead: "false",
     });
 
     const response = await fetch(
@@ -82,17 +83,36 @@ export const markNotificationAsReadApi = async (id: string): Promise<void> => {
       throw new ServiceError("No authentication token found");
     }
 
-    const response = await fetch(
-      `${apiBaseUrl}/Notifications/${id}/mark-read`,
-      {
-        ...fetchOptions,
-        method: "PUT",
-        headers: {
-          ...fetchOptions.headers,
-          Authorization: `Bearer ${authToken}`,
-        },
-      }
-    );
+    // First get the notification to preserve other fields
+    const getResponse = await fetch(`${apiBaseUrl}/Notifications/${id}`, {
+      ...fetchOptions,
+      method: "GET",
+      headers: {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    const notification = await handleApiResponse<any>(getResponse);
+
+    // Update the notification with isRead = true
+    const updateCommand = {
+      id: id,
+      title: notification.title,
+      message: notification.message,
+      recipientUserId: notification.recipientUserId,
+      isRead: true,
+    };
+
+    const response = await fetch(`${apiBaseUrl}/Notifications`, {
+      ...fetchOptions,
+      method: "PUT",
+      headers: {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(updateCommand),
+    });
 
     await handleApiResponse<any>(response);
   } catch (error) {

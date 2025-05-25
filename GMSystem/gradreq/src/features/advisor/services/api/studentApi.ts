@@ -10,6 +10,7 @@ import {
   ServiceError,
 } from "../../../common/utils/serviceUtils";
 import { getUserFromAuthApi } from "./usersApi";
+import { getEnvironmentConfig } from "../../../../core/utils/environment"; // Corrected import path and function name
 
 // Get service configuration
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
@@ -257,7 +258,8 @@ export const getStudentCourseTakensApi = async (
       throw new ServiceError("No authentication token found");
     }
 
-    const url = `${apiBaseUrl}/CourseTakens/by-student/${studentId}`;
+    const maxPageSize = 10000; // Use a reasonable large number instead of MAX_SAFE_INTEGER
+    const url = `${apiBaseUrl}/CourseTakens/by-student/${studentId}?PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`;
     console.log("🔍 [CourseApiDebug] Request URL:", url);
 
     const response = await fetch(url, {
@@ -639,5 +641,49 @@ export const performEligibilityChecksForAllStudentsApi = async (
     throw new ServiceError(
       "Failed to perform system eligibility checks for all students"
     );
+  }
+};
+
+// API function to get courses taken by a specific student
+export const getStudentCourses = async (
+  studentId: string
+): Promise<CourseTaken[]> => {
+  const authToken = localStorage.getItem("authToken");
+  if (!authToken) {
+    console.error("Authentication token not found. Please login.");
+    return []; 
+  }
+
+  const maxPageSize = 10000; // Use a reasonable large number instead of MAX_SAFE_INTEGER
+  const config = getEnvironmentConfig(); // Get environment configuration
+  const baseUrl = config.apiBaseUrl; // Use apiBaseUrl from the config
+  const fetchURL = `${baseUrl}/CourseTakens/by-student/${studentId}?PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`;
+
+  const fetchOptions = {
+    method: "GET",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${authToken}`,
+    },
+  };
+
+  try {
+    const response = await fetch(fetchURL, fetchOptions);
+    if (!response.ok) {
+      const errorBody = await response.text();
+      console.error(
+        `Error fetching student courses: ${response.status} ${response.statusText}`,
+        errorBody
+      );
+      throw new Error(
+        `Failed to fetch student courses: ${response.status} ${response.statusText}`
+      );
+    }
+    const data = await response.json();
+    const courses: CourseTaken[] = data.items || [];
+    return courses;
+  } catch (error) {
+    console.error("Error in getStudentCourses:", error);
+    throw error; 
   }
 };

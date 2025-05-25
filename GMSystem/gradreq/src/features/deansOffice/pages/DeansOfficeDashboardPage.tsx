@@ -12,15 +12,13 @@ import {
 } from '@mui/material';
 import { Refresh, PlayArrow, ClearAll, BarChart, People, AssignmentTurnedIn, HourglassEmpty } from '@mui/icons-material';
 import { useState, useEffect, useCallback } from 'react';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { useAuth } from '../../auth/contexts/AuthContext';
 import { useDeansOfficeEligibility } from '../contexts/DeansOfficeEligibilityContext';
-import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
 
 const Grid = MuiGrid as any; // MuiGrid type issue workaround
 
 const DeansOfficeDashboardPage = () => {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const {
     eligibilityData,
@@ -34,7 +32,6 @@ const DeansOfficeDashboardPage = () => {
 
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
-  const [facultyId, setFacultyId] = useState<string | null>(null);
 
   useEffect(() => {
     // Yeni API artık facultyId'yi otomatik olarak GetFromAuth'dan alıyor
@@ -99,14 +96,14 @@ const DeansOfficeDashboardPage = () => {
   const handleCloseErrorMessage = () => setErrorMessage('');
 
   return (
-    <DeansOfficeDashboardLayout>
+    <>
       <Box sx={{ mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Dean's Office Dashboard
-        </Typography>
-        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
-          {`Welcome, Dean ${user?.name || user?.email || 'User'}. Manage student graduation eligibility for your faculty.`}
-        </Typography>
+      <Typography variant="h4" gutterBottom>
+        Dean's Office Dashboard
+      </Typography>
+      <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+        {`Welcome, Dean ${user?.name || user?.email || 'User'}. Manage student graduation eligibility for your faculty.`}
+      </Typography>
         
         {eligibilityLoading && (
           <Alert severity="info" sx={{ mb: 2 }}>
@@ -281,7 +278,7 @@ const DeansOfficeDashboardPage = () => {
           {errorMessage}
         </Alert>
       </Snackbar>
-    </DeansOfficeDashboardLayout>
+    </>
   );
 };
 

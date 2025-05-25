@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Paper,
@@ -12,7 +12,9 @@ import {
   Tabs,
   Tab,
   Chip,
-  Button
+  Button,
+  Alert,
+  CircularProgress
 } from '@mui/material';
 import {
   Notifications as NotificationsIcon,
@@ -22,51 +24,48 @@ import {
   Delete as DeleteIcon,
   MarkEmailRead as MarkEmailReadIcon
 } from '@mui/icons-material';
-import DeansOfficeDashboardLayout from '../layout/DeansOfficeDashboardLayout';
-import { getNotifications, markNotificationAsRead } from '../../../shared/services/notificationsService';
-import type { Notification } from '../../../shared/components/NotificationsPanel';
+import { useNotifications } from '../hooks/useNotifications';
+import type { Notification } from '../services/types';
 
 const NotificationsPage = () => {
-  const [notifications, setNotifications] = useState<Notification[]>([]);
+  const {
+    notifications,
+    loading,
+    error,
+    unreadCount,
+    markAsRead,
+    markAllAsRead,
+    deleteNotification,
+  } = useNotifications();
+  
   const [activeTab, setActiveTab] = useState(0);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const fetchNotifications = async () => {
-      try {
-        const data = await getNotifications('deans_office');
-        setNotifications(data);
-      } catch (error) {
-        console.error('Error fetching notifications:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-    fetchNotifications();
-  }, []);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {
     setActiveTab(newValue);
   };
 
-  const handleMarkAsRead = (id: string) => {
-    setNotifications(
-      notifications.map((notification) =>
-        notification.id === id ? { ...notification, read: true } : notification
-      )
-    );
-    markNotificationAsRead('deans_office', id);
+  const handleMarkAsRead = async (id: string) => {
+    try {
+      await markAsRead(id);
+    } catch (error) {
+      console.error('Failed to mark notification as read:', error);
+    }
   };
 
-  const handleMarkAllAsRead = () => {
-    setNotifications(
-      notifications.map((notification) => ({ ...notification, read: true }))
-    );
-    notifications.forEach(n => markNotificationAsRead('deans_office', n.id));
+  const handleMarkAllAsRead = async () => {
+    try {
+      await markAllAsRead();
+    } catch (error) {
+      console.error('Failed to mark all notifications as read:', error);
+    }
   };
 
-  const handleDelete = (id: string) => {
-    setNotifications(notifications.filter((notification) => notification.id !== id));
+  const handleDelete = async (id: string) => {
+    try {
+      await deleteNotification(id);
+    } catch (error) {
+      console.error('Failed to delete notification:', error);
+    }
   };
 
   const getNotificationIcon = (type: Notification['type']) => {
@@ -81,17 +80,26 @@ const NotificationsPage = () => {
         return <NotificationsIcon color="info" />;
     }
   };
-
   const filteredNotifications =
     activeTab === 0
       ? notifications
       : activeTab === 1
         ? notifications.filter(n => !n.read)
         : notifications.filter(n => n.read);
-
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 200 }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
   return (
-    <DeansOfficeDashboardLayout>
-      <Box sx={{ mb: 4 }}>
+    <Box sx={{ mb: 4 }}>
+        {error && (
+          <Alert severity="error" sx={{ mb: 3 }}>
+            {error}
+          </Alert>
+        )}
         <Paper sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
             <Typography variant="h5" fontWeight="bold">
@@ -101,7 +109,7 @@ const NotificationsPage = () => {
               <Button
                 startIcon={<MarkEmailReadIcon />}
                 onClick={handleMarkAllAsRead}
-                disabled={!notifications.some(n => !n.read)}
+                disabled={unreadCount === 0}
                 size="small"
               >
                 Mark all as read
@@ -115,11 +123,11 @@ const NotificationsPage = () => {
               label={
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <span>Unread</span>
-                  {notifications.filter(n => !n.read).length > 0 && (
+                  {unreadCount > 0 && (
                     <Chip
                       size="small"
                       color="primary"
-                      label={notifications.filter(n => !n.read).length}
+                      label={unreadCount}
                       sx={{ ml: 1, height: 20, fontSize: '0.75rem' }}
                     />
                   )}
@@ -184,8 +192,7 @@ const NotificationsPage = () => {
                           </Typography>
                           <Typography variant="caption" component="div" sx={{ color: 'text.disabled' }}>
                             {new Date(notification.date).toLocaleString()}
-                          </Typography>
-                        </React.Fragment>
+                          </Typography>                        </React.Fragment>
                       }
                     />
                   </ListItem>
@@ -193,10 +200,8 @@ const NotificationsPage = () => {
                 </React.Fragment>
               ))
             )}
-          </List>
-        </Paper>
+          </List>        </Paper>
       </Box>
-    </DeansOfficeDashboardLayout>
   );
 };
 
