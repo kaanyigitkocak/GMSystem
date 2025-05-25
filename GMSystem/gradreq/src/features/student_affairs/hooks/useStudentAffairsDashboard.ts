@@ -1,10 +1,8 @@
 import { useState, useEffect } from "react";
-import {
-  getStudents,
-  getNotifications,
-  getGraduationDecisions,
-} from "../services";
+import { useStudentAffairs } from "../contexts/StudentAffairsContext";
+import { getNotifications, getGraduationDecisions } from "../services";
 import type { Notification } from "../types";
+import type { StudentAffairsDashboardStats } from "../services/studentsApi";
 
 interface GraduationDecision {
   id: string;
@@ -22,16 +20,9 @@ interface GraduationDecision {
   }>;
 }
 
-interface DashboardStats {
-  totalStudents: number;
-  eligibleStudents: number;
-  pendingStudents: number;
-  notEligibleStudents: number;
-}
-
 interface UseDashboardReturn {
   loading: boolean;
-  stats: DashboardStats;
+  stats: StudentAffairsDashboardStats | null;
   recentNotifications: Notification[];
   recentDecisions: GraduationDecision[];
   error: string | null;
@@ -39,13 +30,13 @@ interface UseDashboardReturn {
 }
 
 export const useStudentAffairsDashboard = (): UseDashboardReturn => {
+  const {
+    dashboardStats,
+    loading: studentsLoading,
+    error: studentsError,
+    fetchStudentsData,
+  } = useStudentAffairs();
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats>({
-    totalStudents: 0,
-    eligibleStudents: 0,
-    pendingStudents: 0,
-    notEligibleStudents: 0,
-  });
   const [recentNotifications, setRecentNotifications] = useState<
     Notification[]
   >([]);
@@ -59,34 +50,28 @@ export const useStudentAffairsDashboard = (): UseDashboardReturn => {
       setLoading(true);
       setError(null);
 
-      // Fetch students data
-      const studentsData = await getStudents();
-
-      // Calculate statistics
-      const eligible = studentsData.filter(
-        (s) => s.graduationStatus === "Eligible"
-      ).length;
-      const pending = studentsData.filter(
-        (s) => s.graduationStatus === "Pending"
-      ).length;
-      const notEligible = studentsData.filter(
-        (s) => s.graduationStatus === "Not Eligible"
-      ).length;
-
-      setStats({
-        totalStudents: studentsData.length,
-        eligibleStudents: eligible,
-        pendingStudents: pending,
-        notEligibleStudents: notEligible,
-      });
+      // Fetch students data from context if not already loaded
+      if (!dashboardStats && !studentsLoading) {
+        await fetchStudentsData();
+      }
 
       // Fetch notifications
-      const notificationsData = await getNotifications();
-      setRecentNotifications(notificationsData.slice(0, 5));
+      try {
+        const notificationsData = await getNotifications();
+        setRecentNotifications(notificationsData.slice(0, 5));
+      } catch (err) {
+        console.warn("Failed to fetch notifications:", err);
+        setRecentNotifications([]);
+      }
 
       // Fetch graduation decisions
-      const decisionsData = await getGraduationDecisions();
-      setRecentDecisions(decisionsData.slice(0, 3));
+      try {
+        const decisionsData = await getGraduationDecisions();
+        setRecentDecisions(decisionsData.slice(0, 3));
+      } catch (err) {
+        console.warn("Failed to fetch graduation decisions:", err);
+        setRecentDecisions([]);
+      }
     } catch (err) {
       console.error("Error fetching dashboard data:", err);
       setError("Failed to load dashboard data. Please try again.");
@@ -97,14 +82,18 @@ export const useStudentAffairsDashboard = (): UseDashboardReturn => {
 
   useEffect(() => {
     fetchDashboardData();
-  }, []);
+  }, [dashboardStats]);
+
+  // Combine loading states and errors
+  const combinedLoading = loading || studentsLoading;
+  const combinedError = error || studentsError;
 
   return {
-    loading,
-    stats,
+    loading: combinedLoading,
+    stats: dashboardStats,
     recentNotifications,
     recentDecisions,
-    error,
+    error: combinedError,
     refetch: fetchDashboardData,
   };
 };

@@ -1,6 +1,6 @@
 import { Box, Typography, Alert, AlertTitle } from '@mui/material';
 import { useState } from 'react';
-import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
+// Layout is handled by router, no need to import
 import { useUniversityRankings } from '../hooks';
 import RankingsSearchAndActions from '../components/RankingsSearchAndActions';
 import RankingsTable from '../components/RankingsTable';
@@ -85,7 +85,7 @@ const UniversityRankingsPage = () => {
   };
 
   return (
-    <StudentAffairsDashboardLayout>
+    <>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
           University Rankings
@@ -168,7 +168,7 @@ const UniversityRankingsPage = () => {
         transcript={selectedTranscript}
         onClose={handleCloseTranscriptDialog}
       />
-    </StudentAffairsDashboardLayout>
+    </>
   );
 };
 

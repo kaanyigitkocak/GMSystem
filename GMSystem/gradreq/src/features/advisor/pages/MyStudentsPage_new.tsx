@@ -16,11 +16,7 @@ import {
   CircularProgress
 } from '@mui/material';
 import { LoadingOverlay } from '../../../shared/components';
-import { 
-  getStudents,
-  getStudentsWithEligibilityStatus,
-  performSystemEligibilityChecks,
-} from '../services';
+import { getStudentsWithEligibilityStatusApi, performSystemEligibilityChecksApi } from '../services/api/studentApi';
 import type { Student } from '../services/types';
 
 interface StudentWithEligibility extends Student {
@@ -47,15 +43,13 @@ const MyStudentsPage = () => {
       try {
         setLoading(true);
         setError(null);
-        console.log('🔍 Loading students directly from API...');
-        
-        // Try direct API call first
-        const studentsData = await getStudents();
-        console.log('✅ Students loaded directly from API:', studentsData);
+        console.log('🔍 Loading students with eligibility status...');
+        const studentsData = await getStudentsWithEligibilityStatusApi();
+        console.log('✅ Students loaded:', studentsData);
         
         setStudents(studentsData.map(student => ({
           ...student,
-          hasManualRequest: false
+          hasManualRequest: false // This could be enhanced based on actual data
         })));
       } catch (err) {
         console.error('❌ Failed to load students:', err);
@@ -69,9 +63,10 @@ const MyStudentsPage = () => {
   }, []);
 
   const filtered = students.filter(s =>
-    s.name?.toLowerCase().includes(search.toLowerCase()) ||
+    s.firstName?.toLowerCase().includes(search.toLowerCase()) ||
+    s.lastName?.toLowerCase().includes(search.toLowerCase()) ||
     s.studentNumber?.includes(search) ||
-    s.email?.toLowerCase().includes(search.toLowerCase())
+    `${s.firstName} ${s.lastName}`.toLowerCase().includes(search.toLowerCase())
   );
 
   const handleCheckboxChange = (id: string) => {
@@ -101,9 +96,9 @@ const MyStudentsPage = () => {
     setIsCheckingStatus(true);
     
     try {
-      await performSystemEligibilityChecks([studentId]);
+      await performSystemEligibilityChecksApi([studentId]);
       // Reload students to get updated eligibility status
-      const updatedStudents = await getStudentsWithEligibilityStatus();
+      const updatedStudents = await getStudentsWithEligibilityStatusApi();
       setStudents(updatedStudents.map(student => ({
         ...student,
         hasManualRequest: false
@@ -117,10 +112,10 @@ const MyStudentsPage = () => {
   };
 
   const getStatusChip = (student: StudentWithEligibility) => {
-    if (student.status === 'Mezun') {
-      return <Chip label="Graduated" color="info" size="small" />;
-    } else if (student.status === 'Mezuniyet Aşaması') {
+    if (student.isEligible) {
       return <Chip label="Eligible" color="success" size="small" />;
+    } else if (student.graduationStatus === 'Mezun') {
+      return <Chip label="Graduated" color="info" size="small" />;
     } else {
       return <Chip label="Not Eligible" color="warning" size="small" />;
     }
@@ -199,7 +194,7 @@ const MyStudentsPage = () => {
                   sx={{ mr: 1 }}
                 />
                 <Typography variant="h6">
-                  {student.name}
+                  {student.firstName} {student.lastName}
                 </Typography>
               </Box>
               
@@ -208,7 +203,7 @@ const MyStudentsPage = () => {
               </Typography>
               
               <Typography variant="body2" sx={{ mb: 0.5 }}>
-                Department: {student.department || 'N/A'}
+                Department: {student.department?.name || 'N/A'}
               </Typography>
               
               <Typography variant="body2" sx={{ mb: 1 }}>
@@ -268,7 +263,7 @@ const MyStudentsPage = () => {
       {/* Transcript Dialog */}
       <Dialog open={openTranscript} onClose={() => setOpenTranscript(false)} maxWidth="md" fullWidth>
         <DialogTitle>
-          Transcript Viewer - {selectedStudent?.name}
+          Transcript Viewer - {selectedStudent?.firstName} {selectedStudent?.lastName}
         </DialogTitle>
         <DialogContent sx={{ position: 'relative', minHeight: 300 }}>
           <LoadingOverlay 
@@ -278,7 +273,7 @@ const MyStudentsPage = () => {
           />
           {!isLoadingTranscript && (
             <Typography>
-              Transcript details for {selectedStudent?.name} 
+              Transcript details for {selectedStudent?.firstName} {selectedStudent?.lastName} 
               (ID: {selectedStudent?.studentNumber})
             </Typography>
           )}
@@ -293,7 +288,7 @@ const MyStudentsPage = () => {
         <DialogTitle>Send Email</DialogTitle>
         <DialogContent>
           <Typography sx={{ mb: 2 }}>
-            Send email to: {selectedStudent?.name}
+            Send email to: {selectedStudent?.firstName} {selectedStudent?.lastName}
           </Typography>
           <TextField
             label="Subject"
@@ -322,7 +317,7 @@ const MyStudentsPage = () => {
           </Typography>
           {selectedStudents.map(student => (
             <Typography key={student.id} variant="body2" sx={{ ml: 2, mb: 0.5 }}>
-              • {student.name} ({student.studentNumber})
+              • {student.firstName} {student.lastName} ({student.studentNumber})
             </Typography>
           ))}
         </DialogContent>

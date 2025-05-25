@@ -1,5 +1,5 @@
 import { Box, Paper, Typography, Snackbar, Alert } from '@mui/material';
-import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
+// Layout is handled by router, no need to import
 import { useUploadGraduationDecisions } from '../hooks/useUploadGraduationDecisions';
 import DepartmentUploadList from '../components/DepartmentUploadList';
 
@@ -12,7 +12,7 @@ const UploadGraduationDecisionsPage = () => {
   } = useUploadGraduationDecisions();
 
   return (
-    <StudentAffairsDashboardLayout>
+    <>
       <Box sx={{ mb: 4 }}>
         <Typography variant="h5" gutterBottom fontWeight="bold">
           Upload Graduation Decisions
@@ -44,7 +44,7 @@ const UploadGraduationDecisionsPage = () => {
           {notification.message}
         </Alert>
       </Snackbar>
-    </StudentAffairsDashboardLayout>
+    </>
   );
 };
 

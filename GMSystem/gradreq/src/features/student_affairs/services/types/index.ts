@@ -1,4 +1,31 @@
 // Types for student affairs feature
+
+// Eligibility check types
+export enum EligibilityCheckType {
+  GPA = 1,
+  TOTAL_ECTS = 2,
+  MANDATORY_COURSES = 3,
+  TECHNICAL_ELECTIVES = 4,
+  NON_TECHNICAL_ELECTIVES = 5,
+  UNIVERSITY_ELECTIVES = 6,
+  FAILED_COURSE_LIMIT = 7
+}
+
+export interface EligibilityCheckResult {
+  id: string;
+  processId: string;
+  checkType: EligibilityCheckType;
+  isMet: boolean;
+  actualValue: string;
+  requiredValue: string;
+  notesOrMissingItems: string | null;
+  checkDate: string;
+}
+
+export interface EligibilityCheckResponse {
+  items: EligibilityCheckResult[];
+}
+
 export interface Notification {
   id: string;
   title: string;
@@ -61,6 +88,8 @@ export interface Student {
   gpa: number;
   graduationStatus: string;
   certificateStatus: CertificateStatus[];
+  eligibilityResults?: EligibilityCheckResult[];
+  isEligible?: boolean;
 }
 
 export interface UniversityRanking {

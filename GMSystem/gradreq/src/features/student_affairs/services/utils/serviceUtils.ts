@@ -1,8 +1,13 @@
-import { getServiceConfig as getCommonServiceConfig } from "../../../../features/common/utils/serviceUtils";
+import { 
+  getServiceConfig as getCommonServiceConfig,
+  ServiceError,
+  handleApiResponse
+} from "../../../../features/common/utils/serviceUtils";
 import type { CourseInfo } from "../types";
 
-// Re-export common service config
+// Re-export common service utilities
 export const getServiceConfig = getCommonServiceConfig;
+export { ServiceError, handleApiResponse };
 
 // Grade point mapping for GPA calculation
 export const GRADE_POINTS: Record<string, number> = {

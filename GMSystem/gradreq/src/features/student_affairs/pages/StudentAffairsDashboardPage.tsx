@@ -1,6 +1,5 @@
 import { Box, Paper, Typography, CircularProgress, Alert } from '@mui/material';
 import { useAuth } from "../../auth/contexts/AuthContext";
-import StudentAffairsDashboardLayout from "../layout/StudentAffairsDashboardLayout";
 import { useStudentAffairsDashboard } from "../hooks";
 import DashboardStats from "../components/DashboardStats";
 import QuickActions from "../components/QuickActions";
@@ -12,51 +11,65 @@ const StudentAffairsDashboardPage = () => {
 
   if (loading) {
     return (
-      <StudentAffairsDashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
-          <CircularProgress />
-        </Box>
-      </StudentAffairsDashboardLayout>
+      <Box display="flex" justifyContent="center" alignItems="center" sx={{ py: 5 }}> {/* Adjusted for rendering within router-applied layout */}
+        <CircularProgress />
+      </Box>
     );
   }
 
   if (error) {
     return (
-      <StudentAffairsDashboardLayout>
-        <Alert severity="error" sx={{ mb: 2 }}>
-          {error}
-        </Alert>
-      </StudentAffairsDashboardLayout>
+      <Alert severity="error" sx={{ m: 2 }}> {/* Adjusted for rendering within router-applied layout */}
+        {error}
+      </Alert>
     );
   }
 
   return (
-    <StudentAffairsDashboardLayout>
-      <Box sx={{ mb: 4 }}>
-        {/* Welcome Section */}
-        <Paper sx={{ p: 3, mb: 3 }}>
-          <Typography variant="h5" gutterBottom fontWeight="bold">
-            Welcome, {user?.name || 'Student Affairs Officer'}!
+    // Layout is assumed to be applied by the router
+    <Box sx={{ mb: 4 }}> {/* Main content container */}
+      {/* Welcome Section */}
+      <Paper sx={{ p: 3, mb: 3 }}>
+        <Typography variant="h5" gutterBottom fontWeight="bold">
+          Welcome, {user?.name || 'Student Affairs Officer'}!
+        </Typography>
+        <Typography variant="body1" color="text.secondary">
+          Welcome to the Student Affairs Panel of the Graduation Management System. From this panel, you can determine student certificates, generate university ranking lists, and upload graduation decisions for each department.
+        </Typography>
+      </Paper>
+      
+      {/* Statistics Section */}
+      {stats && (
+        <Box sx={{ mb: 3 }}>
+          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+            Dashboard Statistics
           </Typography>
-          <Typography variant="body1" color="text.secondary">
-            Welcome to the Student Affairs Panel of the Graduation Management System. From this panel, you can determine student certificates, generate university ranking lists, and upload graduation decisions for each department.
-          </Typography>
-        </Paper>
-        
-        {/* Statistics Section */}
-        <DashboardStats stats={stats} />
-        
-        {/* Quick Actions Section */}
+          <DashboardStats stats={stats} />
+        </Box>
+      )}
+      
+      {/* Quick Actions Section */}
+      <Box sx={{ mb: 3 }}>
+        <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+          Quick Actions
+        </Typography>
         <QuickActions />
-        
-        {/* Recent Activities Section */}
-        <RecentActivities 
-          recentNotifications={recentNotifications} 
-          recentDecisions={recentDecisions} 
-        />
       </Box>
-    </StudentAffairsDashboardLayout>
+      
+      {/* Recent Activities Section */}
+      {(recentNotifications && recentNotifications.length > 0) || (recentDecisions && recentDecisions.length > 0) ? (
+        <Box> {/* No mb:3 if it's the last section and parent Box has mb:4 */}
+          <Typography variant="h6" gutterBottom sx={{ mb: 2 }}>
+            Recent Activities
+          </Typography>
+          <RecentActivities 
+            recentNotifications={recentNotifications} 
+            recentDecisions={recentDecisions} 
+          />
+        </Box>
+      ) : null}
+    </Box>
   );
 };
 
-export default StudentAffairsDashboardPage; 
+export default StudentAffairsDashboardPage;

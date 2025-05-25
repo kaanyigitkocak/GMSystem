@@ -24,7 +24,7 @@ import {
   MarkEmailRead as MarkEmailReadIcon
 } from '@mui/icons-material';
 
-import StudentAffairsDashboardLayout from '../layout/StudentAffairsDashboardLayout';
+// Layout is handled by router, no need to import
 import { useNotificationsPage } from '../hooks/useNotificationsPage';
 import type { Notification } from '../types';
 
@@ -55,16 +55,13 @@ const NotificationsPage = () => {
 
   if (loading) {
     return (
-      <StudentAffairsDashboardLayout>
-        <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
-          <CircularProgress />
-        </Box>
-      </StudentAffairsDashboardLayout>
+      <Box display="flex" justifyContent="center" alignItems="center" height="50vh">
+        <CircularProgress />
+      </Box>
     );
   }
 
   return (
-    <StudentAffairsDashboardLayout>
       <Box sx={{ mb: 4 }}>
         <Paper sx={{ p: 3 }}>
           <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
@@ -170,8 +167,7 @@ const NotificationsPage = () => {
           </List>
         </Paper>
       </Box>
-    </StudentAffairsDashboardLayout>
-  );
+    );
 };
 
 export default NotificationsPage; 

@@ -1,11 +1,11 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { ReactNode } from 'react';
-import { 
-  getStudentsWithEligibilityStatusApi,
-  performEligibilityChecksForMissingStudentsApi,
-  performEligibilityChecksForAllStudentsApi,
-  clearEligibilityCache
-} from '../services/api/studentApi';
+import {
+  getStudentsWithEligibilityStatus,
+  performSystemEligibilityChecks,
+  performChecksForMissingStudents,
+  clearEligibilityCache as apiClearEligibilityCache
+} from '../services';
 import type { Student } from '../services/types';
 
 interface EligibilityData {
@@ -140,7 +140,7 @@ export const EligibilityProvider: React.FC<{ children: ReactNode }> = ({ childre
         forceRefresh ? "(forced refresh)" : "(initial load)"
       );
 
-      const studentsWithEligibility = await getStudentsWithEligibilityStatusApi();
+      const studentsWithEligibility = await getStudentsWithEligibilityStatus();
       const calculatedData = calculateStatistics(studentsWithEligibility);
 
       setEligibilityData(calculatedData);
@@ -165,7 +165,7 @@ export const EligibilityProvider: React.FC<{ children: ReactNode }> = ({ childre
       setPerformingChecks(true);
       console.log("🔍 [EligibilityContext] Starting eligibility checks for students without results...");
 
-      const result = await performEligibilityChecksForMissingStudentsApi();
+      const result = await performChecksForMissingStudents();
 
       if (result.processedStudents.length > 0) {
         console.log(
@@ -190,7 +190,7 @@ export const EligibilityProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   };
 
-  const performEligibilityChecksForAllStudents = async () => {
+  const performEligibilityChecksForAllStudents = async (): Promise<{ success: boolean; processedStudents: string[]; }> => {
     try {
       setPerformingChecks(true);
       console.log("🔍 [EligibilityContext] Starting eligibility checks for all students...");
@@ -202,10 +202,10 @@ export const EligibilityProvider: React.FC<{ children: ReactNode }> = ({ childre
         throw new Error("No students found to perform checks");
       }
 
-      const result = await performEligibilityChecksForAllStudentsApi(allStudentIds);
+      const resultCheckAll = await performSystemEligibilityChecks(allStudentIds);
 
       console.log(
-        `✅ [EligibilityContext] Performed eligibility checks for ${result.processedStudents.length} students`
+        `✅ [EligibilityContext] Performed eligibility checks for ${resultCheckAll.processedStudents.length} students`
       );
       
       // Wait a bit for the checks to complete
@@ -214,7 +214,7 @@ export const EligibilityProvider: React.FC<{ children: ReactNode }> = ({ childre
       // Force refresh eligibility data after performing checks
       await fetchEligibilityData(true);
 
-      return result;
+      return resultCheckAll;
     } catch (err) {
       console.error("❌ [EligibilityContext] Failed to perform eligibility checks for all students:", err);
       throw err;
@@ -225,7 +225,7 @@ export const EligibilityProvider: React.FC<{ children: ReactNode }> = ({ childre
 
   const refreshEligibilityData = async (clearCache: boolean = false) => {
     if (clearCache) {
-      clearEligibilityCache();
+      apiClearEligibilityCache();
       clearCachedEligibilityData();
       setDataLoaded(false);
     }

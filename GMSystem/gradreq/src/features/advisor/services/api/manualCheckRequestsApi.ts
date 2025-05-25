@@ -5,6 +5,7 @@ import {
   ServiceError,
 } from "../../../common/utils/serviceUtils";
 import { getUserFromAuthApi } from "./usersApi";
+import { executeWithRetry } from "../../../common/utils/rateLimitUtils";
 
 // Get service configuration
 const { apiBaseUrl } = getServiceConfig();
@@ -46,161 +47,167 @@ interface BackendStudent {
 export const getManualCheckRequestsApi = async (): Promise<
   ManualCheckRequest[]
 > => {
-  try {
-    // Get auth token from localStorage
-    const authToken = localStorage.getItem("authToken");
-    if (!authToken) {
-      throw new ServiceError("No authentication token found");
-    }
-
-    const headers = {
-      ...fetchOptions.headers,
-      Authorization: `Bearer ${authToken}`,
-    };
-
-    // Get current advisor info
-    const currentAdvisor = await getUserFromAuthApi();
-
-    if (currentAdvisor.userRole !== "ADVISOR") {
-      throw new ServiceError("User is not an advisor");
-    }
-
-    // Get all graduation processes
-    const graduationResponse = await fetch(
-      `${apiBaseUrl}/GraduationProcesses?PageRequest.PageIndex=0&PageRequest.PageSize=1000`,
-      {
-        ...fetchOptions,
-        method: "GET",
-        headers,
+  return await executeWithRetry(async () => {
+    try {
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        throw new ServiceError("No authentication token found");
       }
-    );
 
-    const graduationData = await handleApiResponse<{
-      items: BackendGraduationProcess[];
-    }>(graduationResponse);
+      const headers = {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+      };
 
-    // Get students to match with graduation processes
-    const studentsResponse = await fetch(
-      `${apiBaseUrl}/Students?departmentId=${currentAdvisor.departmentId}&PageRequest.PageIndex=0&PageRequest.PageSize=1000`,
-      {
-        ...fetchOptions,
-        method: "GET",
-        headers,
+      // Get current advisor info
+      const currentAdvisor = await getUserFromAuthApi();
+
+      if (currentAdvisor.userRole !== "ADVISOR") {
+        throw new ServiceError("User is not an advisor");
       }
-    );
 
-    const studentsData = await handleApiResponse<{
-      items: BackendStudent[];
-    }>(studentsResponse);
+      // Get all graduation processes
+      const graduationResponse = await fetch(
+        `${apiBaseUrl}/GraduationProcesses?PageRequest.PageIndex=0&PageRequest.PageSize=1000`,
+        {
+          ...fetchOptions,
+          method: "GET",
+          headers,
+        }
+      );
 
-    // Filter students assigned to this advisor
-    const advisorStudents = studentsData.items.filter(
-      (student) => student.assignedAdvisorUserId === currentAdvisor.id
-    );
-    const advisorStudentIds = advisorStudents.map((student) => student.id);
+      const graduationData = await handleApiResponse<{
+        items: BackendGraduationProcess[];
+      }>(graduationResponse);
 
-    // Filter graduation processes for advisor's students that need manual review
-    const manualCheckRequests = graduationData.items
-      .filter(
-        (process) =>
-          advisorStudentIds.includes(process.studentId) &&
-          process.advisorDecision === null &&
-          process.status >= 6 // Status that requires advisor review
-      )
-      .map((process) => {
-        const student = advisorStudents.find((s) => s.id === process.studentId);
+      // Get students to match with graduation processes
+      const studentsResponse = await fetch(
+        `${apiBaseUrl}/Students?departmentId=${currentAdvisor.departmentId}&PageRequest.PageIndex=0&PageRequest.PageSize=1000`,
+        {
+          ...fetchOptions,
+          method: "GET",
+          headers,
+        }
+      );
 
-        // Determine priority based on status
-        let priority: "low" | "medium" | "high" = "medium";
-        if (process.status >= 8) priority = "high"; // Graduation stages
-        else if (process.status >= 7) priority = "medium";
-        else priority = "low";
+      const studentsData = await handleApiResponse<{
+        items: BackendStudent[];
+      }>(studentsResponse);
 
-        // Determine status description
-        let status: "Pending" | "In Review" | "Completed" | "Rejected" =
-          "Pending";
-        if (process.advisorDecision === true) status = "Completed";
-        else if (process.advisorDecision === false) status = "Rejected";
-        else if (process.status >= 6) status = "In Review";
+      // Filter students assigned to this advisor
+      const advisorStudents = studentsData.items.filter(
+        (student) => student.assignedAdvisorUserId === currentAdvisor.id
+      );
+      const advisorStudentIds = advisorStudents.map((student) => student.id);
 
-        return {
-          id: process.id,
-          student: student
-            ? `${student.firstName} ${student.lastName}`
-            : "Unknown Student",
-          studentId: process.studentId,
-          date: process.createdDate,
-          reason: getReasonFromStatus(process.status),
-          status,
-          notes: process.advisorNotes || "",
-          priority,
-        };
-      });
+      // Filter graduation processes for advisor's students that need manual review
+      const manualCheckRequests = graduationData.items
+        .filter(
+          (process) =>
+            advisorStudentIds.includes(process.studentId) &&
+            process.advisorDecision === null &&
+            process.status >= 6 // Status that requires advisor review
+        )
+        .map((process) => {
+          const student = advisorStudents.find(
+            (s) => s.id === process.studentId
+          );
 
-    return manualCheckRequests;
-  } catch (error) {
-    console.error("Failed to fetch manual check requests:", error);
-    throw new ServiceError(
-      "Failed to fetch manual check requests from backend"
-    );
-  }
+          // Determine priority based on status
+          let priority: "low" | "medium" | "high" = "medium";
+          if (process.status >= 8) priority = "high"; // Graduation stages
+          else if (process.status >= 7) priority = "medium";
+          else priority = "low";
+
+          // Determine status description
+          let status: "Pending" | "In Review" | "Completed" | "Rejected" =
+            "Pending";
+          if (process.advisorDecision === true) status = "Completed";
+          else if (process.advisorDecision === false) status = "Rejected";
+          else if (process.status >= 6) status = "In Review";
+
+          return {
+            id: process.id,
+            student: student
+              ? `${student.firstName} ${student.lastName}`
+              : "Unknown Student",
+            studentId: process.studentId,
+            date: process.createdDate,
+            reason: getReasonFromStatus(process.status),
+            status,
+            notes: process.advisorNotes || "",
+            priority,
+          };
+        });
+
+      return manualCheckRequests;
+    } catch (error) {
+      console.error("Failed to fetch manual check requests:", error);
+      throw new ServiceError(
+        "Failed to fetch manual check requests from backend"
+      );
+    }
+  });
 };
 
 export const updateManualCheckRequestApi = async (
   id: string,
   updates: Partial<ManualCheckRequest>
 ): Promise<ManualCheckRequest> => {
-  try {
-    // Get auth token from localStorage
-    const authToken = localStorage.getItem("authToken");
-    if (!authToken) {
-      throw new ServiceError("No authentication token found");
-    }
-
-    const headers = {
-      ...fetchOptions.headers,
-      Authorization: `Bearer ${authToken}`,
-    };
-
-    // Determine which graduation process command to use
-    const isApproved = updates.status === "Completed";
-    const endpoint = isApproved
-      ? "SetAdvisorEligible"
-      : "SetAdvisorNotEligible";
-
-    const command = {
-      graduationProcessId: id,
-      notes: updates.notes || "",
-    };
-
-    const response = await fetch(
-      `${apiBaseUrl}/GraduationProcesses/${endpoint}`,
-      {
-        ...fetchOptions,
-        method: "POST",
-        headers,
-        body: JSON.stringify(command),
+  return await executeWithRetry(async () => {
+    try {
+      // Get auth token from localStorage
+      const authToken = localStorage.getItem("authToken");
+      if (!authToken) {
+        throw new ServiceError("No authentication token found");
       }
-    );
 
-    await handleApiResponse(response);
+      const headers = {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+      };
 
-    // Return updated manual check request
-    return {
-      id,
-      student: "",
-      studentId: "",
-      date: new Date().toISOString(),
-      reason: "",
-      status: updates.status || "Pending",
-      notes: updates.notes || "",
-      priority: updates.priority || "medium",
-      ...updates,
-    };
-  } catch (error) {
-    console.error("Failed to update manual check request:", error);
-    throw new ServiceError("Failed to update manual check request");
-  }
+      // Determine which graduation process command to use
+      const isApproved = updates.status === "Completed";
+      const endpoint = isApproved
+        ? "SetAdvisorEligible"
+        : "SetAdvisorNotEligible";
+
+      const command = {
+        graduationProcessId: id,
+        notes: updates.notes || "",
+      };
+
+      const response = await fetch(
+        `${apiBaseUrl}/GraduationProcesses/${endpoint}`,
+        {
+          ...fetchOptions,
+          method: "POST",
+          headers,
+          body: JSON.stringify(command),
+        }
+      );
+
+      await handleApiResponse(response);
+
+      // Return updated manual check request
+      return {
+        id,
+        student: "",
+        studentId: "",
+        date: new Date().toISOString(),
+        reason: "",
+        status: updates.status || "Pending",
+        notes: updates.notes || "",
+        priority: updates.priority || "medium",
+        ...updates,
+      };
+    } catch (error) {
+      console.error("Failed to update manual check request:", error);
+      throw new ServiceError("Failed to update manual check request");
+    }
+  });
 };
 
 // Helper function to determine reason from graduation process status

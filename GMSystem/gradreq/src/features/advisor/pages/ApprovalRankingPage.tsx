@@ -37,7 +37,7 @@ import { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import type { Student, EligibilityCheckType, CourseTaken } from '../services/types';
 import { useEligibility } from '../contexts/EligibilityContext';
-import { getStudentCourseTakensApi } from '../services/api/studentApi';
+import { getStudentCourseTakens } from '../services';
 
 const Grid = MuiGrid as any;
 
@@ -152,7 +152,7 @@ const ApprovalRankingPage = () => {
       setTranscriptDialogOpen(true);
       
       console.log("🔍 [ApprovalRanking] Fetching transcript for student:", student.id);
-      const courses = await getStudentCourseTakensApi(student.id);
+      const courses = await getStudentCourseTakens(student.id);
       setTranscriptData(courses);
     } catch (error) {
       console.error('Failed to fetch transcript:', error);

@@ -4,6 +4,10 @@ import { getServiceConfig } from "./utils/serviceUtils";
 import {
   getNotificationsApi,
   markNotificationAsReadApi,
+  markAllNotificationsAsReadApi,
+  deleteNotificationApi,
+} from "./api/notificationsApi";
+import {
   getGraduationRequestsApi,
   getStudentRankingsApi,
   updateStudentRankingApi,
@@ -16,6 +20,7 @@ import {
   updateCertificateStatusApi,
   getUniversityRankingsApi,
   getGraduationDecisionsApi,
+  getEligibilityCheckResultsApi,
 } from "./api/studentAffairsApi";
 
 // Import mock services
@@ -48,6 +53,8 @@ import type {
   CertificateType,
   UniversityRanking,
   GraduationDecision,
+  EligibilityCheckResult,
+  EligibilityCheckType,
 } from "./types";
 
 // Notification services
@@ -72,9 +79,7 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
   if (useMock) {
     return markAllNotificationsAsReadMock();
   }
-  // Note: markAllNotificationsAsReadApi doesn't exist in the API imports above
-  // You may need to add it or implement it
-  throw new Error("markAllNotificationsAsReadApi not implemented");
+  return markAllNotificationsAsReadApi();
 };
 
 export const deleteNotification = async (id: string): Promise<void> => {
@@ -82,9 +87,7 @@ export const deleteNotification = async (id: string): Promise<void> => {
   if (useMock) {
     return deleteNotificationMock(id);
   }
-  // Note: deleteNotificationApi doesn't exist in the API imports above
-  // You may need to add it or implement it
-  throw new Error("deleteNotificationApi not implemented");
+  return deleteNotificationApi(id);
 };
 
 // Graduation requests service
@@ -214,6 +217,19 @@ export const getGraduationDecisions = async (): Promise<
   }
   return getGraduationDecisionsApi();
 };
+
+// Eligibility check services
+export const getEligibilityCheckResults = async (studentId: string) => {
+  const { useMock } = getServiceConfig();
+  if (useMock) {
+    // Return mock data for eligibility check
+    return [];
+  }
+  return getEligibilityCheckResultsApi(studentId);
+};
+
+// Export eligibility types for use in components
+export type { EligibilityCheckResult, EligibilityCheckType } from "./types";
 
 // Transcript service
 export { getStudentTranscript } from "./transcriptService";

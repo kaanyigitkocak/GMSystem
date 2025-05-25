@@ -41,6 +41,7 @@ const StudentAffairsLayout = lazy(() => import('../features/student_affairs/layo
 const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
 const UniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/UniversityRankingsPage'));
 const StudentAffairsNotificationsPage = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
+const StudentAffairsApprovalRankingPage = lazy(() => import('../features/student_affairs/pages/ApprovalRankingPage'));
 
 // Admin pages - placeholder imports, these need to be created
 const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboardPage'));
@@ -261,6 +262,7 @@ const AppRoutes = () => {
           }
         >
           <Route index element={<StudentAffairsDashboard />} />
+          <Route path="approval-ranking" element={<StudentAffairsApprovalRankingPage />} />
           <Route path="upload-graduation-decisions" element={<UploadGraduationDecisionsPage />} />
           <Route path="university-rankings" element={<UniversityRankingsPage />} />
           <Route path="notifications" element={<StudentAffairsNotificationsPage />} />

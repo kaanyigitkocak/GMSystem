@@ -1,4 +1,5 @@
 import type { StudentTranscript } from "../components/TranscriptDialog";
+import { executeWithRetry } from "../../common/utils/rateLimitUtils";
 
 // Mock data generator for student transcripts
 export const generateMockTranscript = (
@@ -203,16 +204,18 @@ export const getStudentTranscript = async (
   gpa?: number,
   credits?: number
 ): Promise<StudentTranscript> => {
-  // Simulate API delay
-  await new Promise((resolve) => setTimeout(resolve, 500));
+  return await executeWithRetry(async () => {
+    // Simulate API delay
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
-  // Use provided data or mock defaults
-  return generateMockTranscript(
-    studentId,
-    studentName || "John Doe",
-    department || "Computer Engineering",
-    faculty || "Engineering",
-    gpa || 3.5,
-    credits || 145
-  );
+    // Use provided data or mock defaults
+    return generateMockTranscript(
+      studentId,
+      studentName || "John Doe",
+      department || "Computer Engineering",
+      faculty || "Engineering",
+      gpa || 3.5,
+      credits || 145
+    );
+  });
 };

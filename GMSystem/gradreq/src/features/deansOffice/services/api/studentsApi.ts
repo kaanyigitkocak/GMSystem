@@ -16,6 +16,14 @@ import {
   ServiceError,
 } from "../utils/serviceUtils";
 
+// Import rate limiting utilities
+import {
+  executeWithRateLimit,
+  executeWithRetry,
+  DEFAULT_RATE_LIMIT_CONFIG,
+  type RateLimitConfig,
+} from "../../../common/utils/rateLimitUtils";
+
 // Cache keys for Dean's Office data
 const DEANS_OFFICE_FACULTY_INFO_KEY = "deans_office_faculty_info";
 const DEANS_OFFICE_STUDENTS_CACHE_KEY_PREFIX = "deans_office_students_faculty_"; // Appended with facultyId

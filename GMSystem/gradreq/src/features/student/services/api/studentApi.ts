@@ -3,6 +3,7 @@ import {
   handleApiResponse,
   debugFetch,
 } from "../../../common/utils/serviceUtils";
+import { executeWithRetry } from "../../../common/utils/rateLimitUtils";
 
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
 
@@ -31,40 +32,44 @@ const createAuthHeaders = () => {
 
 // Get current user info from auth token
 export const getCurrentUserApi = async () => {
-  const url = `${apiBaseUrl}/users/GetFromAuth`;
+  return await executeWithRetry(async () => {
+    const url = `${apiBaseUrl}/users/GetFromAuth`;
 
-  console.log("🔍 Getting current user from:", url);
+    console.log("🔍 Getting current user from:", url);
 
-  const options = {
-    ...fetchOptions,
-    headers: createAuthHeaders(),
-  };
+    const options = {
+      ...fetchOptions,
+      headers: createAuthHeaders(),
+    };
 
-  try {
-    const response = await debugFetch(url, options);
-    return await handleApiResponse(response, url);
-  } catch (error) {
-    console.error("❌ getCurrentUserApi failed:", error);
-    throw error;
-  }
+    try {
+      const response = await debugFetch(url, options);
+      return await handleApiResponse(response, url);
+    } catch (error) {
+      console.error("❌ getCurrentUserApi failed:", error);
+      throw error;
+    }
+  });
 };
 
 // Get student by ID
 export const getStudentByIdApi = async (studentId: string) => {
-  const url = `${apiBaseUrl}/students/${studentId}`;
+  return await executeWithRetry(async () => {
+    const url = `${apiBaseUrl}/students/${studentId}`;
 
-  console.log("🎓 Getting student by ID:", studentId);
+    console.log("🎓 Getting student by ID:", studentId);
 
-  const options = {
-    ...fetchOptions,
-    headers: createAuthHeaders(),
-  };
+    const options = {
+      ...fetchOptions,
+      headers: createAuthHeaders(),
+    };
 
-  try {
-    const response = await debugFetch(url, options);
-    return await handleApiResponse(response, url);
-  } catch (error) {
-    console.error("❌ getStudentByIdApi failed:", error);
-    throw error;
-  }
+    try {
+      const response = await debugFetch(url, options);
+      return await handleApiResponse(response, url);
+    } catch (error) {
+      console.error("❌ getStudentByIdApi failed:", error);
+      throw error;
+    }
+  });
 };
