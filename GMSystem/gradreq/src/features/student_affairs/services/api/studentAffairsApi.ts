@@ -584,3 +584,51 @@ export const getStudentAffairsUserInfoApi = async (): Promise<{
     throw new ServiceError("Failed to fetch user information");
   }
 };
+
+// Start graduation process for all students
+export const startGraduationProcessApi = async (
+  academicTerm: string
+): Promise<void> => {
+  try {
+    return await executeWithRetry(async () => {
+      const { apiBaseUrl, fetchOptions } = getServiceConfig();
+      const authToken = localStorage.getItem("authToken");
+
+      if (!authToken) {
+        throw new ServiceError("No authentication token found");
+      }
+
+      // Get current user ID from auth
+      const { getUserFromAuthApi } = await import("./usersApi");
+      const currentUser = await getUserFromAuthApi();
+
+      const requestBody = {
+        academicTerm: academicTerm,
+        initiatedByUserId: currentUser.id,
+      };
+
+      const response = await fetch(
+        `${apiBaseUrl}/GraduationProcesses/StartForAllStudents`,
+        {
+          ...fetchOptions,
+          method: "POST",
+          headers: {
+            ...fetchOptions.headers,
+            Authorization: `Bearer ${authToken}`,
+          },
+          body: JSON.stringify(requestBody),
+        }
+      );
+
+      await handleApiResponse<void>(response);
+    });
+  } catch (error) {
+    console.error("Error starting graduation process:", error);
+    if (error instanceof ServiceError) {
+      throw error;
+    }
+    throw new ServiceError(
+      "Failed to start graduation process. Please try again."
+    );
+  }
+};

@@ -333,8 +333,21 @@ export const resetPasswordApi = async (
         }),
       });
 
-      await handleApiResponse<any>(response);
-      return { success: true };
+      const data = await handleApiResponse<{
+        message: string;
+        isSuccess: boolean;
+      }>(response);
+
+      // Check if the backend indicates success
+      if (data && data.isSuccess) {
+        console.log("Password reset successful:", data.message);
+        return { success: true };
+      } else {
+        throw new ServiceError(
+          data?.message || "Password reset failed",
+          response.status
+        );
+      }
     });
   } catch (error) {
     console.error("Reset password API error:", error);

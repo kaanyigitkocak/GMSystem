@@ -4,7 +4,6 @@ import CssBaseline from '@mui/material/CssBaseline';
 import theme from './core/styles/theme';
 import { AuthProvider } from './features/auth/contexts/AuthContext';
 import AppRoutes from './routes/AppRoutes';
-import EnvTestComponent from './components/EnvTestComponent';
 
 function App() {
   return (
@@ -13,8 +12,6 @@ function App() {
         <CssBaseline />
         <AuthProvider>
           <AppRoutes />
-          {/* Environment Test Component - sadece development amaçlı */}
-          {import.meta.env.DEV && <EnvTestComponent />}
         </AuthProvider>
       </ThemeProvider>
     </BrowserRouter>

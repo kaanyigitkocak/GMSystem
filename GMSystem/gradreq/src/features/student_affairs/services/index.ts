@@ -23,6 +23,7 @@ import {
   setStudentAffairsApprovedApi,
   setStudentAffairsRejectedApi,
   getStudentAffairsUserInfoApi,
+  startGraduationProcessApi,
 } from "./api/studentAffairsApi";
 
 // Import mock services
@@ -283,3 +284,15 @@ export type { EligibilityCheckResult, EligibilityCheckType } from "./types";
 
 // Transcript service
 export { getStudentTranscript } from "./transcriptService";
+
+// Start graduation process service
+export const startGraduationProcess = async (
+  academicTerm: string
+): Promise<void> => {
+  const { useMock } = getServiceConfig();
+  if (useMock) {
+    // For mock, just return a resolved promise
+    return Promise.resolve();
+  }
+  return startGraduationProcessApi(academicTerm);
+};

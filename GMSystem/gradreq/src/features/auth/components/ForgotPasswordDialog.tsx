@@ -149,8 +149,37 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
       return;
     }
     
-    if (newPassword.length < 8) {
-      setResetError('Password must be at least 8 characters long');
+    if (newPassword.length < 6) {
+      setResetError('Password must be at least 6 characters long');
+      return;
+    }
+    
+    if (newPassword.length > 20) {
+      setResetError('Password must be at most 20 characters long');
+      return;
+    }
+    
+    // Check for uppercase letter
+    if (!/[A-Z]/.test(newPassword)) {
+      setResetError('Password must contain at least one uppercase letter');
+      return;
+    }
+    
+    // Check for lowercase letter
+    if (!/[a-z]/.test(newPassword)) {
+      setResetError('Password must contain at least one lowercase letter');
+      return;
+    }
+    
+    // Check for number
+    if (!/[0-9]/.test(newPassword)) {
+      setResetError('Password must contain at least one number');
+      return;
+    }
+    
+    // Check for special character
+    if (!/[^a-zA-Z0-9]/.test(newPassword)) {
+      setResetError('Password must contain at least one special character');
       return;
     }
     
@@ -287,6 +316,7 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
               type={showNewPassword ? 'text' : 'password'}
               value={newPassword}
               onChange={(e) => setNewPassword(e.target.value)}
+              helperText="Password must be 6-20 characters with uppercase, lowercase, number, and special character"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -311,6 +341,7 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
               type={showConfirmPassword ? 'text' : 'password'}
               value={confirmPassword}
               onChange={(e) => setConfirmPassword(e.target.value)}
+              helperText="Re-enter your new password"
               InputProps={{
                 endAdornment: (
                   <InputAdornment position="end">
@@ -341,7 +372,7 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
         )}
       </DialogContent>
       
-      <DialogActions sx={{ px: 3, pb: 3, flexDirection: 'column', gap: 1 }}>
+      <DialogActions>
         {/* Email verification stage buttons */}
         {currentStage === ForgotPasswordStage.EMAIL_VERIFICATION && (
           <Button
@@ -393,14 +424,16 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
           </Button>
         )}
         
-        {/* Close button (always visible) */}
-        <Button 
-          variant="outlined" 
-          fullWidth
-          onClick={handleClose}
-        >
-          {currentStage === ForgotPasswordStage.COMPLETE ? 'Return to Login' : 'Close'}
-        </Button>
+        {/* Complete stage button */}
+        {currentStage === ForgotPasswordStage.COMPLETE && (
+          <Button
+            variant="contained"
+            fullWidth
+            onClick={handleClose}
+          >
+            Close
+          </Button>
+        )}
       </DialogActions>
     </Dialog>
   );
