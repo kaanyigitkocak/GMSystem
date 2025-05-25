@@ -56,12 +56,18 @@ export default defineConfig(({ mode }) => {
   return {
     plugins: [react()],
     server: serverConfig,
+    base: "/",
     build: {
       rollupOptions: {
         output: {
           manualChunks: undefined,
         },
       },
+    },
+    preview: {
+      port: 4173,
+      host: true,
+      historyApiFallback: true,
     },
   };
 });

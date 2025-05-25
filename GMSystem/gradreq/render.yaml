@@ -8,3 +8,18 @@ services:
       - type: rewrite
         source: /*
         destination: /index.html
+      - type: rewrite
+        source: /advisor/*
+        destination: /index.html
+      - type: rewrite
+        source: /student/*
+        destination: /index.html
+      - type: rewrite
+        source: /secretary/*
+        destination: /index.html
+      - type: rewrite
+        source: /student-affairs/*
+        destination: /index.html
+      - type: rewrite
+        source: /deans-office/*
+        destination: /index.html
