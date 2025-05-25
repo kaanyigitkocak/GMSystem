@@ -111,29 +111,63 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
                     Console.WriteLine($"DEBUG: Course {ct.CourseCodeInTranscript}, MatchedCourseId: {ct.MatchedCourseId}, MatchedCourse: {ct.MatchedCourse?.CourseCode}, CourseType: {ct.MatchedCourse?.CourseType}");
                 }
                 
+                // Debug: Log all courses taken with their types
+                var debugMessage = $"Student {studentId} courses: Total={coursesTaken.Count}, " +
+                                 $"Technical={coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.ELECTIVE_TECHNICAL)}, NonTechnical={coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.ELECTIVE_NON_TECHNICAL)}, " +
+                                 $"Mandatory={coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.MANDATORY)}. " +
+                                 $"Course details: {string.Join(", ", coursesTaken.Where(ct => ct.MatchedCourse != null).Select(ct => $"{ct.MatchedCourse.CourseCode}({ct.MatchedCourse.CourseType})"))}";
+                Console.WriteLine(debugMessage);
+                
+                // Get existing eligibility check results for this graduation process
+                var existingResults = (await _eligibilityCheckResultRepository.GetListAsync(
+                    predicate: ecr => ecr.ProcessId == graduationProcess.Id,
+                    size: 1000,
+                    cancellationToken: cancellationToken
+                )).Items.ToList();
+                
                 List<EligibilityCheckResult> resultsToCreate = new List<EligibilityCheckResult>();
+                List<EligibilityCheckResult> resultsToUpdate = new List<EligibilityCheckResult>();
                 DateTime checkDate = DateTime.UtcNow;
                 bool currentProcessOverallSuccess = true;
 
-                // Debug: Log course counts by type
-                var technicalElectivesCount = coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.ELECTIVE_TECHNICAL);
-                var nonTechnicalElectivesCount = coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.ELECTIVE_NON_TECHNICAL);
-                var mandatoryCoursesCount = coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.MANDATORY);
-                
-                // Debug: Log all courses taken with their types
-                var debugMessage = $"Student {studentId} courses: Total={coursesTaken.Count}, " +
-                                 $"Technical={technicalElectivesCount}, NonTechnical={nonTechnicalElectivesCount}, " +
-                                 $"Mandatory={mandatoryCoursesCount}. " +
-                                 $"Course details: {string.Join(", ", coursesTaken.Where(ct => ct.MatchedCourse != null).Select(ct => $"{ct.MatchedCourse.CourseCode}({ct.MatchedCourse.CourseType})"))}";
-                Console.WriteLine(debugMessage);
+                // Helper method to create or update eligibility check result
+                void CreateOrUpdateResult(EligibilityCheckType checkType, bool isMet, string actualValue, string requiredValue, string? additionalInfo = null)
+                {
+                    var existingResult = existingResults.FirstOrDefault(er => er.CheckType == checkType);
+                    if (existingResult != null)
+                    {
+                        // Update existing result
+                        existingResult.IsMet = isMet;
+                        existingResult.ActualValue = actualValue;
+                        existingResult.RequiredValue = requiredValue;
+                        existingResult.CheckDate = checkDate;
+                        existingResult.NotesOrMissingItems = additionalInfo;
+                        resultsToUpdate.Add(existingResult);
+                    }
+                    else
+                    {
+                        // Create new result
+                        resultsToCreate.Add(new EligibilityCheckResult(
+                            Guid.NewGuid(), 
+                            graduationProcess.Id, 
+                            checkType, 
+                            isMet, 
+                            actualValue, 
+                            requiredValue, 
+                            checkDate, 
+                            additionalInfo
+                        ));
+                    }
+                }
+
                 // 1. GPA Check
                 bool gpaMet = (studentProfile.CurrentGpa ?? 0) >= requirementSet.MinGpa;
-                resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.GPA, gpaMet, (studentProfile.CurrentGpa ?? 0).ToString("F2"), requirementSet.MinGpa.ToString("F2"), checkDate));
+                CreateOrUpdateResult(EligibilityCheckType.GPA, gpaMet, (studentProfile.CurrentGpa ?? 0).ToString("F2"), requirementSet.MinGpa.ToString("F2"));
                 if (!gpaMet) currentProcessOverallSuccess = false;
 
                 // 2. Total ECTS Check
                 bool ectsMet = (studentProfile.CurrentEctsCompleted ?? 0) >= requirementSet.TotalMinEcts;
-                resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.TOTAL_ECTS, ectsMet, (studentProfile.CurrentEctsCompleted ?? 0).ToString(), requirementSet.TotalMinEcts.ToString(), checkDate));
+                CreateOrUpdateResult(EligibilityCheckType.TOTAL_ECTS, ectsMet, (studentProfile.CurrentEctsCompleted ?? 0).ToString(), requirementSet.TotalMinEcts.ToString());
                 if (!ectsMet) currentProcessOverallSuccess = false;
                 
                 // 3. Mandatory Courses Check
@@ -141,7 +175,7 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
                 var passedMandatoryCoursesCount = coursesTaken.Where(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourseId.HasValue && requiredMandatoryCourses.Contains(ct.MatchedCourseId.Value)).DistinctBy(ct => ct.MatchedCourseId).Count();
                 List<string> missingMandatoryCodes = requirementSet.MandatoryCourses.Where(mc => !coursesTaken.Any(ct => ct.MatchedCourseId == mc.CourseId && ct.IsSuccessfullyCompleted)).Select(mc => mc.Course?.CourseCode ?? mc.CourseId.ToString()).ToList();
                 bool mandatoryMet = missingMandatoryCodes.Count == 0 && passedMandatoryCoursesCount >= requiredMandatoryCourses.Count;
-                resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.MANDATORY_COURSES, mandatoryMet, $"{passedMandatoryCoursesCount}/{requiredMandatoryCourses.Count} completed", $"{requiredMandatoryCourses.Count}/{requiredMandatoryCourses.Count} required", checkDate, missingMandatoryCodes.Any() ? "Missing or failed: " + string.Join(", ", missingMandatoryCodes) : null));
+                CreateOrUpdateResult(EligibilityCheckType.MANDATORY_COURSES, mandatoryMet, $"{passedMandatoryCoursesCount}/{requiredMandatoryCourses.Count} completed", $"{requiredMandatoryCourses.Count}/{requiredMandatoryCourses.Count} required", missingMandatoryCodes.Any() ? "Missing or failed: " + string.Join(", ", missingMandatoryCodes) : null);
                 if (!mandatoryMet) currentProcessOverallSuccess = false;
 
                 Func<CourseType, int> countPassedElectives = (courseType) => coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == courseType);
@@ -151,7 +185,7 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
                 {
                     int actualTechElectives = countPassedElectives(CourseType.ELECTIVE_TECHNICAL);
                     bool techElectivesMet = actualTechElectives >= requirementSet.MinTechnicalElectiveCoursesCount.Value;
-                    resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.TECHNICAL_ELECTIVES, techElectivesMet, actualTechElectives.ToString(), requirementSet.MinTechnicalElectiveCoursesCount.Value.ToString(), checkDate, debugMessage)); 
+                    CreateOrUpdateResult(EligibilityCheckType.TECHNICAL_ELECTIVES, techElectivesMet, actualTechElectives.ToString(), requirementSet.MinTechnicalElectiveCoursesCount.Value.ToString(), debugMessage);
                     if (!techElectivesMet) currentProcessOverallSuccess = false;
                 }
 
@@ -160,22 +194,28 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
                 {
                     int actualNonTechElectives = countPassedElectives(CourseType.ELECTIVE_NON_TECHNICAL);
                     bool nonTechElectivesMet = actualNonTechElectives >= requirementSet.MinNonTechnicalElectiveCoursesCount.Value;
-                    resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.NON_TECHNICAL_ELECTIVES, nonTechElectivesMet, actualNonTechElectives.ToString(), requirementSet.MinNonTechnicalElectiveCoursesCount.Value.ToString(), checkDate, debugMessage));
+                    CreateOrUpdateResult(EligibilityCheckType.NON_TECHNICAL_ELECTIVES, nonTechElectivesMet, actualNonTechElectives.ToString(), requirementSet.MinNonTechnicalElectiveCoursesCount.Value.ToString(), debugMessage);
                     if (!nonTechElectivesMet) currentProcessOverallSuccess = false;
                 }
                 
                 // TODO: University Electives Check (MinUniversityElectiveCoursesCount)
                 // if (requirementSet.MinUniversityElectiveCoursesCount.HasValue) { ... if(!univElectivesMet) currentProcessOverallSuccess = false; }
 
+                // Save new and updated results
                 if (resultsToCreate.Any())
                     await _eligibilityCheckResultRepository.AddRangeAsync(resultsToCreate);
                 
+                if (resultsToUpdate.Any())
+                    await _eligibilityCheckResultRepository.UpdateRangeAsync(resultsToUpdate);
+                
+                var allResultIds = resultsToCreate.Select(r => r.Id).Concat(resultsToUpdate.Select(r => r.Id)).ToList();
+                
                 currentProcessSummary.IsSuccess = currentProcessOverallSuccess;
-                currentProcessSummary.ChecksPerformedCount = resultsToCreate.Count;
-                currentProcessSummary.EligibilityCheckResultIds = resultsToCreate.Select(r => r.Id).ToList();
+                currentProcessSummary.ChecksPerformedCount = allResultIds.Count;
+                currentProcessSummary.EligibilityCheckResultIds = allResultIds;
                 currentProcessSummary.Message = currentProcessOverallSuccess 
-                    ? $"System eligibility checks performed successfully. {resultsToCreate.Count} checks created."
-                    : $"System eligibility checks performed. Some criteria were not met. {resultsToCreate.Count} checks created.";
+                    ? $"System eligibility checks performed successfully. {resultsToCreate.Count} new checks created, {resultsToUpdate.Count} existing checks updated."
+                    : $"System eligibility checks performed. Some criteria were not met. {resultsToCreate.Count} new checks created, {resultsToUpdate.Count} existing checks updated.";
                 response.SuccessfullyProcessedCount++;
             }
             catch (Exception ex) // Catch broader exceptions for robustness in batch

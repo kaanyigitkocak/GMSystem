@@ -15,7 +15,15 @@ public static class PersistenceServiceRegistration
         services.AddDbContext<BaseDbContext>(options =>
         {
             // PostgreSQL bağlantı dizesini kullanmak için UseNpgsql metodunu kullanıyoruz.
-            options.UseNpgsql(configuration.GetConnectionString("BaseDb123"), options => options.CommandTimeout(120));
+            options.UseNpgsql(configuration.GetConnectionString("BaseDb123"), npgsqlOptions => 
+            {
+                npgsqlOptions.CommandTimeout(120);
+                npgsqlOptions.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorCodesToAdd: null
+                );
+            });
             options.EnableSensitiveDataLogging();
         });
         services.AddDbMigrationApplier(buildServices => buildServices.GetRequiredService<BaseDbContext>());

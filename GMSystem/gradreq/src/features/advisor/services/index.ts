@@ -264,3 +264,201 @@ export type {
   Notification,
   CourseTaken,
 };
+
+// New service functions for advisor actions
+export const setAdvisorEligible = async (
+  studentUserIds: string[],
+  advisorUserId: string
+): Promise<void> => {
+  // Log the request parameters
+  console.log("🔍 [API Request] setAdvisorEligible - Parameters:", {
+    studentUserIds,
+    advisorUserId,
+    endpoint: "/api/GraduationProcesses/SetAdvisorEligible",
+  });
+
+  try {
+    // Get auth token from localStorage
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await fetch(
+      "/api/GraduationProcesses/SetAdvisorEligible",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({ studentUserIds, advisorUserId }),
+      }
+    );
+
+    // Log the raw response
+    console.log(
+      "📡 [API Response] setAdvisorEligible - Status:",
+      response.status,
+      response.statusText
+    );
+
+    // Clone the response to avoid consuming it
+    const clonedResponse = response.clone();
+
+    // Try to parse and log the response body
+    try {
+      const responseData = await clonedResponse.json();
+      console.log("✅ [API Response] setAdvisorEligible - Body:", responseData);
+    } catch (parseError) {
+      console.log(
+        "⚠️ [API Response] setAdvisorEligible - Body could not be parsed as JSON"
+      );
+    }
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Failed to set advisor eligible" }));
+      console.error("❌ [API Error] setAdvisorEligible:", errorData);
+      throw new Error(errorData.message || "Failed to set advisor eligible");
+    }
+
+    console.log("✅ [API Success] setAdvisorEligible completed successfully");
+  } catch (error) {
+    console.error("❌ [API Exception] setAdvisorEligible:", error);
+    throw error;
+  }
+};
+
+export const setAdvisorNotEligible = async (
+  studentUserIds: string[],
+  advisorUserId: string,
+  rejectionReason: string
+): Promise<void> => {
+  // Log the request parameters
+  console.log("🔍 [API Request] setAdvisorNotEligible - Parameters:", {
+    studentUserIds,
+    advisorUserId,
+    rejectionReason,
+    endpoint: "/api/GraduationProcesses/SetAdvisorNotEligible",
+  });
+
+  try {
+    // Get auth token from localStorage
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await fetch(
+      "/api/GraduationProcesses/SetAdvisorNotEligible",
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${authToken}`,
+        },
+        body: JSON.stringify({
+          studentUserIds,
+          advisorUserId,
+          rejectionReason,
+        }),
+      }
+    );
+
+    // Log the raw response
+    console.log(
+      "📡 [API Response] setAdvisorNotEligible - Status:",
+      response.status,
+      response.statusText
+    );
+
+    // Clone the response to avoid consuming it
+    const clonedResponse = response.clone();
+
+    // Try to parse and log the response body
+    try {
+      const responseData = await clonedResponse.json();
+      console.log(
+        "✅ [API Response] setAdvisorNotEligible - Body:",
+        responseData
+      );
+    } catch (parseError) {
+      console.log(
+        "⚠️ [API Response] setAdvisorNotEligible - Body could not be parsed as JSON"
+      );
+    }
+
+    if (!response.ok) {
+      const errorData = await response
+        .json()
+        .catch(() => ({ message: "Failed to set advisor not eligible" }));
+      console.error("❌ [API Error] setAdvisorNotEligible:", errorData);
+      throw new Error(
+        errorData.message || "Failed to set advisor not eligible"
+      );
+    }
+
+    console.log(
+      "✅ [API Success] setAdvisorNotEligible completed successfully"
+    );
+  } catch (error) {
+    console.error("❌ [API Exception] setAdvisorNotEligible:", error);
+    throw error;
+  }
+};
+
+// New service function to get Advisor ID
+export const getAdvisorId = async (): Promise<string | null> => {
+  console.log(
+    "🔍 [API Request] getAdvisorId - Fetching from /api/Users/GetFromAuth"
+  );
+
+  try {
+    // Get auth token from localStorage
+    const authToken = localStorage.getItem("authToken");
+    if (!authToken) {
+      throw new Error("No authentication token found");
+    }
+
+    const response = await fetch("/api/Users/GetFromAuth", {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    console.log(
+      "📡 [API Response] getAdvisorId - Status:",
+      response.status,
+      response.statusText
+    );
+
+    if (!response.ok) {
+      console.error(
+        "❌ [API Error] getAdvisorId - Failed with status:",
+        response.status
+      );
+      throw new Error("Failed to fetch advisor ID");
+    }
+
+    const userData = await response.json();
+    console.log("✅ [API Response] getAdvisorId - User data:", userData);
+
+    if (!userData.id) {
+      console.warn(
+        "⚠️ [API Warning] getAdvisorId - No ID found in response:",
+        userData
+      );
+    } else {
+      console.log("✅ [API Success] getAdvisorId - Retrieved ID:", userData.id);
+    }
+
+    return userData.id; // This should be the user ID from the response
+  } catch (error) {
+    console.error("❌ [API Exception] getAdvisorId:", error);
+    throw error; // Re-throw to be handled by the component
+  }
+};

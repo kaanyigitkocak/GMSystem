@@ -42,6 +42,23 @@ public class BaseDbContext : DbContext
         Configuration = configuration;
     }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+    {
+        // Eğer options zaten konfigüre edilmemişse, backup konfigürasyon
+        if (!optionsBuilder.IsConfigured)
+        {
+            optionsBuilder.UseNpgsql(Configuration.GetConnectionString("BaseDb123"), options =>
+            {
+                options.CommandTimeout(120);
+                options.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorCodesToAdd: null
+                );
+            });
+        }
+    }
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.ApplyConfigurationsFromAssembly(typeof(BaseDbContext).Assembly);

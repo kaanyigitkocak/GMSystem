@@ -169,23 +169,77 @@ export const getStudentsApi = async (): Promise<Student[]> => {
         hasNext: boolean;
       }>(response);
 
-      // Filter students that are assigned to this advisor and map the backend response to our frontend model
-      const allStudents = data.items
-        .filter((item) => item.assignedAdvisorUserId === advisorData.advisorId)
-        .map((item) => ({
-          id: item.id || item.studentId || item.studentNumber,
-          name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
-          department: item.departmentName || advisorData.departmentName,
-          gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A",
-          status: mapStudentStatus(item.graduationStatus),
-          email: item.email || "",
-          phone: item.phoneNumber || item.phone || "",
-          lastMeeting: item.lastMeetingDate || "",
-          studentNumber: item.studentNumber || item.id,
-          ectsCompleted: item.currentEctsCompleted || 0,
-          enrollDate: item.enrollDate || "",
-          graduationStatus: item.graduationStatus || 0,
-        }));
+      // Filter students that are assigned to this advisor
+      const filteredStudents = data.items.filter(
+        (item) => item.assignedAdvisorUserId === advisorData.advisorId
+      );
+
+      console.log(
+        `🔍 [AdvisorApiDebug] Found ${filteredStudents.length} students assigned to advisor. Fetching detailed data with graduation process...`
+      );
+
+      // For each student, fetch detailed data including graduation process
+      const allStudents = await Promise.all(
+        filteredStudents.map(async (item) => {
+          try {
+            // Fetch individual student data to get graduation process
+            const studentResponse = await fetch(
+              `${apiBaseUrl}/Students/${item.id}`,
+              {
+                ...fetchOptions,
+                method: "GET",
+                headers: {
+                  ...fetchOptions.headers,
+                  Authorization: `Bearer ${authToken}`,
+                },
+              }
+            );
+
+            const studentDetailData = await handleApiResponse<any>(studentResponse);
+            
+            console.log(
+              `🔍 [AdvisorApiDebug] Student ${item.firstName} ${item.lastName} graduation process:`,
+              studentDetailData.graduationProcess
+            );
+
+            return {
+              id: item.id || item.studentId || item.studentNumber,
+              name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
+              department: item.departmentName || advisorData.departmentName,
+              gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A",
+              status: mapStudentStatus(item.graduationStatus),
+              email: item.email || "",
+              phone: item.phoneNumber || item.phone || "",
+              lastMeeting: item.lastMeetingDate || "",
+              studentNumber: item.studentNumber || item.id,
+              ectsCompleted: item.currentEctsCompleted || 0,
+              enrollDate: item.enrollDate || "",
+              graduationStatus: item.graduationStatus || 0,
+              graduationProcess: studentDetailData.graduationProcess || undefined,
+            };
+          } catch (error) {
+            console.warn(
+              `⚠️ [AdvisorApiDebug] Failed to fetch detailed data for student ${item.id}:`,
+              error
+            );
+            // Return basic student data without graduation process if individual fetch fails
+            return {
+              id: item.id || item.studentId || item.studentNumber,
+              name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
+              department: item.departmentName || advisorData.departmentName,
+              gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A",
+              status: mapStudentStatus(item.graduationStatus),
+              email: item.email || "",
+              phone: item.phoneNumber || item.phone || "",
+              lastMeeting: item.lastMeetingDate || "",
+              studentNumber: item.studentNumber || item.id,
+              ectsCompleted: item.currentEctsCompleted || 0,
+              enrollDate: item.enrollDate || "",
+              graduationStatus: item.graduationStatus || 0,
+            };
+          }
+        })
+      );
 
       // Cache the students data
       const studentsToCache: CachedStudentsData = {

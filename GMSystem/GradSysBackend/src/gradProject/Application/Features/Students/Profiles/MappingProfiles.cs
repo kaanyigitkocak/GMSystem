@@ -34,5 +34,8 @@ public class MappingProfiles : Profile
             .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Department.Faculty.Name))
             .ReverseMap();
         CreateMap<IPaginate<Student>, GetListResponse<GetListStudentListItemDto>>().ReverseMap();
+        
+        // GraduationProcess to GraduationProcessInfo mapping
+        CreateMap<GraduationProcess, GraduationProcessInfo>().ReverseMap();
     }
 }

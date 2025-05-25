@@ -22,7 +22,8 @@ import {
   TableRow,
   IconButton,
   Tooltip,
-  Snackbar
+  Snackbar,
+  TextField
 } from '@mui/material';
 import { 
   Visibility, 
@@ -37,7 +38,7 @@ import { useState } from 'react';
 // import { useNavigate } from 'react-router-dom';
 import type { Student, EligibilityCheckType, CourseTaken } from '../services/types';
 import { useEligibility } from '../contexts/EligibilityContext';
-import { getStudentCourseTakens } from '../services';
+import { getStudentCourseTakens, setAdvisorEligible, setAdvisorNotEligible, getAdvisorId } from '../services';
 
 const Grid = MuiGrid as any;
 
@@ -53,6 +54,51 @@ const getCheckTypeName = (checkType: EligibilityCheckType): string => {
     case 7: return 'Failed Course Limit';
     default: return 'Unknown';
   }
+};
+
+// Helper function to check if student is already approved by advisor
+const isStudentApprovedByAdvisor = (student: Student, recentlyApproved: Set<string>): boolean => {
+  const processStatus = student.graduationProcess?.status;
+  const isApproved = processStatus === 5 || recentlyApproved.has(student.id);
+  
+  // Debug log for troubleshooting
+  if (processStatus) {
+    console.log(`Student ${student.name} (${student.id}) - graduationProcess.status: ${processStatus}, isApproved: ${isApproved}`);
+  }
+  
+  return isApproved;
+};
+
+// Helper function to check if student is already rejected by advisor
+const isStudentRejectedByAdvisor = (student: Student, recentlyRejected: Set<string>): boolean => {
+  const processStatus = student.graduationProcess?.status;
+  const isRejected = processStatus === 6 || recentlyRejected.has(student.id);
+  
+  // Debug log for troubleshooting
+  if (processStatus) {
+    console.log(`Student ${student.name} (${student.id}) - graduationProcess.status: ${processStatus}, isRejected: ${isRejected}`);
+  }
+  
+  return isRejected;
+};
+
+// Helper function to get row background color based on approval/rejection status
+const getRowBackgroundColor = (student: Student, recentlyApproved: Set<string>, recentlyRejected: Set<string>): string => {
+  const processStatus = student.graduationProcess?.status;
+  
+  // Priority: Rejected (red) > Approved (green) > Normal (transparent)
+  if (isStudentRejectedByAdvisor(student, recentlyRejected)) {
+    console.log(`Setting RED background for student ${student.name} - status: ${processStatus}`);
+    return '#ffebee'; // Light red background for rejected students (status = 6)
+  }
+  
+  if (isStudentApprovedByAdvisor(student, recentlyApproved)) {
+    console.log(`Setting GREEN background for student ${student.name} - status: ${processStatus}`);
+    return '#e8f5e8'; // Light green background for approved students (status = 5)
+  }
+  
+  console.log(`Setting TRANSPARENT background for student ${student.name} - status: ${processStatus}`);
+  return 'transparent'; // Normal background for status = 1 or other values
 };
 
 // Helper function to sort students by eligibility and GPA
@@ -96,6 +142,14 @@ const ApprovalRankingPage = () => {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  
+  // Rejection dialog state
+  const [rejectionDialogOpen, setRejectionDialogOpen] = useState(false);
+  const [studentToReject, setStudentToReject] = useState<Student | null>(null);
+  const [rejectionReason, setRejectionReason] = useState<string>('');
+  const [submittingApproval, setSubmittingApproval] = useState(false);
+  const [recentlyApprovedStudents, setRecentlyApprovedStudents] = useState<Set<string>>(new Set());
+  const [recentlyRejectedStudents, setRecentlyRejectedStudents] = useState<Set<string>>(new Set());
 
   const handlePerformEligibilityChecks = async () => {
     try {
@@ -171,23 +225,79 @@ const ApprovalRankingPage = () => {
 
   const handleApproveStudent = async (student: Student) => {
     try {
-      // TODO: Implement approve API call
-      console.log("🔍 [ApprovalRanking] Approving student:", student.id);
+      setSubmittingApproval(true);
+      
+      // Get advisor ID
+      const advisorId = await getAdvisorId();
+      if (!advisorId) {
+        throw new Error('Unable to get advisor ID');
+      }
+      
+      console.log("🔍 [ApprovalRanking] Approving student:", student.id, "by advisor:", advisorId);
+      
+      // Call API to approve student
+      await setAdvisorEligible([student.id], advisorId);
+      
+      // Add student to recently approved list for immediate UI feedback
+      setRecentlyApprovedStudents(prev => new Set([...prev, student.id]));
+      
       setSuccessMessage(`Student ${student.name} has been approved for graduation.`);
+      
+      // Refresh the data to get updated status including graduation status
+      await fetchEligibilityData();
     } catch (error) {
       setErrorMessage('Failed to approve student. Please try again.');
       console.error('Failed to approve student:', error);
+    } finally {
+      setSubmittingApproval(false);
     }
   };
 
-  const handleRejectStudent = async (student: Student) => {
+  const handleRejectStudent = (student: Student) => {
+    setStudentToReject(student);
+    setRejectionReason('');
+    setRejectionDialogOpen(true);
+  };
+
+  const handleCloseRejectionDialog = () => {
+    setRejectionDialogOpen(false);
+    setStudentToReject(null);
+    setRejectionReason('');
+  };
+
+  const handleSubmitRejection = async () => {
+    if (!studentToReject || !rejectionReason.trim()) {
+      setErrorMessage('Please provide a rejection reason.');
+      return;
+    }
+
     try {
-      // TODO: Implement reject API call
-      console.log("🔍 [ApprovalRanking] Rejecting student:", student.id);
-      setSuccessMessage(`Student ${student.name} has been rejected for graduation.`);
+      setSubmittingApproval(true);
+      
+      // Get advisor ID
+      const advisorId = await getAdvisorId();
+      if (!advisorId) {
+        throw new Error('Unable to get advisor ID');
+      }
+      
+      console.log("🔍 [ApprovalRanking] Rejecting student:", studentToReject.id, "by advisor:", advisorId, "reason:", rejectionReason);
+      
+      // Call API to reject student
+      await setAdvisorNotEligible([studentToReject.id], advisorId, rejectionReason.trim());
+      
+      // Add student to recently rejected list for immediate UI feedback
+      setRecentlyRejectedStudents(prev => new Set([...prev, studentToReject.id]));
+      
+      setSuccessMessage(`Student ${studentToReject.name} has been rejected for graduation.`);
+      
+      // Close dialog and refresh data
+      handleCloseRejectionDialog();
+      await fetchEligibilityData();
     } catch (error) {
       setErrorMessage('Failed to reject student. Please try again.');
       console.error('Failed to reject student:', error);
+    } finally {
+      setSubmittingApproval(false);
     }
   };
 
@@ -381,7 +491,7 @@ const ApprovalRankingPage = () => {
                     </TableHead>
                     <TableBody>
                       {sortedStudents.map((student, index) => (
-                        <TableRow key={student.id}>
+                        <TableRow key={student.id} sx={{ backgroundColor: getRowBackgroundColor(student, recentlyApprovedStudents, recentlyRejectedStudents) }}>
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                               #{index + 1}
@@ -402,15 +512,56 @@ const ApprovalRankingPage = () => {
                             </Typography>
                           </TableCell>
                           <TableCell>
-                            {student.eligibilityStatus?.hasResults ? (
-                              <Chip
-                                label={student.eligibilityStatus.isEligible ? 'Eligible' : 'Not Eligible'}
-                                color={student.eligibilityStatus.isEligible ? 'success' : 'error'}
-                                size="small"
-                              />
-                            ) : (
-                              <Chip label="No Results Available" color="warning" size="small" />
-                            )}
+                            {(() => {
+                              const processStatus = student.graduationProcess?.status;
+                              const isRejected = isStudentRejectedByAdvisor(student, recentlyRejectedStudents);
+                              const isApproved = isStudentApprovedByAdvisor(student, recentlyApprovedStudents);
+                              
+                              console.log(`Rendering status chip for ${student.name}: processStatus=${processStatus}, isRejected=${isRejected}, isApproved=${isApproved}`);
+                              
+                              if (isRejected) {
+                                return (
+                                  <Chip
+                                    label="Rejected by Advisor"
+                                    color="error"
+                                    size="small"
+                                    sx={{ 
+                                      backgroundColor: '#d32f2f',
+                                      color: 'white',
+                                      fontWeight: 'bold'
+                                    }}
+                                  />
+                                );
+                              }
+                              
+                              if (isApproved) {
+                                return (
+                                  <Chip
+                                    label="Approved by Advisor"
+                                    color="success"
+                                    size="small"
+                                    sx={{ 
+                                      backgroundColor: '#2e7d32',
+                                      color: 'white',
+                                      fontWeight: 'bold'
+                                    }}
+                                  />
+                                );
+                              }
+                              
+                              // Normal status based on eligibility
+                              if (student.eligibilityStatus?.hasResults) {
+                                return (
+                                  <Chip
+                                    label={student.eligibilityStatus.isEligible ? 'Eligible' : 'Not Eligible'}
+                                    color={student.eligibilityStatus.isEligible ? 'success' : 'error'}
+                                    size="small"
+                                  />
+                                );
+                              }
+                              
+                              return <Chip label="No Results Available" color="warning" size="small" />;
+                            })()}
                           </TableCell>
                           <TableCell>
                             {student.eligibilityStatus?.lastCheckDate
@@ -438,20 +589,55 @@ const ApprovalRankingPage = () => {
                                   <Description />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Approve for Graduation">
+                              <Tooltip title={
+                                isStudentRejectedByAdvisor(student, recentlyRejectedStudents)
+                                  ? "Student already rejected by advisor"
+                                  : isStudentApprovedByAdvisor(student, recentlyApprovedStudents) 
+                                  ? "Student already approved by advisor" 
+                                  : "Approve for Graduation"
+                              }>
                                 <IconButton
                                   onClick={() => handleApproveStudent(student)}
-                                  disabled={!student.eligibilityStatus?.hasResults || !student.eligibilityStatus.isEligible}
+                                  disabled={(() => {
+                                    const hasResults = student.eligibilityStatus?.hasResults;
+                                    const isEligible = student.eligibilityStatus?.isEligible;
+                                    const isApproved = isStudentApprovedByAdvisor(student, recentlyApprovedStudents);
+                                    const isRejected = isStudentRejectedByAdvisor(student, recentlyRejectedStudents);
+                                    const processStatus = student.graduationProcess?.status;
+                                    
+                                    const disabled = !hasResults || !isEligible || submittingApproval || isApproved || isRejected;
+                                    
+                                    console.log(`Approve button for ${student.name}: processStatus=${processStatus}, hasResults=${hasResults}, isEligible=${isEligible}, isApproved=${isApproved}, isRejected=${isRejected}, disabled=${disabled}`);
+                                    
+                                    return disabled;
+                                  })()}
                                   size="small"
                                   color="success"
                                 >
                                   <CheckCircle />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Reject for Graduation">
+                              <Tooltip title={
+                                isStudentRejectedByAdvisor(student, recentlyRejectedStudents)
+                                  ? "Student already rejected by advisor"
+                                  : isStudentApprovedByAdvisor(student, recentlyApprovedStudents) 
+                                  ? "Student already approved by advisor" 
+                                  : "Reject for Graduation"
+                              }>
                                 <IconButton
                                   onClick={() => handleRejectStudent(student)}
-                                  disabled={!student.eligibilityStatus?.hasResults}
+                                  disabled={(() => {
+                                    const hasResults = student.eligibilityStatus?.hasResults;
+                                    const isApproved = isStudentApprovedByAdvisor(student, recentlyApprovedStudents);
+                                    const isRejected = isStudentRejectedByAdvisor(student, recentlyRejectedStudents);
+                                    const processStatus = student.graduationProcess?.status;
+                                    
+                                    const disabled = !hasResults || submittingApproval || isApproved || isRejected;
+                                    
+                                    console.log(`Reject button for ${student.name}: processStatus=${processStatus}, hasResults=${hasResults}, isApproved=${isApproved}, isRejected=${isRejected}, disabled=${disabled}`);
+                                    
+                                    return disabled;
+                                  })()}
                                   size="small"
                                   color="error"
                                 >
@@ -638,6 +824,42 @@ const ApprovalRankingPage = () => {
         </DialogActions>
       </Dialog>
 
+      {/* Rejection Dialog */}
+      <Dialog open={rejectionDialogOpen} onClose={handleCloseRejectionDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Reject Student for Graduation</DialogTitle>
+        <DialogContent>
+          <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+            Student: {studentToReject?.name} ({studentToReject?.studentNumber || studentToReject?.id})
+          </Typography>
+          <Typography variant="body2" sx={{ mb: 2 }}>
+            Please provide a reason for rejecting this student's graduation application:
+          </Typography>
+          <TextField
+            fullWidth
+            multiline
+            rows={4}
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            placeholder="Enter rejection reason..."
+            variant="outlined"
+            required
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseRejectionDialog} disabled={submittingApproval}>
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmitRejection} 
+            variant="contained" 
+            color="error"
+            disabled={submittingApproval || !rejectionReason.trim()}
+          >
+            {submittingApproval ? 'Rejecting...' : 'Reject Student'}
+          </Button>
+        </DialogActions>
+      </Dialog>
+
       {/* Success Snackbar */}
       <Snackbar
         open={!!successMessage}
@@ -663,4 +885,4 @@ const ApprovalRankingPage = () => {
   );
 };
 
-export default ApprovalRankingPage; 
+export default ApprovalRankingPage;

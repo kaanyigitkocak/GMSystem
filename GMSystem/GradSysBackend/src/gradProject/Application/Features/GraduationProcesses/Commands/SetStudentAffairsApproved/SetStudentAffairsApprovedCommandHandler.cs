@@ -45,15 +45,14 @@ public class SetStudentAffairsApprovedCommandHandler : IRequestHandler<SetStuden
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId &&
-                                     gp.Status == GraduationProcessStatus.PENDING_STUDENT_AFFAIRS_FINALIZATION,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found for student {studentId} or not in the expected state (PENDING_STUDENT_AFFAIRS_FINALIZATION).";
+                    summary.Message = $"Graduation process not found for student {studentId}.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -74,21 +73,16 @@ public class SetStudentAffairsApprovedCommandHandler : IRequestHandler<SetStuden
                     continue;
                 }
 
-                // Update GraduationProcess - Step 1: Mark as Student Affairs Approved
+                // Update GraduationProcess - Set student affairs as approved
                 graduationProcess.Status = GraduationProcessStatus.STUDENT_AFFAIRS_APPROVED;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;
                 graduationProcess.StudentAffairsUserId = request.StudentAffairsUserId;
                 graduationProcess.StudentAffairsReviewDate = DateTime.UtcNow;
                 await _graduationProcessRepository.UpdateAsync(graduationProcess);
-
-                // Update GraduationProcess - Step 2: Mark as Completed Graduated
-                graduationProcess.Status = GraduationProcessStatus.COMPLETED_GRADUATED;
-                graduationProcess.LastUpdateDate = DateTime.UtcNow; // Update timestamp again
-                await _graduationProcessRepository.UpdateAsync(graduationProcess);
                 summary.NewGraduationProcessStatus = graduationProcess.Status;
 
-                // Update Student: Mark as Graduated
-                student.GraduationStatus = StudentGraduationStatus.GRADUATED; // Assuming this enum value exists
+                // Update Student
+                student.GraduationStatus = StudentGraduationStatus.GRADUATED;
                 student.UpdatedDate = DateTime.UtcNow;
                 await _studentRepository.UpdateAsync(student);
                 summary.NewStudentGraduationStatus = student.GraduationStatus;
@@ -98,8 +92,8 @@ public class SetStudentAffairsApprovedCommandHandler : IRequestHandler<SetStuden
                 {
                     Id = Guid.NewGuid(),
                     RecipientUserId = studentId,
-                    Title = "Congratulations! You have Graduated!",
-                    Message = $"Your graduation process has been successfully finalized by Student Affairs. You are now officially graduated! Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'.",
+                    Title = "Graduation Process Update: Student Affairs Approved - Graduated!",
+                    Message = $"Congratulations! Your graduation process has been approved by Student Affairs. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. You have successfully graduated!",
                     CreationDate = DateTime.UtcNow,
                     IsRead = false,
                     RelatedProcessId = graduationProcess.Id
@@ -107,7 +101,7 @@ public class SetStudentAffairsApprovedCommandHandler : IRequestHandler<SetStuden
                 await _notificationRepository.AddAsync(notification);
 
                 summary.Success = true;
-                summary.Message = $"Successfully finalized by Student Affairs and marked as graduated. Notification sent. Process: {graduationProcess.Status.ToString()}, Student: {student.GraduationStatus.ToString()}.";
+                summary.Message = $"Successfully approved by Student Affairs. Student graduated! Notification sent. Process: {graduationProcess.Status.ToString()}, Student: {student.GraduationStatus.ToString()}.";
                 response.SuccessfullyProcessedCount++;
             }
             catch (Exception ex)

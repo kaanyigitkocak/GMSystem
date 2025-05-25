@@ -17,4 +17,27 @@ public class GetByIdStudentResponse : IResponse
     public int? CurrentEctsCompleted { get; set; }
     public StudentGraduationStatus GraduationStatus { get; set; }
     public Guid? AssignedAdvisorUserId { get; set; }
+    
+    // Graduation Process Information
+    public GraduationProcessInfo? GraduationProcess { get; set; }
+}
+
+public class GraduationProcessInfo
+{
+    public Guid Id { get; set; }
+    public GraduationProcessStatus Status { get; set; }
+    public string AcademicTerm { get; set; }
+    public DateTime CreationDate { get; set; }
+    public DateTime? LastUpdateDate { get; set; }
+    public string? Notes { get; set; }
+    
+    // Review Information
+    public Guid? AdvisorUserId { get; set; }
+    public DateTime? AdvisorReviewDate { get; set; }
+    public Guid? DeptSecretaryUserId { get; set; }
+    public DateTime? DeptSecretaryReviewDate { get; set; }
+    public Guid? DeansOfficeUserId { get; set; }
+    public DateTime? DeansOfficeReviewDate { get; set; }
+    public Guid? StudentAffairsUserId { get; set; }
+    public DateTime? StudentAffairsReviewDate { get; set; }
 }

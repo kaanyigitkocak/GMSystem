@@ -45,15 +45,14 @@ public class SetDeptSecretaryApprovedCommandHandler : IRequestHandler<SetDeptSec
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId &&
-                                     gp.Status == GraduationProcessStatus.PENDING_DEPT_SECRETARY_APPROVAL,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found for student {studentId} or not in the expected state (PENDING_DEPT_SECRETARY_APPROVAL).";
+                    summary.Message = $"Graduation process not found for student {studentId}.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -74,22 +73,16 @@ public class SetDeptSecretaryApprovedCommandHandler : IRequestHandler<SetDeptSec
                     continue;
                 }
 
-                // Update GraduationProcess - Step 1
+                // Update GraduationProcess - Set department secretary as approved
                 graduationProcess.Status = GraduationProcessStatus.DEPT_SECRETARY_APPROVED_PENDING_DEAN;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;
                 graduationProcess.DeptSecretaryUserId = request.DeptSecretaryUserId;
                 graduationProcess.DeptSecretaryReviewDate = DateTime.UtcNow;
-                // graduationProcess.Notes = request.Notes; // If notes are passed in command
-                await _graduationProcessRepository.UpdateAsync(graduationProcess);
-
-                // Update GraduationProcess - Step 2 (Final Status for this command)
-                graduationProcess.Status = GraduationProcessStatus.PENDING_DEANS_OFFICE_REVIEW;
-                graduationProcess.LastUpdateDate = DateTime.UtcNow; 
                 await _graduationProcessRepository.UpdateAsync(graduationProcess);
                 summary.NewGraduationProcessStatus = graduationProcess.Status;
 
                 // Update Student
-                student.GraduationStatus = StudentGraduationStatus.IN_APPROVAL_PROCESS; // Stays in approval, moves to next stage
+                student.GraduationStatus = StudentGraduationStatus.IN_APPROVAL_PROCESS;
                 student.UpdatedDate = DateTime.UtcNow;
                 await _studentRepository.UpdateAsync(student);
                 summary.NewStudentGraduationStatus = student.GraduationStatus;
@@ -100,7 +93,7 @@ public class SetDeptSecretaryApprovedCommandHandler : IRequestHandler<SetDeptSec
                     Id = Guid.NewGuid(),
                     RecipientUserId = studentId,
                     Title = "Graduation Process Update: Department Secretary Approved",
-                    Message = $"Your graduation process has been approved by the Department Secretary. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. Your application is now pending Dean's Office review.",
+                    Message = $"Your graduation process has been approved by the Department Secretary. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'.",
                     CreationDate = DateTime.UtcNow,
                     IsRead = false,
                     RelatedProcessId = graduationProcess.Id

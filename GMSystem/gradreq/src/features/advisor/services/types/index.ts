@@ -40,6 +40,24 @@ export interface StudentEligibilityStatus {
   lastCheckDate?: string;
 }
 
+// Types for graduation process
+export interface GraduationProcess {
+  id: string;
+  status: number;
+  academicTerm: string;
+  creationDate: string;
+  lastUpdateDate: string;
+  notes?: string | null;
+  advisorUserId?: string | null;
+  advisorReviewDate?: string | null;
+  deptSecretaryUserId?: string | null;
+  deptSecretaryReviewDate?: string | null;
+  deansOfficeUserId?: string | null;
+  deansOfficeReviewDate?: string | null;
+  studentAffairsUserId?: string | null;
+  studentAffairsReviewDate?: string | null;
+}
+
 // Types for student data
 export interface Student {
   id: string;
@@ -59,6 +77,7 @@ export interface Student {
   ectsCompleted?: number;
   enrollDate?: string;
   graduationStatus?: number;
+  graduationProcess?: GraduationProcess;
   eligibilityStatus?: StudentEligibilityStatus;
 }
 

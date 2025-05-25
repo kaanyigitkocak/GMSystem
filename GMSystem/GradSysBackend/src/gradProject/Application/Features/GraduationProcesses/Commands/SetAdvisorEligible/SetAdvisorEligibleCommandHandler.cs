@@ -47,15 +47,14 @@ public class SetAdvisorEligibleCommandHandler : IRequestHandler<SetAdvisorEligib
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId && 
-                                     gp.Status == GraduationProcessStatus.TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found or not in the expected state (TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK).";
+                    summary.Message = $"Graduation process not found for student.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -76,17 +75,11 @@ public class SetAdvisorEligibleCommandHandler : IRequestHandler<SetAdvisorEligib
                     continue;
                 }
 
-                // Update GraduationProcess
-                graduationProcess.Status = GraduationProcessStatus.ADVISOR_ELIGIBLE; // Intermediate status
+                // Update GraduationProcess - Set advisor as eligible
+                graduationProcess.Status = GraduationProcessStatus.ADVISOR_ELIGIBLE;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;
                 graduationProcess.AdvisorUserId = request.AdvisorUserId;
                 graduationProcess.AdvisorReviewDate = DateTime.UtcNow;
-                // graduationProcess.Notes = "Advisor approved eligibility."; 
-                await _graduationProcessRepository.UpdateAsync(graduationProcess);
-
-                // Second status update for GraduationProcess
-                graduationProcess.Status = GraduationProcessStatus.PENDING_DEPT_SECRETARY_APPROVAL;
-                graduationProcess.LastUpdateDate = DateTime.UtcNow; 
                 await _graduationProcessRepository.UpdateAsync(graduationProcess);
                 summary.NewGraduationProcessStatus = graduationProcess.Status;
 

@@ -46,15 +46,14 @@ public class SetAdvisorNotEligibleCommandHandler : IRequestHandler<SetAdvisorNot
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId && 
-                                     gp.Status == GraduationProcessStatus.TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found or not in the expected state (TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK).";
+                    summary.Message = $"Graduation process not found for student.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -75,7 +74,7 @@ public class SetAdvisorNotEligibleCommandHandler : IRequestHandler<SetAdvisorNot
                     continue;
                 }
 
-                // Update GraduationProcess
+                // Update GraduationProcess - Set advisor as not eligible
                 graduationProcess.Status = GraduationProcessStatus.ADVISOR_NOT_ELIGIBLE;
                 graduationProcess.Notes = request.RejectionReason;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;

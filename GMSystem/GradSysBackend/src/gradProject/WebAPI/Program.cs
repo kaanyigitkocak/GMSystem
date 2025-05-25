@@ -28,7 +28,8 @@ builder.Services.AddCors(options =>
         policy
             .AllowAnyOrigin()
             .AllowAnyMethod()
-            .AllowAnyHeader();
+            .AllowAnyHeader()
+            .WithExposedHeaders("*"); // Response header'larını expose et
     });
 });
 
@@ -109,16 +110,32 @@ builder.Services.AddSwaggerGen(s =>
 
 var app = builder.Build();
 
-// 6) Middleware pipeline
-app.UseRouting();
+// 6) Global CORS middleware - tüm isteklere CORS header'ları ekle
+app.Use(async (context, next) =>
+{
+    context.Response.Headers.Add("Access-Control-Allow-Origin", "*");
+    context.Response.Headers.Add("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+    context.Response.Headers.Add("Access-Control-Allow-Headers", "*");
+    context.Response.Headers.Add("Access-Control-Expose-Headers", "*");
+    
+    // OPTIONS preflight istekleri için
+    if (context.Request.Method == "OPTIONS")
+    {
+        context.Response.StatusCode = 200;
+        return;
+    }
+    
+    await next();
+});
 
-// 7) CORS'u burada uygula
+// 7) CORS'u en başta uygula - routing'den önce
 app.UseCors("AllowAllOrigins");
 
+// 7) Middleware pipeline
+app.UseRouting();
 
-    app.UseSwagger();
-    app.UseSwaggerUI(opt => opt.DocExpansion(DocExpansion.None));
-
+app.UseSwagger();
+app.UseSwaggerUI(opt => opt.DocExpansion(DocExpansion.None));
 
 //app.ConfigureCustomExceptionMiddleware();
 app.UseDbMigrationApplier();

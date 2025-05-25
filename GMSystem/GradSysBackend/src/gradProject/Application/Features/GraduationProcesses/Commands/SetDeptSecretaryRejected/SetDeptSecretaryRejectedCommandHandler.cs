@@ -45,15 +45,14 @@ public class SetDeptSecretaryRejectedCommandHandler : IRequestHandler<SetDeptSec
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId &&
-                                     gp.Status == GraduationProcessStatus.PENDING_DEPT_SECRETARY_APPROVAL,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found for student {studentId} or not in the expected state (PENDING_DEPT_SECRETARY_APPROVAL).";
+                    summary.Message = $"Graduation process not found for student {studentId}.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -74,18 +73,17 @@ public class SetDeptSecretaryRejectedCommandHandler : IRequestHandler<SetDeptSec
                     continue;
                 }
 
-                // Update GraduationProcess
+                // Update GraduationProcess - Set department secretary as rejected
                 graduationProcess.Status = GraduationProcessStatus.DEPT_SECRETARY_REJECTED_PROCESS;
+                graduationProcess.Notes = request.RejectionReason;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;
                 graduationProcess.DeptSecretaryUserId = request.DeptSecretaryUserId;
                 graduationProcess.DeptSecretaryReviewDate = DateTime.UtcNow;
-                graduationProcess.Notes = request.RejectionReason; 
                 await _graduationProcessRepository.UpdateAsync(graduationProcess);
                 summary.NewGraduationProcessStatus = graduationProcess.Status;
 
-                // Update Student Status
-                // If Dept Secretary rejects, the process likely needs re-evaluation from advisor stage or student needs to correct fundamental issues.
-                student.GraduationStatus = StudentGraduationStatus.PENDING_ELIGIBILITY_REVIEW_BY_ADVISOR; 
+                // Update Student
+                student.GraduationStatus = StudentGraduationStatus.PENDING_ELIGIBILITY_REVIEW_BY_ADVISOR;
                 student.UpdatedDate = DateTime.UtcNow;
                 await _studentRepository.UpdateAsync(student);
                 summary.NewStudentGraduationStatus = student.GraduationStatus;
@@ -96,7 +94,7 @@ public class SetDeptSecretaryRejectedCommandHandler : IRequestHandler<SetDeptSec
                     Id = Guid.NewGuid(),
                     RecipientUserId = studentId,
                     Title = "Graduation Process Update: Department Secretary Rejected",
-                    Message = $"Your graduation process has been rejected by the Department Secretary. Reason: '{request.RejectionReason}'. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. Please contact the department secretary or your advisor for next steps.",
+                    Message = $"Your graduation process has been rejected by the Department Secretary. Reason: '{request.RejectionReason}'. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. Please make necessary corrections and restart the process.",
                     CreationDate = DateTime.UtcNow,
                     IsRead = false,
                     RelatedProcessId = graduationProcess.Id

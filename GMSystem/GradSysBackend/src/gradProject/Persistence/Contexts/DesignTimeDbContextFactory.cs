@@ -16,7 +16,15 @@ namespace Persistence.Contexts
                 .Build();
 
             var optionsBuilder = new DbContextOptionsBuilder<BaseDbContext>();
-            optionsBuilder.UseNpgsql(configuration.GetConnectionString("BaseDb123"), options => options.CommandTimeout(60));
+            optionsBuilder.UseNpgsql(configuration.GetConnectionString("BaseDb123"), options => 
+            {
+                options.CommandTimeout(60);
+                options.EnableRetryOnFailure(
+                    maxRetryCount: 5,
+                    maxRetryDelay: TimeSpan.FromSeconds(30),
+                    errorCodesToAdd: null
+                );
+            });
 
             return new BaseDbContext(optionsBuilder.Options, configuration);
         }

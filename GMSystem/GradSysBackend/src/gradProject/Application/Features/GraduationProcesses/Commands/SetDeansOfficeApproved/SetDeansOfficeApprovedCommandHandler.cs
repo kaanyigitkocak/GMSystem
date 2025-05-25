@@ -45,15 +45,14 @@ public class SetDeansOfficeApprovedCommandHandler : IRequestHandler<SetDeansOffi
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId &&
-                                     gp.Status == GraduationProcessStatus.PENDING_DEANS_OFFICE_REVIEW,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found for student {studentId} or not in the expected state (PENDING_DEANS_OFFICE_REVIEW).";
+                    summary.Message = $"Graduation process not found for student {studentId}.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -74,21 +73,16 @@ public class SetDeansOfficeApprovedCommandHandler : IRequestHandler<SetDeansOffi
                     continue;
                 }
 
-                // Update GraduationProcess - Step 1
+                // Update GraduationProcess - Set dean's office as approved
                 graduationProcess.Status = GraduationProcessStatus.DEANS_OFFICE_APPROVED;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;
                 graduationProcess.DeansOfficeUserId = request.DeansOfficeUserId;
                 graduationProcess.DeansOfficeReviewDate = DateTime.UtcNow;
                 await _graduationProcessRepository.UpdateAsync(graduationProcess);
-
-                // Update GraduationProcess - Step 2 (Final Status for this command)
-                graduationProcess.Status = GraduationProcessStatus.PENDING_STUDENT_AFFAIRS_FINALIZATION;
-                graduationProcess.LastUpdateDate = DateTime.UtcNow;
-                await _graduationProcessRepository.UpdateAsync(graduationProcess);
                 summary.NewGraduationProcessStatus = graduationProcess.Status;
 
                 // Update Student
-                student.GraduationStatus = StudentGraduationStatus.IN_APPROVAL_PROCESS; // Stays in approval, moves to next stage
+                student.GraduationStatus = StudentGraduationStatus.IN_APPROVAL_PROCESS;
                 student.UpdatedDate = DateTime.UtcNow;
                 await _studentRepository.UpdateAsync(student);
                 summary.NewStudentGraduationStatus = student.GraduationStatus;
@@ -99,7 +93,7 @@ public class SetDeansOfficeApprovedCommandHandler : IRequestHandler<SetDeansOffi
                     Id = Guid.NewGuid(),
                     RecipientUserId = studentId,
                     Title = "Graduation Process Update: Dean's Office Approved",
-                    Message = $"Your graduation process has been approved by the Dean's Office. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. Your application is now pending Student Affairs finalization.",
+                    Message = $"Your graduation process has been approved by the Dean's Office. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'.",
                     CreationDate = DateTime.UtcNow,
                     IsRead = false,
                     RelatedProcessId = graduationProcess.Id

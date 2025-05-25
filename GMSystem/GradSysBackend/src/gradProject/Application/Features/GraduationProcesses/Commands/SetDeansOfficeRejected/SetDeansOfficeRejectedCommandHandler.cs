@@ -45,15 +45,14 @@ public class SetDeansOfficeRejectedCommandHandler : IRequestHandler<SetDeansOffi
             try
             {
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId &&
-                                     gp.Status == GraduationProcessStatus.PENDING_DEANS_OFFICE_REVIEW,
+                    predicate: gp => gp.StudentUserId == studentId,
                     cancellationToken: cancellationToken
                 );
 
                 if (graduationProcess == null)
                 {
                     summary.Success = false;
-                    summary.Message = $"Graduation process not found for student {studentId} or not in the expected state (PENDING_DEANS_OFFICE_REVIEW).";
+                    summary.Message = $"Graduation process not found for student {studentId}.";
                     response.FailedToProcessCount++;
                     response.ProcessSummaries.Add(summary);
                     continue;
@@ -74,16 +73,16 @@ public class SetDeansOfficeRejectedCommandHandler : IRequestHandler<SetDeansOffi
                     continue;
                 }
 
-                // Update GraduationProcess
+                // Update GraduationProcess - Set dean's office as rejected
                 graduationProcess.Status = GraduationProcessStatus.DEANS_OFFICE_REJECTED;
+                graduationProcess.Notes = request.RejectionReason;
                 graduationProcess.LastUpdateDate = DateTime.UtcNow;
                 graduationProcess.DeansOfficeUserId = request.DeansOfficeUserId;
                 graduationProcess.DeansOfficeReviewDate = DateTime.UtcNow;
-                graduationProcess.Notes = request.RejectionReason;
                 await _graduationProcessRepository.UpdateAsync(graduationProcess);
                 summary.NewGraduationProcessStatus = graduationProcess.Status;
 
-                // Update Student Status - Reverts to a state indicating need for fundamental re-evaluation.
+                // Update Student
                 student.GraduationStatus = StudentGraduationStatus.PENDING_ELIGIBILITY_REVIEW_BY_ADVISOR;
                 student.UpdatedDate = DateTime.UtcNow;
                 await _studentRepository.UpdateAsync(student);
@@ -95,7 +94,7 @@ public class SetDeansOfficeRejectedCommandHandler : IRequestHandler<SetDeansOffi
                     Id = Guid.NewGuid(),
                     RecipientUserId = studentId,
                     Title = "Graduation Process Update: Dean's Office Rejected",
-                    Message = $"Your graduation process has been rejected by the Dean's Office. Reason: '{request.RejectionReason}'. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. Please contact the department secretary or your advisor for next steps.",
+                    Message = $"Your graduation process has been rejected by the Dean's Office. Reason: '{request.RejectionReason}'. Process status: '{graduationProcess.Status.ToString()}'. Student status: '{student.GraduationStatus.ToString()}'. Please make necessary corrections and restart the process.",
                     CreationDate = DateTime.UtcNow,
                     IsRead = false,
                     RelatedProcessId = graduationProcess.Id

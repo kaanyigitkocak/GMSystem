@@ -20,6 +20,9 @@ import {
   getStudents,
   getStudentsWithEligibilityStatus,
   performSystemEligibilityChecks,
+  setAdvisorEligible,
+  setAdvisorNotEligible,
+  getAdvisorId,
 } from '../services';
 import type { Student } from '../services/types';
 
@@ -40,16 +43,37 @@ const MyStudentsPage = () => {
   const [students, setStudents] = useState<StudentWithEligibility[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [advisorId, setAdvisorId] = useState<string | null>(null);
+  const [advisorIdLoadingError, setAdvisorIdLoadingError] = useState<string | null>(null);
 
-  // Load students on component mount
+  // State for rejection dialog
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [rejectionReason, setRejectionReason] = useState('');
+  const [studentToReject, setStudentToReject] = useState<StudentWithEligibility | null>(null);
+  const [isProcessingApproval, setIsProcessingApproval] = useState(false);
+  const [processingStudentId, setProcessingStudentId] = useState<string | null>(null);
+
+  // Load students and advisor ID on component mount
   useEffect(() => {
-    const loadStudents = async () => {
+    const loadInitialData = async () => {
       try {
         setLoading(true);
         setError(null);
+        setAdvisorIdLoadingError(null);
+
+        // Fetch Advisor ID first
+        console.log('🔍 Loading Advisor ID...');
+        const fetchedAdvisorId = await getAdvisorId();
+        if (fetchedAdvisorId) {
+          setAdvisorId(fetchedAdvisorId);
+          console.log('✅ Advisor ID loaded:', fetchedAdvisorId);
+        } else {
+          console.error('❌ Failed to load Advisor ID or ID is null');
+          setAdvisorIdLoadingError('Failed to load Advisor ID. Approve/Reject actions will be disabled.');
+          // Potentially return early or handle this state in the UI
+        }
+
         console.log('🔍 Loading students directly from API...');
-        
-        // Try direct API call first
         const studentsData = await getStudents();
         console.log('✅ Students loaded directly from API:', studentsData);
         
@@ -57,15 +81,19 @@ const MyStudentsPage = () => {
           ...student,
           hasManualRequest: false
         })));
-      } catch (err) {
-        console.error('❌ Failed to load students:', err);
-        setError('Failed to load students. Please try again.');
+      } catch (err: any) {
+        console.error('❌ Failed to load initial data:', err);
+        const errorMessage = err.message || 'Failed to load data. Please try again.';
+        setError(errorMessage);
+        if (!advisorId && !advisorIdLoadingError) { // If advisor ID also failed implicitly
+            setAdvisorIdLoadingError('Failed to load Advisor ID due to a general error.');
+        }
       } finally {
         setLoading(false);
       }
     };
 
-    loadStudents();
+    loadInitialData();
   }, []);
 
   const filtered = students.filter(s =>
@@ -116,6 +144,90 @@ const MyStudentsPage = () => {
     }
   };
 
+  const handleApprove = async (studentId: string) => {
+    if (!advisorId) {
+      alert("Advisor ID is not available. Cannot approve.");
+      return;
+    }
+    
+    // Find student details for better logging
+    const student = students.find(s => s.id === studentId);
+    console.log(`🔍 [MyStudentsPage] Approving student: ${studentId}`, {
+      studentName: student?.name,
+      studentNumber: student?.studentNumber,
+      advisorId
+    });
+    
+    setProcessingStudentId(studentId);
+    setIsProcessingApproval(true);
+    try {
+      await setAdvisorEligible([studentId], advisorId);
+      console.log(`✅ [MyStudentsPage] Student ${studentId} approved successfully`);
+      // Optionally, refresh student data or update UI
+      alert(`Student ${student?.name || studentId} approved successfully.`);
+      // Example: Refresh student list
+      const updatedStudents = await getStudentsWithEligibilityStatus();
+      setStudents(updatedStudents.map(student => ({
+        ...student,
+        hasManualRequest: false // Reset or update as needed
+      })));
+    } catch (err) {
+      console.error('❌ [MyStudentsPage] Failed to approve student:', err);
+      alert(`Failed to approve student ${student?.name || studentId}. Please try again.`);
+    } finally {
+      setIsProcessingApproval(false);
+      setProcessingStudentId(null);
+    }
+  };
+
+  const handleOpenRejectDialog = (student: StudentWithEligibility) => {
+    setStudentToReject(student);
+    setRejectionReason('');
+    setRejectDialogOpen(true);
+  };
+
+  const handleCloseRejectDialog = () => {
+    setStudentToReject(null);
+    setRejectDialogOpen(false);
+  };
+
+  const handleSubmitRejectDialog = async () => {
+    if (!studentToReject || !rejectionReason) return;
+    if (!advisorId) {
+      alert("Advisor ID is not available. Cannot reject.");
+      return;
+    }
+
+    console.log(`🔍 [MyStudentsPage] Rejecting student: ${studentToReject.id}`, {
+      studentName: studentToReject.name,
+      studentNumber: studentToReject.studentNumber,
+      advisorId,
+      rejectionReason
+    });
+
+    setProcessingStudentId(studentToReject.id);
+    setIsProcessingApproval(true);
+    try {
+      await setAdvisorNotEligible([studentToReject.id], advisorId, rejectionReason);
+      console.log(`✅ [MyStudentsPage] Student ${studentToReject.id} rejected successfully`);
+      // Optionally, refresh student data or update UI
+      alert(`Student ${studentToReject.name} rejected successfully.`);
+      handleCloseRejectDialog();
+      // Example: Refresh student list
+      const updatedStudents = await getStudentsWithEligibilityStatus();
+      setStudents(updatedStudents.map(student => ({
+        ...student,
+        hasManualRequest: false // Reset or update as needed
+      })));
+    } catch (err) {
+      console.error('❌ [MyStudentsPage] Failed to reject student:', err);
+      alert(`Failed to reject student ${studentToReject.name}. Please try again.`);
+    } finally {
+      setIsProcessingApproval(false);
+      setProcessingStudentId(null);
+    }
+  };
+
   const getStatusChip = (student: StudentWithEligibility) => {
     if (student.status === 'Mezun') {
       return <Chip label="Graduated" color="info" size="small" />;
@@ -150,13 +262,32 @@ const MyStudentsPage = () => {
     );
   }
 
+  if (advisorIdLoadingError && !error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">{advisorIdLoadingError}</Alert>
+         <Typography sx={{ mt: 1, mb: 2 }} color="text.secondary">
+            Student approval/rejection functionalities will be disabled.
+            Please ensure you are properly logged in or contact support if the issue persists.
+        </Typography>
+        <Button 
+          variant="contained" 
+          sx={{ mt: 2 }}
+          onClick={() => window.location.reload()}
+        >
+          Retry Loading Page
+        </Button>
+      </Box>
+    );
+  }
+
   const selectedStudents = students.filter(s => selectedIds.includes(s.id));
 
   return (
     <Box sx={{ p: 3, position: 'relative' }}>
       <LoadingOverlay 
-        isLoading={isCheckingStatus} 
-        message="Checking graduation status..."
+        isLoading={isCheckingStatus || isProcessingApproval}
+        message={isCheckingStatus ? "Checking graduation status..." : "Processing request..."}
         color="info"
       />
       
@@ -251,6 +382,27 @@ const MyStudentsPage = () => {
                 >
                   Send Email
                 </Button>
+                {/* New Approve and Reject Buttons */}
+                <Button 
+                  size="small" 
+                  variant="contained" 
+                  color="primary"
+                  onClick={() => handleApprove(student.id)}
+                  disabled={processingStudentId === student.id || !advisorId || !!advisorIdLoadingError}
+                  sx={{ ml: 1 }}
+                >
+                  {processingStudentId === student.id && isProcessingApproval ? 'Approving...' : 'Approve'}
+                </Button>
+                <Button 
+                  size="small" 
+                  variant="outlined" 
+                  color="error"
+                  onClick={() => handleOpenRejectDialog(student)}
+                  disabled={processingStudentId === student.id || !advisorId || !!advisorIdLoadingError}
+                  sx={{ ml: 1 }}
+                >
+                   {processingStudentId === student.id && isProcessingApproval ? 'Rejecting...' : 'Reject'}
+                </Button>
               </Box>
             </CardContent>
           </Card>
@@ -329,6 +481,41 @@ const MyStudentsPage = () => {
         <DialogActions>
           <Button onClick={() => setPetitionDialogOpen(false)}>Cancel</Button>
           <Button variant="contained" color="secondary">Send Petition</Button>
+        </DialogActions>
+      </Dialog>
+
+      {/* Rejection Dialog */}
+      <Dialog open={rejectDialogOpen} onClose={handleCloseRejectDialog} maxWidth="sm" fullWidth>
+        <DialogTitle>Reject Student Graduation</DialogTitle>
+        <DialogContent>
+          {studentToReject && (
+            <Typography sx={{ mb: 2 }}>
+              You are about to reject the graduation for: <strong>{studentToReject.name}</strong> (ID: {studentToReject.studentNumber}).
+            </Typography>
+          )}
+          <Typography sx={{ mb: 1 }}>
+            Please provide a reason for rejection:
+          </Typography>
+          <TextField
+            label="Rejection Reason"
+            multiline
+            rows={4}
+            fullWidth
+            value={rejectionReason}
+            onChange={(e) => setRejectionReason(e.target.value)}
+            sx={{ mb: 2 }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleCloseRejectDialog}>Cancel</Button>
+          <Button 
+            onClick={handleSubmitRejectDialog} 
+            variant="contained" 
+            color="error"
+            disabled={!rejectionReason || isProcessingApproval}
+          >
+            {isProcessingApproval ? 'Rejecting...' : 'Submit Rejection'}
+          </Button>
         </DialogActions>
       </Dialog>
     </Box>

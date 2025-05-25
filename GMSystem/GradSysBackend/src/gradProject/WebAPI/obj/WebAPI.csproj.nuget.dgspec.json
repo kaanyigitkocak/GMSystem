@@ -1,20 +1,20 @@
 {
   "format": 1,
   "restore": {
-    "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj": {}
+    "/Users/yigit/GitHub/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj": {}
   },
   "projects": {
-    "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
+    "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj",
+        "projectUniqueName": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj",
         "projectName": "Application",
-        "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj",
-        "packagesPath": "/Users/dkwns/.nuget/packages/",
-        "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/obj/",
+        "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj",
+        "packagesPath": "/Users/yigit/.nuget/packages/",
+        "outputPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/dkwns/.nuget/NuGet/NuGet.Config"
+          "/Users/yigit/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -26,8 +26,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/Domain.csproj": {
-                "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/Domain.csproj"
+              "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Domain/Domain.csproj": {
+                "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Domain/Domain.csproj"
               }
             }
           }
@@ -36,7 +36,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -98,26 +104,36 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.16/libexec/sdk/8.0.116/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/Domain.csproj": {
+    "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Domain/Domain.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/Domain.csproj",
+        "projectUniqueName": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Domain/Domain.csproj",
         "projectName": "Domain",
-        "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/Domain.csproj",
-        "packagesPath": "/Users/dkwns/.nuget/packages/",
-        "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Domain/obj/",
+        "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Domain/Domain.csproj",
+        "packagesPath": "/Users/yigit/.nuget/packages/",
+        "outputPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Domain/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/dkwns/.nuget/NuGet/NuGet.Config"
+          "/Users/yigit/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -135,7 +151,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -161,26 +183,36 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.16/libexec/sdk/8.0.116/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj": {
+    "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
+        "projectUniqueName": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
         "projectName": "Infrastructure",
-        "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
-        "packagesPath": "/Users/dkwns/.nuget/packages/",
-        "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/obj/",
+        "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj",
+        "packagesPath": "/Users/yigit/.nuget/packages/",
+        "outputPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Infrastructure/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/dkwns/.nuget/NuGet/NuGet.Config"
+          "/Users/yigit/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -192,8 +224,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
-                "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
+              "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj": {
+                "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj"
               }
             }
           }
@@ -202,7 +234,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -228,6 +266,16 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -236,21 +284,21 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.16/libexec/sdk/8.0.116/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj": {
+    "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Persistence/Persistence.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
+        "projectUniqueName": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
         "projectName": "Persistence",
-        "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
-        "packagesPath": "/Users/dkwns/.nuget/packages/",
-        "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/obj/",
+        "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Persistence/Persistence.csproj",
+        "packagesPath": "/Users/yigit/.nuget/packages/",
+        "outputPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Persistence/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/dkwns/.nuget/NuGet/NuGet.Config"
+          "/Users/yigit/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -262,8 +310,8 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
-                "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
+              "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj": {
+                "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj"
               }
             }
           }
@@ -272,7 +320,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -332,26 +386,36 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.NETCore.App": {
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.16/libexec/sdk/8.0.116/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     },
-    "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj": {
+    "/Users/yigit/GitHub/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
+        "projectUniqueName": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
         "projectName": "WebAPI",
-        "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
-        "packagesPath": "/Users/dkwns/.nuget/packages/",
-        "outputPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/WebAPI/obj/",
+        "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/WebAPI/WebAPI.csproj",
+        "packagesPath": "/Users/yigit/.nuget/packages/",
+        "outputPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/WebAPI/obj/",
         "projectStyle": "PackageReference",
         "configFilePaths": [
-          "/Users/dkwns/.nuget/NuGet/NuGet.Config"
+          "/Users/yigit/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
           "net8.0"
@@ -363,14 +427,14 @@
           "net8.0": {
             "targetAlias": "net8.0",
             "projectReferences": {
-              "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj": {
-                "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Application/Application.csproj"
+              "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj": {
+                "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Application/Application.csproj"
               },
-              "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj": {
-                "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj"
+              "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj": {
+                "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Infrastructure/Infrastructure.csproj"
               },
-              "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj": {
-                "projectPath": "/Users/dkwns/Desktop/GMSystem/GMSystem/GradSysBackend/src/gradProject/Persistence/Persistence.csproj"
+              "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Persistence/Persistence.csproj": {
+                "projectPath": "/Users/yigit/GitHub/GradSysBackend/src/gradProject/Persistence/Persistence.csproj"
               }
             }
           }
@@ -379,7 +443,13 @@
           "warnAsError": [
             "NU1605"
           ]
-        }
+        },
+        "restoreAuditProperties": {
+          "enableAudit": "true",
+          "auditLevel": "low",
+          "auditMode": "direct"
+        },
+        "SdkAnalysisLevel": "9.0.200"
       },
       "frameworks": {
         "net8.0": {
@@ -447,6 +517,20 @@
           ],
           "assetTargetFallback": true,
           "warn": true,
+          "downloadDependencies": [
+            {
+              "name": "Microsoft.AspNetCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Host.osx-arm64",
+              "version": "[8.0.13, 8.0.13]"
+            },
+            {
+              "name": "Microsoft.NETCore.App.Ref",
+              "version": "[8.0.13, 8.0.13]"
+            }
+          ],
           "frameworkReferences": {
             "Microsoft.AspNetCore.App": {
               "privateAssets": "none"
@@ -455,7 +539,7 @@
               "privateAssets": "all"
             }
           },
-          "runtimeIdentifierGraphPath": "/opt/homebrew/Cellar/dotnet@8/8.0.16/libexec/sdk/8.0.116/PortableRuntimeIdentifierGraph.json"
+          "runtimeIdentifierGraphPath": "/usr/local/share/dotnet/sdk/9.0.200/PortableRuntimeIdentifierGraph.json"
         }
       }
     }
