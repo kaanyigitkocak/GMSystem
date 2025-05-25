@@ -1,376 +1,501 @@
-import React, { useState, useEffect } from 'react';
 import { 
   Box, 
-  Paper, 
   Typography, 
+  Paper, 
+  Grid as MuiGrid, 
   Card, 
   CardContent, 
+  CardHeader, 
   List, 
   ListItem, 
   ListItemText, 
-  ListItemIcon,
-  Divider,
   Button,
+  Divider,
+  Alert,
+  CircularProgress,
+  Chip,
   IconButton,
   Tooltip,
-  LinearProgress,
-  Avatar,
-  Chip,
-  Alert
+  Snackbar
 } from '@mui/material';
-import {
-  Notifications as NotificationsIcon,
-  Warning as WarningIcon,
-  CheckCircle as CheckCircleIcon,
-  Error as ErrorIcon,
-  ArrowForward as ArrowForwardIcon,
-  PeopleAlt as PeopleAltIcon,
-  School as SchoolIcon,
-  CalendarMonth as CalendarMonthIcon,
-  FileUpload as FileUploadIcon,
-  ListAlt as ListAltIcon
-} from '@mui/icons-material';
+import { Refresh, PlayArrow, ClearAll } from '@mui/icons-material';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useSecretaryDashboard } from '../hooks/useSecretaryDashboard';
 
-import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import { useNotifications, useGraduationRequests, useDashboard } from '../hooks';
-import type { Notification, GraduationRequest } from '../services/types';
+const Grid = MuiGrid as any;
 
 const SecretaryDashboardPage = () => {
-  const { notifications, unreadCount, error: notificationsError } = useNotifications();
-  const { requests: pendingRequests, error: requestsError } = useGraduationRequests();
-  const { stats, loading, error: dashboardError } = useDashboard();
   const navigate = useNavigate();
+  const { 
+    dashboardData, 
+    loading, 
+    error,
+    eligibilityData, 
+    eligibilityLoading, 
+    performingChecks,
+    refetch, 
+    refreshEligibility,
+    performEligibilityChecksForMissingStudents,
+    refreshEligibilityData
+  } = useSecretaryDashboard();
 
-  const getNotificationIcon = (type: Notification['type']) => {
-    switch (type) {
-      case 'warning':
-        return <WarningIcon color="warning" />;
-      case 'error':
-        return <ErrorIcon color="error" />;
-      case 'success':
-        return <CheckCircleIcon color="success" />;
-      default:
-        return <NotificationsIcon color="info" />;
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const handlePerformEligibilityChecks = async () => {
+    try {
+      const result = await performEligibilityChecksForMissingStudents();
+      
+      if (result.processedStudents.length > 0) {
+        setSuccessMessage(
+          `Eligibility checks completed for ${result.processedStudents.length} students. Results are being processed...`
+        );
+      } else {
+        setSuccessMessage('All students already have eligibility check results.');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to perform eligibility checks. Please try again.');
+      console.error('Failed to perform eligibility checks:', error);
     }
   };
 
-  const formatGraduationDate = (dateStr: string) => {
-    if (!dateStr) return '';
-    
-    const date = new Date(dateStr);
-    return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(date);
+  const handleRefreshWithClearCache = async () => {
+    try {
+      await refreshEligibilityData(true);
+      setSuccessMessage('Eligibility data refreshed successfully.');
+    } catch (error) {
+      setErrorMessage('Failed to refresh eligibility data. Please try again.');
+      console.error('Failed to refresh eligibility data:', error);
+    }
+  };
+
+  const handleCloseSuccessMessage = () => {
+    setSuccessMessage('');
+  };
+
+  const handleCloseErrorMessage = () => {
+    setErrorMessage('');
   };
 
   if (loading) {
     return (
-      <SecretaryDashboardLayout>
-        <Box sx={{ width: '100%' }}>
-          <LinearProgress />
-        </Box>
-      </SecretaryDashboardLayout>
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+      </Box>
     );
   }
 
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button variant="contained" onClick={refetch}>
+            Retry
+          </Button>
+      </Box>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">
+          No dashboard data available
+        </Alert>
+      </Box>
+    );
+  }
+
+  const { stats, alerts, notifications, pendingRequests } = dashboardData;
+
   return (
-    <SecretaryDashboardLayout>
+    <>
       <Box sx={{ mb: 4 }}>
-        {(notificationsError || requestsError || dashboardError) && (
-          <Alert 
-            severity="error" 
-            sx={{ mb: 3 }}
-          >
-            {dashboardError || requestsError || notificationsError}
+        <Typography variant="h4" gutterBottom>
+          Secretary Dashboard
+        </Typography>
+        <Typography variant="body1" color="text.secondary" sx={{ mb: 2 }}>
+          Welcome, you can manage all department students' graduation process and view important updates here.
+        </Typography>
+        <Alert severity="info" sx={{ mb: 2 }}>
+          <strong>Tip:</strong> Use the sidebar to process transcripts, manage approval rankings, and review all department students.
+        </Alert>
+        {eligibilityLoading && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <CircularProgress size={16} sx={{ mr: 1 }} />
+            <strong>Loading eligibility data...</strong> Please wait while we fetch existing graduation requirement results.
           </Alert>
         )}
-        <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={3}>
-          {/* Welcome Section */}
-          <Box gridColumn="span 12">
-            <Paper sx={{ p: 3, mb: 3 }}>
-              <Typography variant="h5" gutterBottom fontWeight="bold">
-                Welcome!
-              </Typography>
-              <Typography variant="body1" color="text.secondary">
-                Welcome to the Secretary Panel of the Graduation Management System. From here, you can manage the graduation process,
-                upload transcripts, and create department ranking lists.
-              </Typography>
-            </Paper>
-          </Box>
-
-          {/* Quick Action Cards */}
-          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
-            <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
-              Quick Actions
+        {performingChecks && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <CircularProgress size={16} sx={{ mr: 1 }} />
+            <strong>Running eligibility checks...</strong> Please wait while we check graduation requirements for students without existing results.
+          </Alert>
+        )}
+      </Box>
+      
+      <Grid container spacing={3}>
+        {/* Example Announcement */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 2, mb: 2 }}>
+            <Typography variant="h6" gutterBottom>
+              Announcement
             </Typography>
-            <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
-              <Box gridColumn="span 6">
-                <Card 
-                  sx={{ 
-                    height: '100%', 
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s, box-shadow 0.3s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 3
-                    }
-                  }}
-                  onClick={() => navigate('/secretary/transcripts')}
-                >
-                  <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                    <FileUploadIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                    <Typography variant="h6" fontWeight="medium">
-                      Upload Transcripts
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Upload transcripts and check graduation requirements
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-              <Box gridColumn="span 6">
-                <Card 
-                  sx={{ 
-                    height: '100%', 
-                    cursor: 'pointer',
-                    transition: 'transform 0.3s, box-shadow 0.3s',
-                    '&:hover': {
-                      transform: 'translateY(-4px)',
-                      boxShadow: 3
-                    }
-                  }}
-                  onClick={() => navigate('/secretary/ranking')}
-                >
-                  <CardContent sx={{ textAlign: 'center', py: 3 }}>
-                    <ListAltIcon sx={{ fontSize: 40, color: 'primary.main', mb: 1 }} />
-                    <Typography variant="h6" fontWeight="medium">
-                      Ranking List
-                    </Typography>
-                    <Typography variant="body2" color="text.secondary">
-                      Create department graduation ranking
-                    </Typography>
-                  </CardContent>
-                </Card>
-              </Box>
-            </Box>
-          </Box>
-
-          {/* Summary Stats */}
-          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
-            <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
-              Status Summary
+            <Typography>
+              The graduation review period for Spring 2025 has started. Please process student transcripts and approve eligible candidates.
             </Typography>
-            <Paper sx={{ p: 2 }}>
-              {(dashboardError || requestsError) ? (
-                <Box sx={{ p: 2, textAlign: 'center' }}>
-                  <Typography variant="body2" color="error">
-                    Unable to load status data
+          </Paper>
+        </Grid>
+
+        {/* Statistics */}
+        <Grid item xs={12} md={3}>
+          <Paper
+            elevation={2}
+            sx={{ 
+              height: '100%',
+              p: 3, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+          >
+            <Typography variant="h3" color="primary" gutterBottom>
+              {stats.totalStudents}
+            </Typography>
+            <Typography variant="body1">Total Students</Typography>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={3}>
+          <Paper
+            elevation={2}
+            sx={{ 
+              height: '100%',
+              p: 3, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+          >
+            <Typography variant="h3" color="warning.main" gutterBottom>
+              {stats.pendingGraduation}
+            </Typography>
+            <Typography variant="body1">Pending Graduation</Typography>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={3}>
+          <Paper
+            elevation={2}
+            sx={{ 
+              height: '100%',
+              p: 3, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+          >
+            <Typography variant="h3" color="success.main" gutterBottom>
+              {stats.manualCheckRequests}
+            </Typography>
+            <Typography variant="body1">Manual Check Requests</Typography>
+          </Paper>
+        </Grid>
+        
+        <Grid item xs={12} md={3}>
+          <Paper
+            elevation={2}
+            sx={{ 
+              height: '100%',
+              p: 3, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+          >
+            <Typography variant="h3" color="info.main" gutterBottom>
+              {stats.totalPetitions}
+            </Typography>
+            <Typography variant="body1">Total Petitions</Typography>
+          </Paper>
+        </Grid>
+
+        {/* Eligibility Statistics */}
+        {eligibilityData && (
+          <>
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography variant="h3" color="success.main" gutterBottom>
+                  {eligibilityData.eligibleCount}
+                </Typography>
+                <Typography variant="body1">Eligible Students</Typography>
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography variant="h3" color="error.main" gutterBottom>
+                  {eligibilityData.ineligibleCount}
+                </Typography>
+                <Typography variant="body1">Ineligible Students</Typography>
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography variant="h3" color="warning.main" gutterBottom>
+                  {eligibilityData.pendingCheckCount}
+                </Typography>
+                <Typography variant="body1">Pending Checks</Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                  <Tooltip title="Refresh Eligibility Data">
+                    <IconButton 
+                      onClick={refreshEligibility} 
+                      disabled={eligibilityLoading || performingChecks}
+                      color="primary"
+                      size="small"
+                    >
+                      <Refresh />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Clear Cache & Refresh">
+                    <IconButton 
+                      onClick={handleRefreshWithClearCache} 
+                      disabled={eligibilityLoading || performingChecks}
+                      color="secondary"
+                      size="small"
+                    >
+                      <ClearAll />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Typography variant="body2">Refresh Data</Typography>
+              </Paper>
+            </Grid>
+          </>
+        )}
+
+        {/* Eligibility Actions */}
+        {eligibilityData && eligibilityData.pendingCheckCount > 0 && (
+          <Grid item xs={12}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    {eligibilityData.pendingCheckCount} students don't have eligibility check results.
+                  </Typography>
+                  <Typography variant="body2">
+                    Click the button below to perform eligibility checks for students without existing results.
                   </Typography>
                 </Box>
-              ) : (
-                <Box display="grid" gridTemplateColumns="repeat(12, 1fr)" gap={2}>
-                  <Box gridColumn="span 6">
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar sx={{ bgcolor: 'primary.light', mr: 2 }}>
-                        <PeopleAltIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Pending Requests
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {pendingRequests.length}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                  <Box gridColumn="span 6">
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                      <Avatar sx={{ bgcolor: 'info.light', mr: 2 }}>
-                        <NotificationsIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Notifications
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {unreadCount}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                  <Box gridColumn="span 6">
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar sx={{ bgcolor: 'success.light', mr: 2 }}>
-                        <SchoolIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Graduates
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {stats?.graduatesCount || 0}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                  <Box gridColumn="span 6">
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      <Avatar sx={{ bgcolor: 'warning.light', mr: 2 }}>
-                        <CalendarMonthIcon />
-                      </Avatar>
-                      <Box>
-                        <Typography variant="body2" color="text.secondary">
-                          Graduation Date
-                        </Typography>
-                        <Typography variant="h6" fontWeight="bold">
-                          {formatGraduationDate(stats?.graduationDate || '')}
-                        </Typography>
-                      </Box>
-                    </Box>
-                  </Box>
-                </Box>
-              )}
-            </Paper>
-          </Box>
-          
-          {/* Recent Notifications */}
-          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
-            <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
-              Recent Notifications
+                <Button
+                  variant="contained"
+                  color="warning"
+                  onClick={handlePerformEligibilityChecks}
+                  disabled={performingChecks || eligibilityLoading}
+                  startIcon={performingChecks ? <CircularProgress size={16} /> : <PlayArrow />}
+                  sx={{ ml: 2, minWidth: '200px' }}
+                >
+                  {performingChecks ? 'Running Checks...' : 'Perform Eligibility Check'}
+                    </Button>
+              </Box>
+            </Alert>
+          </Grid>
+        )}
+
+        {/* Quick Actions */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Quick Actions
             </Typography>
-            <Paper>
-              <List sx={{ p: 0 }}>
-                {notificationsError ? (
-                  <ListItem sx={{ px: 2, py: 3 }}>
-                    <ListItemText 
-                      primary="Unable to load notifications"
-                      secondary="There was an error fetching notification data"
-                      sx={{ textAlign: 'center', color: 'error.main' }}
-                    />
-                  </ListItem>
-                ) : notifications.length > 0 ? (
-                  notifications.slice(0, 4).map((notification, index) => (
-                    <React.Fragment key={notification.id}>
-                      <ListItem
-                        sx={{ 
-                          bgcolor: notification.read ? 'transparent' : 'rgba(0, 0, 0, 0.02)',
-                          px: 2, py: 1.5 
-                        }}
-                        secondaryAction={
-                          <IconButton edge="end" aria-label="view">
-                            <ArrowForwardIcon fontSize="small" />
-                          </IconButton>
-                        }
-                      >
-                        <ListItemIcon sx={{ minWidth: 40 }}>
-                          {getNotificationIcon(notification.type)}
-                        </ListItemIcon>
-                        <ListItemText 
-                          primary={notification.title}
-                          secondary={
-                            <Typography variant="body2" color="text.secondary" noWrap>
-                              {notification.message}
-                            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/secretary/transcripts')}
+              >
+                Process Transcripts
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/secretary/approval-ranking')}
+              >
+                Approval & Ranking
+              </Button>
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                onClick={() => navigate('/secretary/notifications')}
+              >
+                Notifications
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => navigate('/secretary/export-graduates')}
+              >
+                Export Graduates
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Pending Requests */}
+        <Grid item xs={12} md={6}>
+          <Card sx={{ height: '100%' }}>
+            <CardHeader 
+              title="Pending Requests" 
+            />
+            <CardContent>
+              <List>
+                {pendingRequests.map((request, index) => (
+                  <Box key={request.id}>
+                    <ListItem>
+                      <ListItemText
+                        primary={`${request.studentName} - ${request.requestType}`}
+                        secondary={`Request Date: ${request.date}`}
+                      />
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <Chip 
+                          label={request.priority} 
+                          size="small"
+                          color={
+                            request.priority === 'high' ? 'error' : 
+                            request.priority === 'medium' ? 'warning' : 'default'
                           }
                         />
-                      </ListItem>
-                      {index < notifications.slice(0, 4).length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))
-                ) : (
-                  <ListItem sx={{ px: 2, py: 3 }}>
-                    <ListItemText 
-                      primary="No notifications"
-                      secondary="You're all caught up!"
-                      sx={{ textAlign: 'center' }}
-                    />
-                  </ListItem>
-                )}
+                        <Button variant="outlined" size="small">
+                          Review
+                        </Button>
+                      </Box>
+                    </ListItem>
+                    {index < pendingRequests.length - 1 && <Divider />}
+                  </Box>
+                ))}
               </List>
-              <Divider />
-              <Box sx={{ p: 1, textAlign: 'center' }}>
-                <Button 
-                  size="small" 
-                  onClick={() => navigate('/secretary/notifications')}
-                  sx={{ fontWeight: 500 }}
-                >
-                  View All Notifications
-                </Button>
-              </Box>
-            </Paper>
-          </Box>
-          
-          {/* Graduation Requests */}
-          <Box gridColumn={{ xs: 'span 12', md: 'span 6' }}>
-            <Typography variant="h6" sx={{ mb: 2 }} fontWeight="medium">
-              Pending Graduation Requests
+            </CardContent>
+          </Card>
+        </Grid>
+
+        {/* Alerts & Actions */}
+        <Grid item xs={12} md={6}>
+          <Paper sx={{ p: 2, height: '100%' }}>
+            <Typography variant="h6" gutterBottom>
+              Alerts
             </Typography>
-            <Paper>
-              <List sx={{ p: 0 }}>
-                {requestsError ? (
-                  <ListItem sx={{ px: 2, py: 3 }}>
-                    <ListItemText 
-                      primary="Unable to load requests"
-                      secondary="There was an error fetching request data"
-                      sx={{ textAlign: 'center', color: 'error.main' }}
-                    />
-                  </ListItem>
-                ) : pendingRequests.length > 0 ? (
-                  pendingRequests.slice(0, 4).map((request, index) => (
-                    <React.Fragment key={request.id}>
-                      <ListItem
-                        sx={{ px: 2, py: 1.5 }}
-                        secondaryAction={
-                          <Chip 
-                            label={request.status} 
-                            size="small"
-                            color={
-                              request.status === 'pending' 
-                                ? 'warning' 
-                                : request.status === 'approved' 
-                                  ? 'success' 
-                                  : 'error'
-                            }
-                          />
-                        }
-                      >
-                        <ListItemText 
-                          primary={`${request.studentName} (${request.studentId})`}
-                          secondary={
-                            <Typography variant="body2" color="text.secondary">
-                              {request.requestType} • Submitted on {request.date}
-                            </Typography>
-                          }
-                        />
-                      </ListItem>
-                      {index < pendingRequests.slice(0, 4).length - 1 && <Divider />}
-                    </React.Fragment>
-                  ))
-                ) : (
-                  <ListItem sx={{ px: 2, py: 3 }}>
-                    <ListItemText 
-                      primary="No pending requests"
-                      secondary="All graduation requests have been processed"
-                      sx={{ textAlign: 'center' }}
-                    />
-                  </ListItem>
-                )}
-              </List>
-              <Divider />
-              <Box sx={{ p: 1, textAlign: 'center' }}>
-                <Button 
-                  size="small" 
-                  onClick={() => navigate('/secretary/requests')}
-                  sx={{ fontWeight: 500 }}
+            <Box sx={{ mb: 2 }}>
+              {alerts.map(alert => (
+                <Alert 
+                  key={alert.id} 
+                  severity={alert.type || 'info'} 
+                  sx={{ mb: 1 }}
                 >
-                  View All Requests
-                </Button>
-              </Box>
-            </Paper>
-          </Box>
-        </Box>
-      </Box>
-    </SecretaryDashboardLayout>
+                  {alert.message}
+                </Alert>
+              ))}
+            </Box>
+          </Paper>
+        </Grid>
+
+        {/* Recent Notifications & Tasks */}
+        <Grid item xs={12}>
+          <Card>
+            <CardHeader 
+              title="Recent Notifications & Tasks" 
+            />
+            <CardContent>
+              <List>
+                {notifications.map(notification => (
+                  <ListItem key={notification.id} divider>
+                    <ListItemText 
+                      primary={notification.title} 
+                      secondary={`${notification.message} - ${notification.date}`}
+                    />
+                    {!notification.read && (
+                      <Chip label="New" color="primary" size="small" />
+                    )}
+                  </ListItem>
+                ))}
+              </List>
+            </CardContent>
+          </Card>
+        </Grid>
+      </Grid>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccessMessage}
+      >
+        <Alert onClose={handleCloseSuccessMessage} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseErrorMessage}
+      >
+        <Alert onClose={handleCloseErrorMessage} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 

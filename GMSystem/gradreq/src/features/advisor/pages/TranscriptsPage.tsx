@@ -22,7 +22,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material';
 import {
   Search as SearchIcon,

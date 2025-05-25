@@ -3,11 +3,55 @@
 
 Bu doküman, GMS projesinin dosya ve klasör yapısını, benimsenen modülerlik yaklaşımını ve temel tasarım prensiplerini açıklamaktadır. Amaç, projenin anlaşılırlığını artırmak, yeni geliştiricilerin adaptasyonunu hızlandırmak ve kod tabanının bakımını kolaylaştırmaktır.
 
+## Environment Yapılandırması
+
+Proje 3 farklı environment ortamını desteklemektedir:
+
+### 1. Mock Environment (Mock Data)
+- **Dosya**: `.env.mock` veya `.env` (varsayılan)
+- **API Kaynağı**: Mock servisler (backend bağlantısı yok)
+- **Kullanım**: `npm run dev:mock` veya `npm run dev`
+- **Açıklama**: Tamamen mock data ile çalışır, backend gerektirmez
+
+### 2. Test/Development Environment 
+- **Dosya**: `.env.development`
+- **API Kaynağı**: Local backend (http://localhost:5278/api)
+- **Kullanım**: `npm run dev:test` veya `npm run build:test`
+- **Açıklama**: Local olarak çalışan backend ile entegrasyon testleri için
+
+### 3. Production Environment
+- **Dosya**: `.env.production`
+- **API Kaynağı**: Production backend (https://gradsysbackend.onrender.com/api)
+- **Kullanım**: `npm run dev:prod` veya `npm run build:prod`
+- **Açıklama**: Production backend ile çalışır
+
+### Environment Değişkenleri
+```bash
+VITE_API_SOURCE=mock|test|production
+VITE_API_BASE_URL=<backend_url>
+```
+
+### Script Komutları
+```bash
+# Development modları
+npm run dev          # Mock data ile development (varsayılan)
+npm run dev:mock     # Mock data ile development
+npm run dev:test     # Local backend ile development  
+npm run dev:prod     # Production backend ile development
+
+# Build modları
+npm run build        # Production build (varsayılan)
+npm run build:mock   # Mock data ile build
+npm run build:test   # Test ortamı için build
+npm run build:prod   # Production build
+```
+
 ## Genel Yaklaşım: Özellik Tabanlı (Feature-Based) Mimari
 
 Proje, **Özellik Tabanlı (Feature-Based)** bir mimari yaklaşımı benimsemektedir. Bu yaklaşımda, uygulamanın ana işlevsel alanları veya kullanıcı rolleri (`auth`, `student`, `secretary` vb.) ayrı modüller (features) olarak ele alınır. Her modül, kendi içinde ilgili bileşenleri, sayfaları, servisleri, tür tanımlarını ve diğer kaynakları barındırır.
 
 ## Ana Klasör Yapısı
+
 ```
 
 src/

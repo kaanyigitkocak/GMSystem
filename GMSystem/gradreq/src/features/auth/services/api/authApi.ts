@@ -6,11 +6,8 @@ import {
 } from "../../../../features/common/utils/serviceUtils";
 import { UserType } from "../../../auth/types";
 
-// Force using port 5278 for API calls
-const { useMock, fetchOptions } = getServiceConfig();
-const apiBaseUrl = useMock
-  ? "http://localhost:5000/api" // Not used in mock mode
-  : "http://localhost:5278/api"; // Force using port 5278
+// Get service configuration for API calls
+const { apiBaseUrl, fetchOptions } = getServiceConfig();
 
 // Login API service
 export const loginUserApi = async (

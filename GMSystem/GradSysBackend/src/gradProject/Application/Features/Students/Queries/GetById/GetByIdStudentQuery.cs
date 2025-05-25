@@ -3,6 +3,7 @@ using Application.Services.Repositories;
 using AutoMapper;
 using Domain.Entities;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.Students.Queries.GetById;
 
@@ -25,7 +26,11 @@ public class GetByIdStudentQuery : IRequest<GetByIdStudentResponse>
 
         public async Task<GetByIdStudentResponse> Handle(GetByIdStudentQuery request, CancellationToken cancellationToken)
         {
-            Student? student = await _studentRepository.GetAsync(predicate: s => s.Id == request.Id, cancellationToken: cancellationToken);
+            Student? student = await _studentRepository.GetAsync(
+                predicate: s => s.Id == request.Id, 
+                include: s => s.Include(x => x.User),
+                cancellationToken: cancellationToken
+            );
             await _studentBusinessRules.StudentShouldExistWhenSelected(student);
 
             GetByIdStudentResponse response = _mapper.Map<GetByIdStudentResponse>(student);

@@ -7,6 +7,7 @@ public class CreateGraduationRequirementSetCommandValidator : AbstractValidator<
     public CreateGraduationRequirementSetCommandValidator()
     {
         RuleFor(c => c.DepartmentId).NotEmpty();
+        RuleFor(c => c.AcademicTerm).NotEmpty();
         RuleFor(c => c.MinGpa).NotEmpty();
         RuleFor(c => c.TotalMinEcts).NotEmpty();
         RuleFor(c => c.MinTechnicalElectiveCoursesCount).NotEmpty();

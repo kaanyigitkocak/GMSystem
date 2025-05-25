@@ -6,3 +6,4 @@ export * from "./transcriptsApi";
 export * from "./studentManagementApi";
 export * from "./dashboardApi";
 export * from "./usersApi";
+export * from "./studentsApi";

@@ -11,13 +11,12 @@ import {
 } from '@mui/material';
 import {
   MoreVert as MoreVertIcon,
-  Visibility as VisibilityIcon,
-  Mail as MailIcon,
+  Visibility as VisibilityIcon,  Mail as MailIcon,
   Phone as PhoneIcon,
   CalendarMonth as CalendarIcon,
   Email as EmailIcon,
 } from '@mui/icons-material';
-import type { Student } from '../services/studentService';
+import type { Student } from '../services/types';
 
 interface StudentCardProps {
   student: Student;

@@ -7,10 +7,10 @@ const StudentAffairsSidebar = () => (
       Student Affairs
     </Typography>
     <List>
-      <ListItem button component={NavLink} to="/student-affairs/dashboard">
+      <ListItem component={NavLink} to="/student-affairs/dashboard" sx={{ cursor: 'pointer' }}>
         <ListItemText primary="Dashboard" />
       </ListItem>
-      <ListItem button component={NavLink} to="/student-affairs/university-rankings">
+      <ListItem component={NavLink} to="/student-affairs/university-rankings" sx={{ cursor: 'pointer' }}>
         <ListItemText primary="University Rankings" />
       </ListItem>
     </List>

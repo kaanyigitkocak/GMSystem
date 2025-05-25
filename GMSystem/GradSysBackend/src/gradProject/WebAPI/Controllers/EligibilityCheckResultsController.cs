@@ -3,6 +3,7 @@ using Application.Features.EligibilityCheckResults.Commands.Delete;
 using Application.Features.EligibilityCheckResults.Commands.Update;
 using Application.Features.EligibilityCheckResults.Queries.GetById;
 using Application.Features.EligibilityCheckResults.Queries.GetList;
+using Application.Features.EligibilityCheckResults.Queries.GetByStudentId;
 using NArchitecture.Core.Application.Requests;
 using NArchitecture.Core.Application.Responses;
 using Microsoft.AspNetCore.Mvc;
@@ -49,6 +50,18 @@ public class EligibilityCheckResultsController : BaseController
     {
         GetListEligibilityCheckResultQuery getListEligibilityCheckResultQuery = new() { PageRequest = pageRequest };
         GetListResponse<GetListEligibilityCheckResultListItemDto> response = await Mediator.Send(getListEligibilityCheckResultQuery);
+        return Ok(response);
+    }
+
+    [HttpGet("student/{studentUserId}")]
+    public async Task<IActionResult> GetByStudentId([FromRoute] Guid studentUserId, [FromQuery] PageRequest pageRequest)
+    {
+        GetByStudentIdEligibilityCheckResultQuery getByStudentIdQuery = new() 
+        { 
+            StudentUserId = studentUserId,
+            PageRequest = pageRequest 
+        };
+        GetListResponse<GetByStudentIdEligibilityCheckResultListItemDto> response = await Mediator.Send(getByStudentIdQuery);
         return Ok(response);
     }
 }

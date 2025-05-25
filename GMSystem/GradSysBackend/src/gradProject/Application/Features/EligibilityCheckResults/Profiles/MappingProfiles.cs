@@ -3,6 +3,7 @@ using Application.Features.EligibilityCheckResults.Commands.Delete;
 using Application.Features.EligibilityCheckResults.Commands.Update;
 using Application.Features.EligibilityCheckResults.Queries.GetById;
 using Application.Features.EligibilityCheckResults.Queries.GetList;
+using Application.Features.EligibilityCheckResults.Queries.GetByStudentId;
 using AutoMapper;
 using NArchitecture.Core.Application.Responses;
 using Domain.Entities;
@@ -23,5 +24,9 @@ public class MappingProfiles : Profile
         CreateMap<EligibilityCheckResult, GetByIdEligibilityCheckResultResponse>().ReverseMap();
         CreateMap<EligibilityCheckResult, GetListEligibilityCheckResultListItemDto>().ReverseMap();
         CreateMap<IPaginate<EligibilityCheckResult>, GetListResponse<GetListEligibilityCheckResultListItemDto>>().ReverseMap();
+        
+        // GetByStudentId mappings
+        CreateMap<EligibilityCheckResult, GetByStudentIdEligibilityCheckResultListItemDto>().ReverseMap();
+        CreateMap<IPaginate<EligibilityCheckResult>, GetListResponse<GetByStudentIdEligibilityCheckResultListItemDto>>().ReverseMap();
     }
 }

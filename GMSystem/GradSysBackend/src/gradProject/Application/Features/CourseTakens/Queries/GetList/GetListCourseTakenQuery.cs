@@ -5,12 +5,14 @@ using NArchitecture.Core.Application.Requests;
 using NArchitecture.Core.Application.Responses;
 using NArchitecture.Core.Persistence.Paging;
 using MediatR;
+using Microsoft.EntityFrameworkCore;
 
 namespace Application.Features.CourseTakens.Queries.GetList;
 
 public class GetListCourseTakenQuery : IRequest<GetListResponse<GetListCourseTakenListItemDto>>
 {
     public PageRequest PageRequest { get; set; }
+    public Guid? StudentUserId { get; set; }
 
     public class GetListCourseTakenQueryHandler : IRequestHandler<GetListCourseTakenQuery, GetListResponse<GetListCourseTakenListItemDto>>
     {
@@ -26,8 +28,10 @@ public class GetListCourseTakenQuery : IRequest<GetListResponse<GetListCourseTak
         public async Task<GetListResponse<GetListCourseTakenListItemDto>> Handle(GetListCourseTakenQuery request, CancellationToken cancellationToken)
         {
             IPaginate<CourseTaken> courseTakens = await _courseTakenRepository.GetListAsync(
+                predicate: request.StudentUserId.HasValue ? ct => ct.StudentUserId == request.StudentUserId.Value : null,
+                include: ct => ct.Include(x => x.MatchedCourse),
                 index: request.PageRequest.PageIndex,
-                size: request.PageRequest.PageSize, 
+                size: request.PageRequest.PageSize,
                 cancellationToken: cancellationToken
             );
 

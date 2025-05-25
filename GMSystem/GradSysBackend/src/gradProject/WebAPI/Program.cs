@@ -20,16 +20,15 @@ using Newtonsoft.Json;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// 1) CORS policy — Allow all origins for development (ngrok support)
+// 1) CORS policy — Tüm originlere izin ver
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowLocalhost3000", policy =>
+    options.AddPolicy("AllowAllOrigins", policy =>
     {
         policy
-            .AllowAnyOrigin() // Allows any origin including ngrok
+            .AllowAnyOrigin()
             .AllowAnyMethod()
             .AllowAnyHeader();
-            // Note: Cannot use .AllowCredentials() with .AllowAnyOrigin()
     });
 });
 
@@ -114,13 +113,12 @@ var app = builder.Build();
 app.UseRouting();
 
 // 7) CORS'u burada uygula
-app.UseCors("AllowLocalhost3000");
+app.UseCors("AllowAllOrigins");
 
-if (app.Environment.IsDevelopment())
-{
+
     app.UseSwagger();
     app.UseSwaggerUI(opt => opt.DocExpansion(DocExpansion.None));
-}
+
 
 //app.ConfigureCustomExceptionMiddleware();
 app.UseDbMigrationApplier();

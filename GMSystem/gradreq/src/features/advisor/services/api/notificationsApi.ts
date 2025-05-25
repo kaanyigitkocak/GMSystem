@@ -82,17 +82,36 @@ export const markNotificationAsReadApi = async (id: string): Promise<void> => {
       throw new ServiceError("No authentication token found");
     }
 
-    const response = await fetch(
-      `${apiBaseUrl}/Notifications/${id}/mark-read`,
-      {
-        ...fetchOptions,
-        method: "PUT",
-        headers: {
-          ...fetchOptions.headers,
-          Authorization: `Bearer ${authToken}`,
-        },
-      }
-    );
+    // First get the notification to preserve other fields
+    const getResponse = await fetch(`${apiBaseUrl}/Notifications/${id}`, {
+      ...fetchOptions,
+      method: "GET",
+      headers: {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+    });
+
+    const notification = await handleApiResponse<any>(getResponse);
+
+    // Update the notification with isRead = true
+    const updateCommand = {
+      id: id,
+      title: notification.title,
+      message: notification.message,
+      recipientUserId: notification.recipientUserId,
+      isRead: true,
+    };
+
+    const response = await fetch(`${apiBaseUrl}/Notifications`, {
+      ...fetchOptions,
+      method: "PUT",
+      headers: {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${authToken}`,
+      },
+      body: JSON.stringify(updateCommand),
+    });
 
     await handleApiResponse<any>(response);
   } catch (error) {

@@ -121,17 +121,22 @@ namespace Persistence.Seeds
         public static readonly Guid StudentUser79Id = new("40000000-0000-0000-0000-000000000079");
         public static readonly Guid StudentUser80Id = new("40000000-0000-0000-0000-000000000080");
 
+        // Additional inactive students
+        public static readonly Guid StudentUser81Id = new("40000000-0000-0000-0000-000000000081");
+        public static readonly Guid StudentUser82Id = new("40000000-0000-0000-0000-000000000082");
+        public static readonly Guid StudentUser83Id = new("40000000-0000-0000-0000-000000000083");
+
         // Staff - User IDs (Next 10 for staff)
-        public static readonly Guid StaffUser1Id = new("40000000-0000-0000-0000-000000000081"); // CompEng Advisor
-        public static readonly Guid StaffUser2Id = new("40000000-0000-0000-0000-000000000082"); // ElecEng Advisor
-        public static readonly Guid StaffUser3Id = new("40000000-0000-0000-0000-000000000083"); // CompEng Dept Secretary
-        public static readonly Guid StaffUser4Id = new("40000000-0000-0000-0000-000000000084"); // Engineering Dean's Office
-        public static readonly Guid StaffUser5Id = new("40000000-0000-0000-0000-000000000085"); // Math Advisor
-        public static readonly Guid StaffUser6Id = new("40000000-0000-0000-0000-000000000086"); // Physics Academic Staff
-        public static readonly Guid StaffUser7Id = new("40000000-0000-0000-0000-000000000087"); // Architecture Advisor
-        public static readonly Guid StaffUser8Id = new("40000000-0000-0000-0000-000000000088"); // Foreign Languages Instructor
-        public static readonly Guid StaffUser9Id = new("40000000-0000-0000-0000-000000000089"); // General Culture Coordinator
-        public static readonly Guid StaffUser10Id = new("40000000-0000-0000-0000-000000000090"); // CompEng Advisor
+        public static readonly Guid StaffUser1Id = new("40000000-0000-0000-0000-000000000084"); // CompEng Advisor
+        public static readonly Guid StaffUser2Id = new("40000000-0000-0000-0000-000000000085"); // ElecEng Advisor
+        public static readonly Guid StaffUser3Id = new("40000000-0000-0000-0000-000000000086"); // CompEng Dept Secretary
+        public static readonly Guid StaffUser4Id = new("40000000-0000-0000-0000-000000000087"); // Engineering Dean's Office
+        public static readonly Guid StaffUser5Id = new("40000000-0000-0000-0000-000000000088"); // Math Advisor
+        public static readonly Guid StaffUser6Id = new("40000000-0000-0000-0000-000000000089"); // Physics Academic Staff
+        public static readonly Guid StaffUser7Id = new("40000000-0000-0000-0000-000000000090"); // Architecture Advisor
+        public static readonly Guid StaffUser8Id = new("40000000-0000-0000-0000-000000000091"); // Foreign Languages Instructor
+        public static readonly Guid StaffUser9Id = new("40000000-0000-0000-0000-000000000092"); // General Culture Coordinator
+        public static readonly Guid StaffUser10Id = new("40000000-0000-0000-0000-000000000093"); // CompEng Advisor
 
         public static IEnumerable<User> GetSeeds()
         {
@@ -189,6 +194,29 @@ namespace Persistence.Seeds
                     passwordHash: DefaultPasswordHash,
                     isActive: true,
                     isEmailVerified: true
+                ));
+            }
+
+            // Inactive students with email not verified
+            var inactiveStudents = new List<(Guid id, string userName, string email, string firstName, string lastName)>
+            {
+                (StudentUser81Id, "yigit.kaan.kocak.s81", "yigitkocak@std.iyte.edu.tr", "Yiğit Kaan", "Koçak"),
+                (StudentUser82Id, "dogan.sengul.s82", "dogansengul@std.iyte.edu.tr", "Doğan", "Şengül"),
+                (StudentUser83Id, "berat.erdogan.s83", "beraterdogan@std.iyte.edu.tr", "Berat", "Erdoğan")
+            };
+
+            foreach (var inactiveStudent in inactiveStudents)
+            {
+                userList.Add(new User(
+                    id: inactiveStudent.id,
+                    userName: inactiveStudent.userName,
+                    email: inactiveStudent.email,
+                    firstName: inactiveStudent.firstName,
+                    lastName: inactiveStudent.lastName,
+                    passwordSalt: DefaultPasswordSalt,
+                    passwordHash: DefaultPasswordHash,
+                    isActive: false,
+                    isEmailVerified: false
                 ));
             }
             

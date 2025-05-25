@@ -38,7 +38,7 @@ public class StartGraduationForAllStudentsCommand : IRequest<StartedGraduationFo
         public async Task<StartedGraduationForAllStudentsResponse> Handle(StartGraduationForAllStudentsCommand request, CancellationToken cancellationToken)
         {
             IPaginate<Student> students = await _studentRepository.GetListAsync(
-                predicate: s => s.User != null, // Removed s.User.IsActive check
+                size: int.MaxValue, // Tüm öğrencileri getirmek için pagination limitini kaldırıyoruz
                 cancellationToken: cancellationToken
             );
 
@@ -87,6 +87,7 @@ public class StartGraduationForAllStudentsCommand : IRequest<StartedGraduationFo
             // General Notification to all active users (excluding the initiator if desired)
             IPaginate<User> allActiveUsers = await _userRepository.GetListAsync(
                 predicate: u => u.IsActive && u.Id != request.InitiatedByUserId, // Exclude the user who initiated the process
+                size: int.MaxValue, // Tüm kullanıcıları getirmek için
                 cancellationToken: cancellationToken
             );
 

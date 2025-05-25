@@ -60,10 +60,9 @@ const DeansOfficeDashboardLayout = ({ children }: DeansOfficeDashboardLayoutProp
   const unreadCount = notifications.filter(n => !n.read).length;
   
   const pathname = window.location.pathname;
-
   const navItems = [
     { path: '/deansoffice', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/deansoffice/faculty-ranking', icon: <FormatListNumberedIcon />, label: 'Faculty Ranking' },
+    { path: '/deansoffice/faculty-ranking', icon: <FormatListNumberedIcon />, label: 'Approval & Ranking' },
     { path: '/deansoffice/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
 

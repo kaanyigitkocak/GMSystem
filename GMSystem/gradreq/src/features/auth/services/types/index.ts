@@ -7,6 +7,7 @@ export interface User {
   role: UserType;
   name: string;
   department?: string;
+  facultyId?: string;
 }
 
 export interface AuthResponse {

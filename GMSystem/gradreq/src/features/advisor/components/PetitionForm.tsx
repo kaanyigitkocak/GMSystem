@@ -9,16 +9,15 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Autocomplete,
-  TextField,
+  Autocomplete,  TextField,
   Typography,
-  Grid,
+  Grid as MuiGrid,
   Paper,
   Button,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   CircularProgress,
 } from '@mui/material';
-import type { PetitionStudent } from '../services/petitionService';
+import type { PetitionStudent } from '../services/types';
 
 export interface PetitionFormData {
   type: string;
@@ -36,13 +35,11 @@ const PetitionForm = ({ students, isSubmitting, onSubmit }: PetitionFormProps) =
   const [activeStep, setActiveStep] = useState(0);
   const [petitionType, setPetitionType] = useState('');
   const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
-  const [petitionContent, setPetitionContent] = useState('');
-  const [errors, setErrors] = useState<{
+  const [petitionContent, setPetitionContent] = useState('');  const [errors, setErrors] = useState<{
     type?: string;
     student?: string;
     content?: string;
   }>({});
-  const [formComplete, setFormComplete] = useState(false);
 
   const steps = ['Dilekçe Türü', 'Öğrenci Seçimi', 'Dilekçe İçeriği', 'Gözden Geçir'];
 
@@ -66,15 +63,9 @@ const PetitionForm = ({ students, isSubmitting, onSubmit }: PetitionFormProps) =
     }
     
     if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors);
-      return;
+      setErrors(newErrors);      return;
     }
     
-    // Eğer son adıma geldiysek formun tamamlandığını işaretleyelim
-    if (activeStep === steps.length - 2) {
-      setFormComplete(true);
-    }
-
     setErrors({});
     setActiveStep((prevStep) => prevStep + 1);
   };
@@ -175,12 +166,11 @@ const PetitionForm = ({ students, isSubmitting, onSubmit }: PetitionFormProps) =
       case 3:
         const selectedStudentData = students.find(s => s.id === selectedStudent);
         return (
-          <Box>
-            <Typography variant="h6" gutterBottom>
+          <Box>            <Typography variant="h6" gutterBottom>
               Dilekçe Detayları
             </Typography>
-            <Grid container spacing={2}>
-              <Grid item xs={12} sm={6}>
+            <MuiGrid container spacing={2} {...({ component: 'div' } as any)}>
+              <MuiGrid item xs={12} sm={6} {...({ component: 'div' } as any)}>
                 <Typography variant="body2" color="text.secondary">Dilekçe Türü:</Typography>
                 <Typography variant="body1" fontWeight={500}>
                   {petitionType === 'course_substitution' ? 'Ders Muafiyet Dilekçesi' :
@@ -189,22 +179,22 @@ const PetitionForm = ({ students, isSubmitting, onSubmit }: PetitionFormProps) =
                    petitionType === 'course_withdrawal' ? 'Ders Çekilme Dilekçesi' :
                    'Özel İstek Dilekçesi'}
                 </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6}>
+              </MuiGrid>
+              <MuiGrid item xs={12} sm={6} {...({ component: 'div' } as any)}>
                 <Typography variant="body2" color="text.secondary">Öğrenci:</Typography>
                 <Typography variant="body1" fontWeight={500}>
                   {selectedStudentData ? `${selectedStudentData.name} (${selectedStudentData.id})` : ''}
                 </Typography>
-              </Grid>
-              <Grid item xs={12}>
+              </MuiGrid>
+              <MuiGrid item xs={12} {...({ component: 'div' } as any)}>
                 <Typography variant="body2" color="text.secondary">Dilekçe İçeriği:</Typography>
                 <Paper variant="outlined" sx={{ p: 2, mt: 1 }}>
                   <Typography variant="body1" sx={{ whiteSpace: 'pre-wrap' }}>
                     {petitionContent}
                   </Typography>
                 </Paper>
-              </Grid>
-            </Grid>
+              </MuiGrid>
+            </MuiGrid>
           </Box>
         );
       default:

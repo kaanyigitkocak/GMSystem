@@ -50,8 +50,8 @@ public class BaseDbContext : DbContext
         modelBuilder.Entity<Faculty>().HasData(FacultySeeds.GetSeeds());
         modelBuilder.Entity<Department>().HasData(DepartmentSeeds.GetSeeds());
         modelBuilder.Entity<User>().HasData(UserSeeds.GetSeeds());
-        modelBuilder.Entity<Student>().HasData(StudentSeeds.GetSeeds());
         modelBuilder.Entity<Staff>().HasData(StaffSeeds.GetSeeds());
+        modelBuilder.Entity<Student>().HasData(StudentSeeds.GetSeeds());
         modelBuilder.Entity<Course>().HasData(CourseSeeds.GetSeeds());
         modelBuilder.Entity<CourseTaken>().HasData(CourseTakenSeeds.GetSeeds());
 

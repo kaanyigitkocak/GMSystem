@@ -6,13 +6,12 @@ import {
   TableBody,
   TableCell,
   TableContainer,
-  TableHead,
-  TableRow,
+  TableHead,  TableRow,
   Chip,
   CircularProgress,
   Alert
 } from '@mui/material';
-import type { TranscriptData } from '../services/transcriptService';
+import type { TranscriptData } from '../services/types';
 
 interface TranscriptViewerProps {
   transcript: TranscriptData | null;

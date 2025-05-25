@@ -29,9 +29,6 @@ import type {
   Notification,
 } from "./types";
 
-// Get service configuration
-const { useMock } = getServiceConfig();
-
 /**
  * Get faculty-wide student rankings
  */
@@ -39,6 +36,7 @@ export const getFacultyRankings = async (): Promise<{
   rankings: StudentRanking[];
   metadata: RankingMetadata;
 }> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getFacultyRankingsMock();
   }
@@ -51,6 +49,7 @@ export const getFacultyRankings = async (): Promise<{
 export const processDepartmentFiles = async (
   files: File[]
 ): Promise<FileValidationResult> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return processDepartmentFilesMock(files);
   }
@@ -61,6 +60,7 @@ export const processDepartmentFiles = async (
  * Process CSV files and extract UploadedFile objects
  */
 export const processCSVFiles = (selectedFiles: File[]): UploadedFile[] => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return processCSVFilesMock(selectedFiles);
   }
@@ -71,6 +71,7 @@ export const processCSVFiles = (selectedFiles: File[]): UploadedFile[] => {
  * Export faculty rankings to CSV
  */
 export const exportFacultyRankingsToCSV = async (): Promise<boolean> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return exportFacultyRankingsToCSVMock();
   }
@@ -83,6 +84,7 @@ export const exportFacultyRankingsToCSV = async (): Promise<boolean> => {
 export const generateValidationSummary = (
   files: UploadedFile[]
 ): ValidationSummary => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return generateValidationSummaryMock(files);
   }

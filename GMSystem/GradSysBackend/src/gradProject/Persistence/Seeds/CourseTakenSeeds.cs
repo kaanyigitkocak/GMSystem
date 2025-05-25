@@ -167,7 +167,9 @@ namespace Persistence.Seeds
             UserSeeds.StudentUser61Id, UserSeeds.StudentUser62Id, UserSeeds.StudentUser63Id, UserSeeds.StudentUser64Id, UserSeeds.StudentUser65Id,
             UserSeeds.StudentUser66Id, UserSeeds.StudentUser67Id, UserSeeds.StudentUser68Id, UserSeeds.StudentUser69Id, UserSeeds.StudentUser70Id,
             UserSeeds.StudentUser71Id, UserSeeds.StudentUser72Id, UserSeeds.StudentUser73Id, UserSeeds.StudentUser74Id, UserSeeds.StudentUser75Id,
-            UserSeeds.StudentUser76Id, UserSeeds.StudentUser77Id, UserSeeds.StudentUser78Id, UserSeeds.StudentUser79Id, UserSeeds.StudentUser80Id
+            UserSeeds.StudentUser76Id, UserSeeds.StudentUser77Id, UserSeeds.StudentUser78Id, UserSeeds.StudentUser79Id, UserSeeds.StudentUser80Id,
+            // Additional successful students
+            UserSeeds.StudentUser81Id, UserSeeds.StudentUser82Id, UserSeeds.StudentUser83Id
         };
 
         // Semesters
@@ -191,12 +193,15 @@ namespace Persistence.Seeds
                 var studentUserId = StudentUserIds[studentIndex];
                 var studentCourses = new List<CourseTaken>();
 
-                // Determine if this is a "problematic" student (last 5 students)
+                // Determine if this is a "problematic" student (students 76-79)
                 bool isMissingMandatory = studentIndex == 76; // Student 77: Missing mandatory course
                 bool hasLowGPA = studentIndex == 77; // Student 78: GPA < 2.0
                 bool hasLowCredits = studentIndex == 78; // Student 79: Credits < 240
                 bool hasInsufficientTechnical = studentIndex == 79; // Student 80: < 6 technical electives
                 bool hasInsufficientNonTechnical = studentIndex == 75; // Student 76: < 3 non-technical electives
+                
+                // Students 81, 82, 83 are successful students (indexes 80, 81, 82)
+                bool isSuccessfulStudent = false; // These will be added manually
 
                 // 1. Add mandatory courses (except for the student missing mandatory)
                 foreach (var course in MandatoryCourses)
@@ -204,9 +209,19 @@ namespace Persistence.Seeds
                     // Skip one mandatory course for the problematic student
                     if (isMissingMandatory && course.Code == "CENG 415") continue;
 
-                    string grade = hasLowGPA ? 
-                        GetRandomGradeForLowGPA(random) : 
-                        GetRandomGradeForGoodStudent(random);
+                    string grade;
+                    if (isSuccessfulStudent)
+                    {
+                        grade = GetRandomGradeForExcellentStudent(random);
+                    }
+                    else if (hasLowGPA)
+                    {
+                        grade = GetRandomGradeForLowGPA(random);
+                    }
+                    else
+                    {
+                        grade = GetRandomGradeForGoodStudent(random);
+                    }
                     
                     string semester = Semesters[random.Next(Semesters.Length)];
                     
@@ -225,7 +240,20 @@ namespace Persistence.Seeds
                 }
 
                 // 2. Add technical electives (minimum 6, except for problematic student)
-                int technicalElectiveCount = hasInsufficientTechnical ? 4 : random.Next(6, 10); // 6-9 for normal, 4 for problematic
+                int technicalElectiveCount;
+                if (isSuccessfulStudent)
+                {
+                    technicalElectiveCount = random.Next(8, 12); // 8-11 for excellent students
+                }
+                else if (hasInsufficientTechnical)
+                {
+                    technicalElectiveCount = 4; // 4 for problematic
+                }
+                else
+                {
+                    technicalElectiveCount = random.Next(6, 10); // 6-9 for normal
+                }
+                
                 var selectedTechnicalElectives = TechnicalElectives
                     .OrderBy(x => random.Next())
                     .Take(technicalElectiveCount)
@@ -233,9 +261,19 @@ namespace Persistence.Seeds
 
                 foreach (var course in selectedTechnicalElectives)
                 {
-                    string grade = hasLowGPA ? 
-                        GetRandomGradeForLowGPA(random) : 
-                        GetRandomGradeForGoodStudent(random);
+                    string grade;
+                    if (isSuccessfulStudent)
+                    {
+                        grade = GetRandomGradeForExcellentStudent(random);
+                    }
+                    else if (hasLowGPA)
+                    {
+                        grade = GetRandomGradeForLowGPA(random);
+                    }
+                    else
+                    {
+                        grade = GetRandomGradeForGoodStudent(random);
+                    }
                     
                     string semester = Semesters[random.Next(Semesters.Length)];
                     
@@ -254,7 +292,20 @@ namespace Persistence.Seeds
                 }
 
                 // 3. Add non-technical electives (minimum 3, except for problematic student)
-                int nonTechnicalElectiveCount = hasInsufficientNonTechnical ? 2 : random.Next(3, 6); // 3-5 for normal, 2 for problematic
+                int nonTechnicalElectiveCount;
+                if (isSuccessfulStudent)
+                {
+                    nonTechnicalElectiveCount = random.Next(5, 8); // 5-7 for excellent students
+                }
+                else if (hasInsufficientNonTechnical)
+                {
+                    nonTechnicalElectiveCount = 2; // 2 for problematic
+                }
+                else
+                {
+                    nonTechnicalElectiveCount = random.Next(3, 6); // 3-5 for normal
+                }
+                
                 var selectedNonTechnicalElectives = NonTechnicalElectives
                     .OrderBy(x => random.Next())
                     .Take(nonTechnicalElectiveCount)
@@ -262,9 +313,19 @@ namespace Persistence.Seeds
 
                 foreach (var course in selectedNonTechnicalElectives)
                 {
-                    string grade = hasLowGPA ? 
-                        GetRandomGradeForLowGPA(random) : 
-                        GetRandomGradeForGoodStudent(random);
+                    string grade;
+                    if (isSuccessfulStudent)
+                    {
+                        grade = GetRandomGradeForExcellentStudent(random);
+                    }
+                    else if (hasLowGPA)
+                    {
+                        grade = GetRandomGradeForLowGPA(random);
+                    }
+                    else
+                    {
+                        grade = GetRandomGradeForGoodStudent(random);
+                    }
                     
                     string semester = Semesters[random.Next(Semesters.Length)];
                     
@@ -301,9 +362,19 @@ namespace Persistence.Seeds
                         {
                             if (studentCourses.Sum(c => c.CreditsEarned) >= 240) break;
 
-                            string grade = hasLowGPA ? 
-                                GetRandomGradeForLowGPA(random) : 
-                                GetRandomGradeForGoodStudent(random);
+                            string grade;
+                            if (isSuccessfulStudent)
+                            {
+                                grade = GetRandomGradeForExcellentStudent(random);
+                            }
+                            else if (hasLowGPA)
+                            {
+                                grade = GetRandomGradeForLowGPA(random);
+                            }
+                            else
+                            {
+                                grade = GetRandomGradeForGoodStudent(random);
+                            }
                             
                             string semester = Semesters[random.Next(Semesters.Length)];
                             
@@ -321,6 +392,88 @@ namespace Persistence.Seeds
                             courseTakenIdCounter++;
                         }
                     }
+                }
+
+                courseTakenList.AddRange(studentCourses);
+            }
+
+            // Add course taken records for the 3 additional successful students manually
+            var successfulStudentIds = new[] { UserSeeds.StudentUser81Id, UserSeeds.StudentUser82Id, UserSeeds.StudentUser83Id };
+            
+            foreach (var studentUserId in successfulStudentIds)
+            {
+                var studentCourses = new List<CourseTaken>();
+
+                // 1. Add all mandatory courses with excellent grades
+                foreach (var course in MandatoryCourses)
+                {
+                    string grade = GetRandomGradeForExcellentStudent(random);
+                    string semester = Semesters[random.Next(Semesters.Length)];
+                    
+                    studentCourses.Add(new CourseTaken(
+                        id: Guid.Parse($"50000000-0000-0000-0000-{courseTakenIdCounter:D12}"),
+                        studentUserId: studentUserId,
+                        courseCodeInTranscript: course.Code,
+                        courseNameInTranscript: course.Name,
+                        grade: grade,
+                        semesterTaken: semester,
+                        creditsEarned: course.Ects,
+                        isSuccessfullyCompleted: grade != "FF",
+                        matchedCourseId: course.Id
+                    ));
+                    courseTakenIdCounter++;
+                }
+
+                // 2. Add 8-10 technical electives with excellent grades
+                int technicalElectiveCount = random.Next(8, 11);
+                var selectedTechnicalElectives = TechnicalElectives
+                    .OrderBy(x => random.Next())
+                    .Take(technicalElectiveCount)
+                    .ToList();
+
+                foreach (var course in selectedTechnicalElectives)
+                {
+                    string grade = GetRandomGradeForExcellentStudent(random);
+                    string semester = Semesters[random.Next(Semesters.Length)];
+                    
+                    studentCourses.Add(new CourseTaken(
+                        id: Guid.Parse($"50000000-0000-0000-0000-{courseTakenIdCounter:D12}"),
+                        studentUserId: studentUserId,
+                        courseCodeInTranscript: course.Code,
+                        courseNameInTranscript: course.Name,
+                        grade: grade,
+                        semesterTaken: semester,
+                        creditsEarned: course.Ects,
+                        isSuccessfullyCompleted: grade != "FF",
+                        matchedCourseId: course.Id
+                    ));
+                    courseTakenIdCounter++;
+                }
+
+                // 3. Add 5-7 non-technical electives with excellent grades
+                int nonTechnicalElectiveCount = random.Next(5, 8);
+                var selectedNonTechnicalElectives = NonTechnicalElectives
+                    .OrderBy(x => random.Next())
+                    .Take(nonTechnicalElectiveCount)
+                    .ToList();
+
+                foreach (var course in selectedNonTechnicalElectives)
+                {
+                    string grade = GetRandomGradeForExcellentStudent(random);
+                    string semester = Semesters[random.Next(Semesters.Length)];
+                    
+                    studentCourses.Add(new CourseTaken(
+                        id: Guid.Parse($"50000000-0000-0000-0000-{courseTakenIdCounter:D12}"),
+                        studentUserId: studentUserId,
+                        courseCodeInTranscript: course.Code,
+                        courseNameInTranscript: course.Name,
+                        grade: grade,
+                        semesterTaken: semester,
+                        creditsEarned: course.Ects,
+                        isSuccessfullyCompleted: grade != "FF",
+                        matchedCourseId: course.Id
+                    ));
+                    courseTakenIdCounter++;
                 }
 
                 courseTakenList.AddRange(studentCourses);
@@ -365,6 +518,25 @@ namespace Persistence.Seeds
             }
             
             return "DD"; // fallback
+        }
+
+        private static string GetRandomGradeForExcellentStudent(Random random)
+        {
+            var excellentGrades = new[] { "AA", "BA", "BB" };
+            var weights = new[] { 40, 30, 30 }; // Higher probability for better grades
+            
+            int totalWeight = weights.Sum();
+            int randomNumber = random.Next(totalWeight);
+            int cumulativeWeight = 0;
+            
+            for (int i = 0; i < excellentGrades.Length; i++)
+            {
+                cumulativeWeight += weights[i];
+                if (randomNumber < cumulativeWeight)
+                    return excellentGrades[i];
+            }
+            
+            return "BB"; // fallback
         }
     }
 } 

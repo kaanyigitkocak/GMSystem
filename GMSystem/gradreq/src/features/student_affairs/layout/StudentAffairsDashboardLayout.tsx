@@ -62,10 +62,9 @@ const StudentAffairsDashboardLayout = ({ children }: StudentAffairsDashboardLayo
   const unreadCount = notifications.filter(n => !n.read).length;
   
   const pathname = window.location.pathname;
-
   const navItems = [
     { path: '/student-affairs', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/student-affairs/university-rankings', icon: <CloudUploadIcon />, label: 'Generate University Ranking Lists', exact: false },
+    { path: '/student-affairs/university-rankings', icon: <CloudUploadIcon />, label: 'Approval & Ranking', exact: false },
     { path: '/student-affairs/upload-graduation-decisions', icon: <FileUploadIcon />, label: 'Upload Graduation Decisions', exact: false },
     { path: '/student-affairs/notifications', icon: <NotificationsIcon />, label: 'Notifications', exact: false },
   ];

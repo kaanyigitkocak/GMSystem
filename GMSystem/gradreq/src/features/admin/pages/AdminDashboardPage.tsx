@@ -1,4 +1,4 @@
-import { Box, Typography, Paper, Container, Grid as MuiGrid } from '@mui/material';
+import { Typography, Paper, Container, Grid as MuiGrid } from '@mui/material';
 import { useAuth } from '../../auth/contexts/AuthContext';
 
 // Define Grid component with proper typing

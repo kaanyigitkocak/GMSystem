@@ -5,7 +5,7 @@ import {
   Paper,
   TextField,
   Button,
-  Grid,
+  Grid as MuiGrid,
   FormControl,
   InputLabel,
   Select,
@@ -19,9 +19,11 @@ import {
   Snackbar,
   CircularProgress,
 } from '@mui/material';
-import { SelectChangeEvent } from '@mui/material';
+import { type SelectChangeEvent } from '@mui/material';
 import AdvisorDashboardLayout from '../layout/AdvisorDashboardLayout';
 import { usePetition } from '../hooks/usePetition';
+
+const Grid = MuiGrid as any;
 
 const PetitionPage = () => {
   const [activeStep, setActiveStep] = useState(0);

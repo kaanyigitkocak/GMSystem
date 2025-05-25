@@ -1,5 +1,6 @@
 import { useState } from 'react';
-import { Box, Typography, TextField, Card, CardContent, Button, Grid, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, FormControlLabel, Alert } from '@mui/material';
+import { Box, Typography, TextField, Card, CardContent, Button, Chip, Dialog, DialogTitle, DialogContent, DialogActions, Checkbox, Alert } from '@mui/material';
+import { LoadingOverlay } from '../../../shared/components';
 
 const mockStudents = [
   { id: '1', name: 'Jane Smith', studentId: '20201001', department: 'Computer Engineering', gpa: 3.45, status: 'Eligible', hasManualRequest: true },
@@ -12,10 +13,12 @@ const MyStudentsPage = () => {
   const [selectedStudent, setSelectedStudent] = useState<null | typeof mockStudents[0]>(null);
   const [openTranscript, setOpenTranscript] = useState(false);
   const [openEmail, setOpenEmail] = useState(false);
-  const [openPetition, setOpenPetition] = useState(false);
   const [openManual, setOpenManual] = useState(false);
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [petitionDialogOpen, setPetitionDialogOpen] = useState(false);
+  const [isLoadingTranscript, setIsLoadingTranscript] = useState(false);
+  const [isCheckingStatus, setIsCheckingStatus] = useState(false);
+  const [checkingStudentId, setCheckingStudentId] = useState<string | null>(null);
 
   const filtered = mockStudents.filter(s =>
     s.name.toLowerCase().includes(search.toLowerCase()) ||
@@ -27,16 +30,40 @@ const MyStudentsPage = () => {
       prev.includes(id) ? prev.filter(sid => sid !== id) : [...prev, id]
     );
   };
-
   const handleSendPetition = () => {
     if (selectedIds.length === 0) return;
     setPetitionDialogOpen(true);
   };
 
-  const selectedStudents = mockStudents.filter(s => selectedIds.includes(s.id));
+  const handleViewDetails = async (student: typeof mockStudents[0]) => {
+    setSelectedStudent(student);
+    setIsLoadingTranscript(true);
+    setOpenTranscript(true);
+    
+    // Simulate loading transcript data
+    setTimeout(() => {
+      setIsLoadingTranscript(false);
+    }, 1500);
+  };
 
+  const handleCheckGraduationStatus = async (studentId: string) => {
+    setCheckingStudentId(studentId);
+    setIsCheckingStatus(true);
+    
+    // Simulate checking graduation status
+    setTimeout(() => {
+      setIsCheckingStatus(false);
+      setCheckingStudentId(null);
+    }, 2000);
+  };
+
+  const selectedStudents = mockStudents.filter(s => selectedIds.includes(s.id));
   return (
-    <Box sx={{ p: 3 }}>
+    <Box sx={{ p: 3, position: 'relative' }}>      <LoadingOverlay 
+        isLoading={isCheckingStatus} 
+        message="Checking graduation status..."
+        color="info"
+      />
       <Box sx={{ display: 'flex', alignItems: 'center', mb: 2, justifyContent: 'space-between' }}>
         <Typography variant="h4" gutterBottom>
           My Students
@@ -55,40 +82,61 @@ const MyStudentsPage = () => {
         value={search}
         onChange={e => setSearch(e.target.value)}
         sx={{ mb: 3, width: 300 }}
-      />
-      <Grid container spacing={2}>
+      />      <Box 
+        sx={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', 
+          gap: 2 
+        }}
+      >
         {filtered.map(student => (
-          <Grid item xs={12} md={6} lg={4} key={student.id}>
-            <Card>
-              <CardContent>
-                <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
-                  <Checkbox
-                    checked={selectedIds.includes(student.id)}
-                    onChange={() => handleCheckboxChange(student.id)}
-                    sx={{ mr: 1 }}
-                  />
-                  <Typography variant="h6">{student.name}</Typography>
-                </Box>
-                <Typography variant="body2" color="text.secondary">ID: {student.studentId}</Typography>
-                <Typography variant="body2">Department: {student.department}</Typography>
-                <Typography variant="body2">GPA: {student.gpa}</Typography>
-                <Chip label={student.status} color={student.status === 'Eligible' ? 'success' : 'warning'} sx={{ mt: 1, mb: 1 }} />
-                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
-                  <Button size="small" variant="outlined" onClick={() => { setSelectedStudent(student); setOpenTranscript(true); }}>View Details</Button>
-                  <Button size="small" variant="outlined" color="error">Report Missing Transcript</Button>
-                  <Button size="small" variant="outlined" color="success">Check Graduation Status</Button>
-                  <Button size="small" variant="outlined" color="success">Approve Graduation</Button>
-                  <Button size="small" variant="outlined" onClick={() => { setSelectedStudent(student); setOpenEmail(true); }}>Send Email</Button>
-                </Box>
-              </CardContent>
-            </Card>
-          </Grid>
+          <Card key={student.id}>
+            <CardContent>
+              <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
+                <Checkbox
+                  checked={selectedIds.includes(student.id)}
+                  onChange={() => handleCheckboxChange(student.id)}
+                  sx={{ mr: 1 }}
+                />
+                <Typography variant="h6">{student.name}</Typography>
+              </Box>
+              <Typography variant="body2" color="text.secondary">ID: {student.studentId}</Typography>
+              <Typography variant="body2">Department: {student.department}</Typography>
+              <Typography variant="body2">GPA: {student.gpa}</Typography>
+              <Chip label={student.status} color={student.status === 'Eligible' ? 'success' : 'warning'} sx={{ mt: 1, mb: 1 }} />
+              <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1, mt: 1 }}>
+                <Button 
+                  size="small" 
+                  variant="outlined" 
+                  onClick={() => handleViewDetails(student)}
+                >
+                  View Details
+                </Button>
+                <Button size="small" variant="outlined" color="error">Report Missing Transcript</Button>
+                <Button 
+                  size="small" 
+                  variant="outlined" 
+                  color="success"
+                  onClick={() => handleCheckGraduationStatus(student.id)}
+                  disabled={checkingStudentId === student.id}
+                >
+                  Check Graduation Status
+                </Button>
+                <Button size="small" variant="outlined" color="success">Approve Graduation</Button>
+                <Button size="small" variant="outlined" onClick={() => { setSelectedStudent(student); setOpenEmail(true); }}>Send Email</Button>
+              </Box>
+            </CardContent>
+          </Card>
         ))}
-      </Grid>
-      {/* Transcript Dialog */}
+      </Box>      {/* Transcript Dialog */}
       <Dialog open={openTranscript} onClose={() => setOpenTranscript(false)} maxWidth="md" fullWidth>
         <DialogTitle>Transcript Viewer</DialogTitle>
-        <DialogContent>
+        <DialogContent sx={{ position: 'relative', minHeight: 200 }}>
+          <LoadingOverlay 
+            isLoading={isLoadingTranscript} 
+            message="Loading transcript data..."
+            color="primary"
+          />
           {/* Transcript details would go here */}
           <Typography>Transcript details for {selectedStudent?.name}</Typography>
         </DialogContent>

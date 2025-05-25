@@ -1,13 +1,7 @@
-import type { ServiceConfig } from "../types";
+import { getServiceConfig as getCommonServiceConfig } from "../../../common/utils/serviceUtils";
 
-// Service configuration
-export const getServiceConfig = (): ServiceConfig => {
-  console.log("API Source:", import.meta.env.VITE_API_SOURCE);
-  return {
-    apiBaseUrl: "http://localhost:5278/api", // FORCE: Always use 5278
-    useMock: import.meta.env.VITE_API_SOURCE === "mock",
-  };
-};
+// Re-export common service config
+export const getServiceConfig = getCommonServiceConfig;
 
 // Error handling utility
 export class ServiceError extends Error {

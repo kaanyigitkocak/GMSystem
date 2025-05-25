@@ -13,7 +13,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent,
+  type SelectChangeEvent,
 } from '@mui/material';
 
 export interface EmailDialogProps {

@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from 'react-router-dom';
+import { Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense } from 'react';
 import { Box, CircularProgress, Typography } from '@mui/material';
 import theme from '../core/styles/theme';
@@ -6,6 +6,9 @@ import { useAuth } from '../features/auth/contexts/AuthContext';
 import { UserType } from '../features/auth/types';
 import AdvisorDashboardLayout from '../features/advisor/layout/AdvisorDashboardLayout';
 import ErrorBoundary from '../shared/components/ErrorBoundary';
+import AdvisorNotificationsPage from '../features/advisor/pages/NotificationsPage';
+import ApprovalRankingPage from '../features/advisor/pages/ApprovalRankingPage';
+import { DeansOfficeEligibilityProvider } from '../features/deansOffice/contexts/DeansOfficeEligibilityContext';
 
 // Lazy load pages for better performance
 const LoginPage = lazy(() => import('../features/auth/pages/LoginPage'));
@@ -23,14 +26,13 @@ const StudentNotificationsPage = lazy(() => import('../features/student/pages/No
 const SecretaryDashboard = lazy(() => import('../features/secretary/pages/SecretaryDashboardPage'));
 const SecretaryDashboardLayout = lazy(() => import('../features/secretary/layout/SecretaryDashboardLayout'));
 const TranscriptProcessingPage = lazy(() => import('../features/secretary/pages/TranscriptProcessingPage'));
-const DepartmentRankingPage = lazy(() => import('../features/secretary/pages/DepartmentRankingPage'));
+const SecretaryApprovalRankingPage = lazy(() => import('../features/secretary/pages/ApprovalRankingPage'));
 const NotificationsPage = lazy(() => import('../features/secretary/pages/NotificationsPage'));
 
 // Dean's Office pages
 const DeansOfficeDashboard = lazy(() => import('../features/deansOffice/pages/DeansOfficeDashboardPage'));
 const DeansOfficeDashboardLayout = lazy(() => import('../features/deansOffice/layout/DeansOfficeDashboardLayout'));
-const FileUploadPage = lazy(() => import('../features/deansOffice/pages/FileUploadPage'));
-const FacultyRankingPage = lazy(() => import('../features/deansOffice/pages/FacultyRankingPage'));
+const DeansOfficeApprovalRankingPage = lazy(() => import('../features/deansOffice/pages/ApprovalRankingPage'));
 const DeansOfficeNotificationsPage = lazy(() => import('../features/deansOffice/pages/NotificationsPage'));
 
 // Student Affairs pages
@@ -180,7 +182,9 @@ const AppRoutes = () => {
             <ProtectedRoute 
               element={
                 <ErrorBoundary>
-                  <SecretaryDashboard />
+                  <SecretaryDashboardLayout>
+                    <SecretaryDashboard />
+                  </SecretaryDashboardLayout>
                 </ErrorBoundary>
               } 
             />
@@ -207,7 +211,7 @@ const AppRoutes = () => {
               element={
                 <ErrorBoundary>
                   <SecretaryDashboardLayout>
-                    <DepartmentRankingPage />
+                    <SecretaryApprovalRankingPage />
                   </SecretaryDashboardLayout>
                 </ErrorBoundary>
               } 
@@ -230,40 +234,43 @@ const AppRoutes = () => {
         />
         
         {/* Dean's Office Dashboard routes */}
-        <Route path="/deansoffice" element={<ProtectedRoute element={<DeansOfficeDashboard />} />} />
         <Route 
-          path="/deansoffice/file-upload" 
+          path="/deansoffice" 
           element={
             <ProtectedRoute 
               element={
-                <DeansOfficeDashboardLayout>
-                  <FileUploadPage />
-                </DeansOfficeDashboardLayout>
+                <DeansOfficeEligibilityProvider>
+                  <DeansOfficeDashboard />
+                </DeansOfficeEligibilityProvider>
               } 
             />
           } 
         />
         <Route 
-          path="/deansoffice/faculty-ranking" 
+          path="/deansoffice/approval-ranking" 
           element={
             <ProtectedRoute 
               element={
-                <DeansOfficeDashboardLayout>
-                  <FacultyRankingPage />
-                </DeansOfficeDashboardLayout>
+                <DeansOfficeEligibilityProvider>
+                  <DeansOfficeApprovalRankingPage />
+                </DeansOfficeEligibilityProvider>
               } 
             />
           } 
         />
-        <Route
-          path="/deansoffice/notifications"
+        <Route 
+          path="/deansoffice/notifications" 
           element={
-            <ProtectedRoute
+            <ProtectedRoute 
               element={
-                <DeansOfficeNotificationsPage />
-              }
+                <DeansOfficeEligibilityProvider>
+                  <DeansOfficeDashboardLayout>
+                    <DeansOfficeNotificationsPage />
+                  </DeansOfficeDashboardLayout>
+                </DeansOfficeEligibilityProvider>
+              } 
             />
-          }
+          } 
         />
 
         {/* Student Affairs Dashboard routes */}
@@ -310,6 +317,8 @@ const AppRoutes = () => {
           <Route index element={<AdvisorDashboardPage />} />
           <Route path="my-students" element={<MyStudentsPage />} />
           <Route path="manual-check-requests" element={<ManualCheckRequestsPage />} />
+          <Route path="approval-ranking" element={<ApprovalRankingPage />} />
+          <Route path="notifications" element={<AdvisorNotificationsPage />} />
         </Route>
         
         {/* Admin Dashboard routes */}
@@ -325,4 +334,4 @@ const AppRoutes = () => {
   );
 };
 
-export default AppRoutes; 
+export default AppRoutes;

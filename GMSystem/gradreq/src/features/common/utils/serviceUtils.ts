@@ -1,4 +1,5 @@
 // Common service utilities that can be used across different features
+import { getEnvironmentConfig } from '../../../core/utils/environment';
 
 /**
  * Common service configuration interface
@@ -14,21 +15,11 @@ export interface ServiceConfig {
  * This is a common utility that can be used by all features
  */
 export const getServiceConfig = (): ServiceConfig => {
-  const useMock = import.meta.env.VITE_API_SOURCE === "mock";
-
-  // FORCE: Always use port 5278 for backend API calls
-  const apiBaseUrl = "http://localhost:5278/api";
-
-  console.log("Service Config:", {
-    useMock,
-    apiBaseUrl,
-    VITE_API_SOURCE: import.meta.env.VITE_API_SOURCE,
-    VITE_API_BASE_URL: import.meta.env.VITE_API_BASE_URL,
-  });
-
+  const envConfig = getEnvironmentConfig();
+  
   return {
-    apiBaseUrl,
-    useMock,
+    apiBaseUrl: envConfig.apiBaseUrl,
+    useMock: envConfig.useMock,
     fetchOptions: {
       credentials: "omit", // Changed from 'include' to 'omit' to fix CORS issues
       mode: "cors", // Enable CORS

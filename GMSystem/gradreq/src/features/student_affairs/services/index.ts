@@ -50,11 +50,9 @@ import type {
   GraduationDecision,
 } from "./types";
 
-// Get service configuration
-const { useMock } = getServiceConfig();
-
 // Notification services
 export const getNotifications = async (): Promise<Notification[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getNotificationsMock();
   }
@@ -62,6 +60,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
 };
 
 export const markNotificationAsRead = async (id: string): Promise<void> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return markNotificationAsReadMock(id);
   }
@@ -69,6 +68,7 @@ export const markNotificationAsRead = async (id: string): Promise<void> => {
 };
 
 export const markAllNotificationsAsRead = async (): Promise<void> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return markAllNotificationsAsReadMock();
   }
@@ -78,6 +78,7 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
 };
 
 export const deleteNotification = async (id: string): Promise<void> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return deleteNotificationMock(id);
   }
@@ -88,6 +89,7 @@ export const deleteNotification = async (id: string): Promise<void> => {
 
 // Graduation requests service
 export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getGraduationRequestsMock();
   }
@@ -98,6 +100,7 @@ export const getGraduationRequests = async (): Promise<GraduationRequest[]> => {
 export const getStudentRankings = async (
   department: string
 ): Promise<StudentRanking[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getStudentRankingsMock(department);
   }
@@ -107,6 +110,7 @@ export const getStudentRankings = async (
 export const updateStudentRanking = async (
   student: StudentRanking
 ): Promise<StudentRanking> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return updateStudentRankingMock(student);
   }
@@ -115,6 +119,7 @@ export const updateStudentRanking = async (
 
 // Transcript services
 export const getTranscripts = async (): Promise<TranscriptData[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getTranscriptsMock();
   }
@@ -122,6 +127,7 @@ export const getTranscripts = async (): Promise<TranscriptData[]> => {
 };
 
 export const deleteTranscript = async (id: string): Promise<boolean> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return deleteTranscriptMock(id);
   }
@@ -131,6 +137,7 @@ export const deleteTranscript = async (id: string): Promise<boolean> => {
 export const processTranscript = async (
   id: string
 ): Promise<TranscriptData> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return processTranscriptMock(id);
   }
@@ -139,6 +146,7 @@ export const processTranscript = async (
 
 // Certificate services
 export const getCertificateTypes = async (): Promise<CertificateType[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getCertificateTypesMock();
   }
@@ -147,6 +155,7 @@ export const getCertificateTypes = async (): Promise<CertificateType[]> => {
 
 // Student services
 export const getStudents = async (): Promise<Student[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getStudentsMock();
   }
@@ -156,6 +165,7 @@ export const getStudents = async (): Promise<Student[]> => {
 export const getStudentById = async (
   id: string
 ): Promise<Student | undefined> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getStudentByIdMock(id);
   }
@@ -168,6 +178,7 @@ export const updateCertificateStatus = async (
   status: string,
   issueDate: string | null
 ): Promise<Student | undefined> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return updateCertificateStatusMock(
       studentId,
@@ -186,6 +197,7 @@ export const updateCertificateStatus = async (
 
 // University rankings services
 export const getUniversityRankings = async (): Promise<UniversityRanking[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getUniversityRankingsMock();
   }
@@ -196,6 +208,7 @@ export const getUniversityRankings = async (): Promise<UniversityRanking[]> => {
 export const getGraduationDecisions = async (): Promise<
   GraduationDecision[]
 > => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getGraduationDecisionsMock();
   }

@@ -57,8 +57,7 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
             {
                 // Öğrencinin TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK statüsündeki mezuniyet sürecini bul
                 GraduationProcess? graduationProcess = await _graduationProcessRepository.GetAsync(
-                    predicate: gp => gp.StudentUserId == studentId && 
-                                     gp.Status == GraduationProcessStatus.TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK,
+                    predicate: gp => gp.StudentUserId == studentId,
                     include: q => q.Include(gp => gp.StudentUser).ThenInclude(u => u.StudentProfile!),
                     cancellationToken: cancellationToken
                 );
@@ -84,7 +83,7 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
 
                 Student studentProfile = graduationProcess.StudentUser.StudentProfile;
                 GraduationRequirementSet? requirementSet = await _graduationRequirementSetRepository.GetAsync(
-                    predicate: rs => rs.DepartmentId == studentProfile.DepartmentId && rs.AcademicTerm == graduationProcess.AcademicTerm,
+                    predicate: rs => rs.DepartmentId == studentProfile.DepartmentId,
                     include: q => q.Include(rs => rs.MandatoryCourses).ThenInclude(mc => mc.Course),
                     cancellationToken: cancellationToken
                 );
@@ -99,15 +98,34 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
                 }
 
                 List<CourseTaken> coursesTaken = (await _courseTakenRepository.GetListAsync(
-                    predicate: ct => ct.StudentUserId == studentProfile.Id && ct.MatchedCourseId != null,
+                    predicate: ct => ct.StudentUserId == studentId && ct.MatchedCourseId != null,
                     include: q => q.Include(ct => ct.MatchedCourse),
+                    size: 10000,
                     cancellationToken: cancellationToken
                 )).Items.ToList();
+                
+                // Debug: Check if courses are loaded properly
+                Console.WriteLine($"DEBUG: Found {coursesTaken.Count} courses for student {studentId}");
+                foreach (var ct in coursesTaken.Take(5)) // Show first 5 courses
+                {
+                    Console.WriteLine($"DEBUG: Course {ct.CourseCodeInTranscript}, MatchedCourseId: {ct.MatchedCourseId}, MatchedCourse: {ct.MatchedCourse?.CourseCode}, CourseType: {ct.MatchedCourse?.CourseType}");
+                }
                 
                 List<EligibilityCheckResult> resultsToCreate = new List<EligibilityCheckResult>();
                 DateTime checkDate = DateTime.UtcNow;
                 bool currentProcessOverallSuccess = true;
 
+                // Debug: Log course counts by type
+                var technicalElectivesCount = coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.ELECTIVE_TECHNICAL);
+                var nonTechnicalElectivesCount = coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.ELECTIVE_NON_TECHNICAL);
+                var mandatoryCoursesCount = coursesTaken.Count(ct => ct.IsSuccessfullyCompleted && ct.MatchedCourse?.CourseType == CourseType.MANDATORY);
+                
+                // Debug: Log all courses taken with their types
+                var debugMessage = $"Student {studentId} courses: Total={coursesTaken.Count}, " +
+                                 $"Technical={technicalElectivesCount}, NonTechnical={nonTechnicalElectivesCount}, " +
+                                 $"Mandatory={mandatoryCoursesCount}. " +
+                                 $"Course details: {string.Join(", ", coursesTaken.Where(ct => ct.MatchedCourse != null).Select(ct => $"{ct.MatchedCourse.CourseCode}({ct.MatchedCourse.CourseType})"))}";
+                Console.WriteLine(debugMessage);
                 // 1. GPA Check
                 bool gpaMet = (studentProfile.CurrentGpa ?? 0) >= requirementSet.MinGpa;
                 resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.GPA, gpaMet, (studentProfile.CurrentGpa ?? 0).ToString("F2"), requirementSet.MinGpa.ToString("F2"), checkDate));
@@ -131,16 +149,18 @@ public class PerformSystemEligibilityChecksCommandHandler : IRequestHandler<Perf
                 // 4. Technical Electives Check
                 if (requirementSet.MinTechnicalElectiveCoursesCount.HasValue) 
                 {
-                    bool techElectivesMet = countPassedElectives(CourseType.ELECTIVE_TECHNICAL) >= requirementSet.MinTechnicalElectiveCoursesCount.Value;
-                    resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.TECHNICAL_ELECTIVES, techElectivesMet, countPassedElectives(CourseType.ELECTIVE_TECHNICAL).ToString(), requirementSet.MinTechnicalElectiveCoursesCount.Value.ToString(), checkDate)); 
+                    int actualTechElectives = countPassedElectives(CourseType.ELECTIVE_TECHNICAL);
+                    bool techElectivesMet = actualTechElectives >= requirementSet.MinTechnicalElectiveCoursesCount.Value;
+                    resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.TECHNICAL_ELECTIVES, techElectivesMet, actualTechElectives.ToString(), requirementSet.MinTechnicalElectiveCoursesCount.Value.ToString(), checkDate, debugMessage)); 
                     if (!techElectivesMet) currentProcessOverallSuccess = false;
                 }
 
                 // 5. Non-Technical Electives Check
                 if (requirementSet.MinNonTechnicalElectiveCoursesCount.HasValue) 
                 {
-                    bool nonTechElectivesMet = countPassedElectives(CourseType.ELECTIVE_NON_TECHNICAL) >= requirementSet.MinNonTechnicalElectiveCoursesCount.Value;
-                    resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.NON_TECHNICAL_ELECTIVES, nonTechElectivesMet, countPassedElectives(CourseType.ELECTIVE_NON_TECHNICAL).ToString(), requirementSet.MinNonTechnicalElectiveCoursesCount.Value.ToString(), checkDate));
+                    int actualNonTechElectives = countPassedElectives(CourseType.ELECTIVE_NON_TECHNICAL);
+                    bool nonTechElectivesMet = actualNonTechElectives >= requirementSet.MinNonTechnicalElectiveCoursesCount.Value;
+                    resultsToCreate.Add(new EligibilityCheckResult(Guid.NewGuid(), graduationProcess.Id, EligibilityCheckType.NON_TECHNICAL_ELECTIVES, nonTechElectivesMet, actualNonTechElectives.ToString(), requirementSet.MinNonTechnicalElectiveCoursesCount.Value.ToString(), checkDate, debugMessage));
                     if (!nonTechElectivesMet) currentProcessOverallSuccess = false;
                 }
                 

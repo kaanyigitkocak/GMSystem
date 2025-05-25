@@ -56,6 +56,7 @@ const mockNotifications: Notification[] = [
     type: "info",
     read: false,
     date: "2023-05-15T10:30:00",
+    createdAt: "2023-05-15T10:30:00",
   },
   {
     id: "n2",
@@ -64,6 +65,7 @@ const mockNotifications: Notification[] = [
     type: "success",
     read: false,
     date: "2023-05-14T16:45:00",
+    createdAt: "2023-05-14T16:45:00",
   },
   {
     id: "n3",
@@ -72,6 +74,7 @@ const mockNotifications: Notification[] = [
     type: "warning",
     read: false,
     date: "2023-05-13T09:15:00",
+    createdAt: "2023-05-13T09:15:00",
   },
   {
     id: "n4",
@@ -80,6 +83,7 @@ const mockNotifications: Notification[] = [
     type: "info",
     read: true,
     date: "2023-05-12T14:20:00",
+    createdAt: "2023-05-12T14:20:00",
   },
   {
     id: "n5",
@@ -88,6 +92,7 @@ const mockNotifications: Notification[] = [
     type: "error",
     read: true,
     date: "2023-05-11T11:05:00",
+    createdAt: "2023-05-11T11:05:00",
   },
 ];
 
@@ -1323,6 +1328,3 @@ ${mockTranscripts
 
   return blob;
 };
-
-// Export transcript service
-export { getStudentTranscript } from "../transcriptService";

@@ -8,6 +8,8 @@ import type {
   SortOptions,
   TranscriptReview,
 } from "../types";
+import { getFacultyRankings } from "../services"; // Import the service
+import type { StudentRanking } from "../services/types"; // Import service types
 
 export const useFacultyRanking = () => {
   const [universityRanking, setUniversityRanking] =
@@ -27,56 +29,41 @@ export const useFacultyRanking = () => {
     setError(null);
 
     try {
-      // TODO: Replace with actual API call
-      // const response = await universityRankingService.getRanking();
+      const serviceData = await getFacultyRankings();
 
-      // Mock data for now
-      const mockData: UniversityRankingResult = {
-        rankings: [
-          {
-            id: "1",
-            studentId: "20201001",
-            name: "Ali",
-            surname: "Veli",
-            department: "Computer Engineering",
-            faculty: "Faculty of Engineering",
-            gpa: 3.95,
-            totalCredits: 240,
-            completedCredits: 238,
-            rank: 1,
-            graduationEligible: true,
-            transcriptStatus: "pending",
-            submissionDate: "2024-01-15",
-          },
-          {
-            id: "2",
-            studentId: "20201002",
-            name: "Ayşe",
-            surname: "Kaya",
-            department: "Electronics Engineering",
-            faculty: "Faculty of Engineering",
-            gpa: 3.87,
-            totalCredits: 240,
-            completedCredits: 240,
-            rank: 2,
-            graduationEligible: true,
-            transcriptStatus: "approved",
-            submissionDate: "2024-01-10",
-            reviewDate: "2024-01-12",
-            reviewNote: "All requirements met.",
-          },
-        ],
+      const transformedRankings: StudentRecord[] = serviceData.rankings.map(
+        (sr: StudentRanking): StudentRecord => ({
+          id: sr.id,
+          studentId: sr.studentId,
+          name: sr.name?.split(" ")[0] || "", // Use sr.name
+          surname: sr.name?.split(" ").slice(1).join(" ") || "", // Use sr.name
+          department: sr.department,
+          faculty: sr.faculty, // StudentRanking now has faculty
+          gpa: sr.gpa,
+          totalCredits: sr.credits, // Map from sr.credits
+          completedCredits: sr.credits, // Assuming completedCredits is same as total credits from service type
+          rank: sr.rank,
+          graduationEligible: sr.graduationEligible, // StudentRanking now has graduationEligible
+          transcriptStatus: "pending", // Placeholder - service type doesn't have this
+          submissionDate: new Date().toISOString(), // Placeholder - service type doesn't have this
+        })
+      );
+
+      const transformedData: UniversityRankingResult = {
+        rankings: transformedRankings,
         metadata: {
-          totalStudents: 150,
-          pendingReviews: 45,
-          approvedStudents: 89,
-          rejectedStudents: 16,
-          lastUpdated: new Date().toISOString(),
+          totalStudents: serviceData.metadata.totalStudents || 0,
+          pendingReviews: 0, // Placeholder - RankingMetadata doesn't have this
+          approvedStudents: serviceData.metadata.eligibleStudents || 0, // Map from eligibleStudents
+          rejectedStudents:
+            (serviceData.metadata.totalStudents || 0) -
+            (serviceData.metadata.eligibleStudents || 0), // Calculate based on total and eligible
+          lastUpdated: serviceData.metadata.lastUpdated.toISOString(), // Convert Date to string
         },
       };
 
-      setUniversityRanking(mockData);
-      setFilteredRankings(mockData.rankings);
+      setUniversityRanking(transformedData);
+      setFilteredRankings(transformedData.rankings);
     } catch (err) {
       setError(
         err instanceof Error

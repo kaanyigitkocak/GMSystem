@@ -163,7 +163,9 @@ const TranscriptProcessingPage = () => {
           setSuccessMessage('🔄 Starting OCR processing... This may take 30-60 seconds.');
           
           // Upload and parse the PDF transcript (this already creates TranscriptData and CourseTaken records)
-          const parsedTranscript = await uploadAndParsePDF(file);
+          const parsedTranscript = await uploadAndParsePDF(file, (progress) => {
+            console.log(`PDF processing progress: ${progress}%`);
+          });
           console.log('PDF transcript parsed and saved:', parsedTranscript);
           
           // Show success message
@@ -266,7 +268,7 @@ const TranscriptProcessingPage = () => {
   const handleConfirmResolution = async (chosenEntry: TranscriptEntryDetails, originalConflict: StudentConflict) => {
     try {
       // Use the hook to resolve the conflict
-      const confirmedTranscript = await resolveConflict(chosenEntry, originalConflict);
+      await resolveConflict(chosenEntry, originalConflict);
       
       // Close the dialog
       setIsConflictResolutionDialogOpen(false);

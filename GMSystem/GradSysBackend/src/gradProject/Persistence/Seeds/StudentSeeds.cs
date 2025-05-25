@@ -3,6 +3,7 @@ using Domain.Enums;
 using Persistence.Seeds;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Persistence.Seeds
 {
@@ -33,7 +34,9 @@ namespace Persistence.Seeds
             UserSeeds.StudentUser61Id, UserSeeds.StudentUser62Id, UserSeeds.StudentUser63Id, UserSeeds.StudentUser64Id, UserSeeds.StudentUser65Id,
             UserSeeds.StudentUser66Id, UserSeeds.StudentUser67Id, UserSeeds.StudentUser68Id, UserSeeds.StudentUser69Id, UserSeeds.StudentUser70Id,
             UserSeeds.StudentUser71Id, UserSeeds.StudentUser72Id, UserSeeds.StudentUser73Id, UserSeeds.StudentUser74Id, UserSeeds.StudentUser75Id,
-            UserSeeds.StudentUser76Id, UserSeeds.StudentUser77Id, UserSeeds.StudentUser78Id, UserSeeds.StudentUser79Id, UserSeeds.StudentUser80Id
+            UserSeeds.StudentUser76Id, UserSeeds.StudentUser77Id, UserSeeds.StudentUser78Id, UserSeeds.StudentUser79Id, UserSeeds.StudentUser80Id,
+            // Inactive students
+            UserSeeds.StudentUser81Id, UserSeeds.StudentUser82Id, UserSeeds.StudentUser83Id
         };
 
         public static IEnumerable<Student> GetSeeds()
@@ -127,16 +130,47 @@ namespace Persistence.Seeds
                 ));
             }
             
-            // Assign Computer Engineering advisors to more students if available
-            var compEngAdvisorIds = new List<Guid?> { UserSeeds.StaffUser1Id, UserSeeds.StaffUser10Id }; // StaffUser10Id is CompEng Head, can also advise
-            int advisorIndex = 0;
-            for(int k=0; k < students.Count; k++)
+            // Add 3 additional successful students manually
+            students.Add(new Student(
+                userId: UserSeeds.StudentUser81Id,
+                studentNumber: "202400081",
+                departmentId: DepartmentSeeds.ComputerEngineeringId,
+                programName: "Undergraduate Program",
+                enrollDate: DateTime.Now.AddYears(-4),
+                graduationStatus: StudentGraduationStatus.ACTIVE_STUDENT,
+                currentGpa: 3.5m,
+                currentEctsCompleted: 250,
+                assignedAdvisorUserId: null
+            ));
+
+            students.Add(new Student(
+                userId: UserSeeds.StudentUser82Id,
+                studentNumber: "202400082",
+                departmentId: DepartmentSeeds.ComputerEngineeringId,
+                programName: "Undergraduate Program",
+                enrollDate: DateTime.Now.AddYears(-4),
+                graduationStatus: StudentGraduationStatus.ACTIVE_STUDENT,
+                currentGpa: 3.8m,
+                currentEctsCompleted: 245,
+                assignedAdvisorUserId: null
+            ));
+
+            students.Add(new Student(
+                userId: UserSeeds.StudentUser83Id,
+                studentNumber: "202400083",
+                departmentId: DepartmentSeeds.ComputerEngineeringId,
+                programName: "Undergraduate Program",
+                enrollDate: DateTime.Now.AddYears(-4),
+                graduationStatus: StudentGraduationStatus.ACTIVE_STUDENT,
+                currentGpa: 3.7m,
+                currentEctsCompleted: 255,
+                assignedAdvisorUserId: null
+            ));
+            
+            // Assign advisor to the new 3 successful students
+            foreach (var student in students.Where(s => s.StudentNumber.StartsWith("202400")))
             {
-                if(students[k].DepartmentId == DepartmentSeeds.ComputerEngineeringId && students[k].AssignedAdvisorUserId == null)
-                {
-                    students[k].AssignedAdvisorUserId = compEngAdvisorIds[advisorIndex % compEngAdvisorIds.Count];
-                    advisorIndex++;
-                }
+                student.AssignedAdvisorUserId = UserSeeds.StaffUser1Id; // Computer Engineering Advisor
             }
 
             return students;

@@ -9,7 +9,7 @@ import type {
   GraduationDecision,
   CourseInfo,
 } from "../types";
-import { calculateGPA, determineDepartment } from "../utils/serviceUtils";
+// import { calculateGPA, determineDepartment } from "../utils/serviceUtils";
 
 // Mock data for notifications
 const mockNotifications: Notification[] = [

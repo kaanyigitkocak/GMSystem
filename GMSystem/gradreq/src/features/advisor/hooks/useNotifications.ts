@@ -4,7 +4,7 @@ import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  deleteNotification,
+  deleteNotification as deleteNotificationApi,
 } from "../services";
 
 interface UseNotificationsReturn {
@@ -74,7 +74,7 @@ export const useNotifications = (): UseNotificationsReturn => {
 
   const deleteNotification = useCallback(async (id: string) => {
     try {
-      await deleteNotification(id);
+      await deleteNotificationApi(id);
       setNotifications((prev) =>
         prev.filter((notification) => notification.id !== id)
       );

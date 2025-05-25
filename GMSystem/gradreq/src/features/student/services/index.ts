@@ -42,11 +42,9 @@ import type {
   DisconnectionItem,
 } from "./types";
 
-// Get service configuration
-const { useMock } = getServiceConfig();
-
 // Notification services
 export const getNotifications = async (): Promise<Notification[]> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getNotificationsMock();
   }
@@ -54,6 +52,7 @@ export const getNotifications = async (): Promise<Notification[]> => {
 };
 
 export const markNotificationAsRead = async (id: string): Promise<void> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return markNotificationAsReadMock(id);
   }
@@ -61,6 +60,7 @@ export const markNotificationAsRead = async (id: string): Promise<void> => {
 };
 
 export const markAllNotificationsAsRead = async (): Promise<void> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return markAllNotificationsAsReadMock();
   }
@@ -68,6 +68,7 @@ export const markAllNotificationsAsRead = async (): Promise<void> => {
 };
 
 export const deleteNotification = async (id: string): Promise<void> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return deleteNotificationMock(id);
   }
@@ -77,6 +78,7 @@ export const deleteNotification = async (id: string): Promise<void> => {
 // Graduation requirements services
 export const getGraduationRequirements =
   async (): Promise<GraduationRequirementsData> => {
+    const { useMock } = getServiceConfig();
     if (useMock) {
       return getGraduationRequirementsMock();
     }
@@ -87,6 +89,7 @@ export const getGraduationRequirements =
 export const reportMissingFiles = async (
   message: string
 ): Promise<{ success: boolean }> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     // Mock implementation for now
     return new Promise((resolve) => {
@@ -103,6 +106,7 @@ export const reportMissingFiles = async (
 
 // Transcript services
 export const getTranscript = async (): Promise<TranscriptData> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getTranscriptMock();
   }
@@ -114,6 +118,7 @@ export const getGraduationProgress = async (): Promise<{
   steps: GraduationStep[];
   activeStep: number;
 }> => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getGraduationProgressMock();
   }
@@ -125,6 +130,7 @@ export const getGraduationProgress = async (): Promise<{
 export const getDisconnectionProcedures = async (): Promise<
   DisconnectionItem[]
 > => {
+  const { useMock } = getServiceConfig();
   if (useMock) {
     return getDisconnectionProceduresMock();
   }

@@ -5,3 +5,4 @@ export { useStudentRankings } from "./useStudentRankings";
 export { useTranscripts } from "./useTranscripts";
 export { useTranscriptConflicts } from "./useTranscriptConflicts";
 export { useDashboard } from "./useDashboard";
+export { useSecretaryDashboard } from "./useSecretaryDashboard";

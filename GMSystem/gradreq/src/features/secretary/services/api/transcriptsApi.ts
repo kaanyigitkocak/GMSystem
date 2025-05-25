@@ -36,8 +36,9 @@ const fetchOptions = {
 // Courses API functions
 export const getCoursesApi = async (): Promise<Course[]> => {
   try {
+    const maxPageSize = 2147483647; // Integer.MAX_VALUE
     const response = await fetch(
-      `${apiBaseUrl}/Courses?PageRequest.PageIndex=0&PageRequest.PageSize=1000`,
+      `${apiBaseUrl}/Courses?PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`,
       {
         ...fetchOptions,
         method: "GET",

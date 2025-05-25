@@ -20,8 +20,15 @@ public class MappingProfiles : Profile
         CreateMap<Student, UpdatedStudentResponse>().ReverseMap();
         CreateMap<Student, DeleteStudentCommand>().ReverseMap();
         CreateMap<Student, DeletedStudentResponse>().ReverseMap();
-        CreateMap<Student, GetByIdStudentResponse>().ReverseMap();
+        CreateMap<Student, GetByIdStudentResponse>()
+            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.FirstName))
+            .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.User.LastName))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
+            .ReverseMap();
         CreateMap<Student, GetListStudentListItemDto>()
+            .ForMember(dest => dest.FirstName, opt => opt.MapFrom(src => src.User.FirstName))
+            .ForMember(dest => dest.LastName, opt => opt.MapFrom(src => src.User.LastName))
+            .ForMember(dest => dest.Email, opt => opt.MapFrom(src => src.User.Email))
             .ForMember(dest => dest.DepartmentName, opt => opt.MapFrom(src => src.Department.Name))
             .ForMember(dest => dest.FacultyId, opt => opt.MapFrom(src => src.Department.FacultyId))
             .ForMember(dest => dest.FacultyName, opt => opt.MapFrom(src => src.Department.Faculty.Name))

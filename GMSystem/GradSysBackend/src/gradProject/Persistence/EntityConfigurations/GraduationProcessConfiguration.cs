@@ -29,6 +29,12 @@ public class GraduationProcessConfiguration : IEntityTypeConfiguration<Graduatio
         builder.Property(gp => gp.UpdatedDate).HasColumnName("UpdatedDate");
         builder.Property(gp => gp.DeletedDate).HasColumnName("DeletedDate");
 
+        // Relationships
+        builder.HasMany(gp => gp.EligibilityCheckResults)
+               .WithOne(ecr => ecr.GraduationProcess)
+               .HasForeignKey(ecr => ecr.ProcessId)
+               .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasQueryFilter(gp => !gp.DeletedDate.HasValue);
     }
 }

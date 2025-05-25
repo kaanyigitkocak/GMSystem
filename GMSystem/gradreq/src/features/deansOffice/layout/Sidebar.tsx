@@ -8,13 +8,13 @@ const DeansOfficeSidebar = () => (
     </Typography>
     <List>
       <ListItem disablePadding>
-        <ListItemButton component={NavLink} to="/deans-office/dashboard">
+        <ListItemButton component={NavLink} to="/deansoffice">
           <ListItemText primary="Dashboard" />
         </ListItemButton>
       </ListItem>
       <ListItem disablePadding>
-        <ListItemButton component={NavLink} to="/deans-office/faculty-ranking">
-          <ListItemText primary="Faculty Ranking" />
+        <ListItemButton component={NavLink} to="/deansoffice/approval-ranking">
+          <ListItemText primary="Approval & Ranking" />
         </ListItemButton>
       </ListItem>
       <ListItem disablePadding>

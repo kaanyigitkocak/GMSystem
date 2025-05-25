@@ -60,3 +60,25 @@ export interface FileValidationResult {
   hasDuplicates: boolean;
   mixedGraduationStatus: boolean;
 }
+
+// Re-export common types or define DeansOffice specific types here if needed
+export {
+  EligibilityCheckType, // Enum olduğu için doğrudan export
+} from "../../../advisor/services/types";
+
+export type {
+  Student,
+  StudentEligibilityStatus,
+  EligibilityCheckResult,
+  CourseTaken,
+} from "../../../advisor/services/types";
+
+// Example of a DeansOffice specific type (if any in the future)
+// export interface DeansOfficeSpecificData {
+//   facultyId: string;
+//   deanName: string;
+// }
+
+// EligibilityData tipi context içinde tanımlı olduğu için burada tekrar export etmeye gerek yok,
+// ama eğer global olarak kullanılacaksa buraya taşınabilir.
+// export type { EligibilityData } from '../../contexts/EligibilityContext';

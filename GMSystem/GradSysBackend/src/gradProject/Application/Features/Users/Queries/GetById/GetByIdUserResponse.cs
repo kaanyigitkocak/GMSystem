@@ -10,6 +10,21 @@ public class GetByIdUserResponse : IResponse
     public string Email { get; set; }
     public bool Status { get; set; }
     public string? UserRole { get; set; }
+    
+    // Student specific fields
+    public string? StudentNumber { get; set; }
+    public decimal? CurrentGpa { get; set; }
+    public int? CurrentEctsCompleted { get; set; }
+    
+    // Staff specific fields
+    public string? StaffIdentificationNumber { get; set; }
+    public string? Title { get; set; }
+    
+    // Common fields for both Staff and Student
+    public Guid? DepartmentId { get; set; }
+    public string? DepartmentName { get; set; }
+    public Guid? FacultyId { get; set; }
+    public string? FacultyName { get; set; }
 
     public GetByIdUserResponse()
     {

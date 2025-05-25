@@ -12,9 +12,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 
 import SecretaryDashboardLayout from '../layout/SecretaryDashboardLayout';
-import type { StudentRanking } from '../services/types';
 import { useStudentRankings } from '../hooks';
 import { getStudentTranscript } from '../services';
+import { LoadingOverlay } from '../../../shared/components';
 import {
   StudentRankingTable,
   RankingActions,
@@ -34,8 +34,6 @@ const DepartmentRankingPage = () => {
     loading,
     error,
     fetchRankings,
-    updateRanking,
-    reorderRankings
   } = useStudentRankings();
   
   // Convert rankings to extended format with status
@@ -47,6 +45,10 @@ const DepartmentRankingPage = () => {
   const [openTranscriptDialog, setOpenTranscriptDialog] = useState(false);
   const [currentTranscript, setCurrentTranscript] = useState<StudentTranscript | null>(null);
   const [currentStudentId, setCurrentStudentId] = useState<string>('');
+  
+  // Loading states for LoadingOverlay
+  const [isLoadingTranscript, setIsLoadingTranscript] = useState(false);
+  const [isProcessingAction, setIsProcessingAction] = useState(false);
 
   // Fetch rankings on mount
   useEffect(() => {
@@ -65,6 +67,13 @@ const DepartmentRankingPage = () => {
   // Handle view transcript with new service
   const handleViewTranscript = async (student: ExtendedStudentRanking) => {
     try {
+      setIsLoadingTranscript(true);
+      setCurrentStudentId(student.id);
+      setOpenTranscriptDialog(true);
+      
+      // Simulate loading transcript data
+      await new Promise(resolve => setTimeout(resolve, 1500));
+      
       const transcript = await getStudentTranscript(
         student.studentId,
         student.studentName,
@@ -74,12 +83,13 @@ const DepartmentRankingPage = () => {
         Math.floor(Math.random() * 50) + 100
       );
       setCurrentTranscript(transcript);
-      setCurrentStudentId(student.id);
-      setOpenTranscriptDialog(true);
     } catch (error) {
       console.error('Failed to load transcript:', error);
       setSnackbarMessage('Failed to load transcript');
       setSnackbarOpen(true);
+      setOpenTranscriptDialog(false);
+    } finally {
+      setIsLoadingTranscript(false);
     }
   };
 
@@ -90,65 +100,117 @@ const DepartmentRankingPage = () => {
   };
 
   // Handle approve/reject from transcript dialog
-  const handleRejectStudent = () => {
+  const handleRejectStudent = async () => {
     if (!currentStudentId) return;
     
-    setStudents(prevStudents => 
-      prevStudents.map(student => 
-        student.id === currentStudentId 
-          ? { ...student, status: 'Rejected' as const } 
-          : student
-      )
-    );
-    
-    setSnackbarMessage(`Student has been rejected from graduation`);
-    setSnackbarOpen(true);
-    handleCloseTranscriptDialog();
+    try {
+      setIsProcessingAction(true);
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setStudents(prevStudents => 
+        prevStudents.map(student => 
+          student.id === currentStudentId 
+            ? { ...student, status: 'Rejected' as const } 
+            : student
+        )
+      );
+      
+      setSnackbarMessage(`Student has been rejected from graduation`);
+      setSnackbarOpen(true);
+      handleCloseTranscriptDialog();
+    } catch (error) {
+      console.error('Failed to reject student:', error);
+      setSnackbarMessage('Failed to reject student');
+      setSnackbarOpen(true);
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
-  const handleApproveStudent = () => {
+  const handleApproveStudent = async () => {
     if (!currentStudentId) return;
     
-    setStudents(prevStudents => 
-      prevStudents.map(student => 
-        student.id === currentStudentId 
-          ? { ...student, status: 'Approved' as const } 
-          : student
-      )
-    );
-    
-    setSnackbarMessage(`Student has been approved for graduation`);
-    setSnackbarOpen(true);
-    handleCloseTranscriptDialog();
+    try {
+      setIsProcessingAction(true);
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setStudents(prevStudents => 
+        prevStudents.map(student => 
+          student.id === currentStudentId 
+            ? { ...student, status: 'Approved' as const } 
+            : student
+        )
+      );
+      
+      setSnackbarMessage(`Student has been approved for graduation`);
+      setSnackbarOpen(true);
+      handleCloseTranscriptDialog();
+    } catch (error) {
+      console.error('Failed to approve student:', error);
+      setSnackbarMessage('Failed to approve student');
+      setSnackbarOpen(true);
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   // Handle approve/reject from table
-  const handleTableApprove = (studentId: string) => {
-    setStudents(prevStudents => 
-      prevStudents.map(student => 
-        student.id === studentId 
-          ? { ...student, status: 'Approved' as const } 
-          : student
-      )
-    );
-    
-    const student = students.find(s => s.id === studentId);
-    setSnackbarMessage(`${student?.studentName} has been approved for graduation`);
-    setSnackbarOpen(true);
+  const handleTableApprove = async (studentId: string) => {
+    try {
+      setIsProcessingAction(true);
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setStudents(prevStudents => 
+        prevStudents.map(student => 
+          student.id === studentId 
+            ? { ...student, status: 'Approved' as const } 
+            : student
+        )
+      );
+      
+      const student = students.find(s => s.id === studentId);
+      setSnackbarMessage(`${student?.studentName} has been approved for graduation`);
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Failed to approve student:', error);
+      setSnackbarMessage('Failed to approve student');
+      setSnackbarOpen(true);
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
-  const handleTableReject = (studentId: string) => {
-    setStudents(prevStudents => 
-      prevStudents.map(student => 
-        student.id === studentId 
-          ? { ...student, status: 'Rejected' as const } 
-          : student
-      )
-    );
-    
-    const student = students.find(s => s.id === studentId);
-    setSnackbarMessage(`${student?.studentName} has been rejected from graduation`);
-    setSnackbarOpen(true);
+  const handleTableReject = async (studentId: string) => {
+    try {
+      setIsProcessingAction(true);
+      
+      // Simulate processing time
+      await new Promise(resolve => setTimeout(resolve, 800));
+      
+      setStudents(prevStudents => 
+        prevStudents.map(student => 
+          student.id === studentId 
+            ? { ...student, status: 'Rejected' as const } 
+            : student
+        )
+      );
+      
+      const student = students.find(s => s.id === studentId);
+      setSnackbarMessage(`${student?.studentName} has been rejected from graduation`);
+      setSnackbarOpen(true);
+    } catch (error) {
+      console.error('Failed to reject student:', error);
+      setSnackbarMessage('Failed to reject student');
+      setSnackbarOpen(true);
+    } finally {
+      setIsProcessingAction(false);
+    }
   };
 
   const handleApproveAll = () => {
@@ -238,7 +300,18 @@ const DepartmentRankingPage = () => {
 
   return (
     <SecretaryDashboardLayout>
-      <Box sx={{ width: '100%', maxWidth: '100%' }}>
+      <Box sx={{ width: '100%', maxWidth: '100%', position: 'relative' }}>
+        <LoadingOverlay 
+          isLoading={loading} 
+          message="Loading student rankings..."
+          color="info"
+        />
+        <LoadingOverlay 
+          isLoading={isProcessingAction} 
+          message="Processing student action..."
+          color="warning"
+        />
+        
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, width: '100%' }}>
           {/* Actions Section */}
           <RankingActions
@@ -271,7 +344,7 @@ const DepartmentRankingPage = () => {
           {/* Student Rankings Table */}
           <StudentRankingTable
             students={students}
-            loading={loading}
+            loading={false} // We handle loading via overlay now
             departmentName={departmentName}
             onViewTranscript={handleViewTranscript}
             onApprove={handleTableApprove}
@@ -288,6 +361,7 @@ const DepartmentRankingPage = () => {
         onClose={handleCloseTranscriptDialog}
         onApprove={handleApproveStudent}
         onReject={handleRejectStudent}
+        isLoading={isLoadingTranscript}
       />
       
       {/* Snackbar for notifications */}

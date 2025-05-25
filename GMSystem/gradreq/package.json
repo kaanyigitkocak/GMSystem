@@ -2,10 +2,15 @@
   "name": "gradreq",
   "private": true,
   "version": "0.0.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
+  "type": "module",  "scripts": {
+    "dev": "vite --mode development",
+    "dev:mock": "vite --mode mock",
+    "dev:test": "vite --mode development", 
+    "dev:prod": "vite --mode production",
     "build": "tsc -b && vite build",
+    "build:mock": "tsc -b && vite build --mode mock",
+    "build:test": "tsc -b && vite build --mode development",
+    "build:prod": "tsc -b && vite build --mode production",
     "lint": "eslint .",
     "preview": "vite preview"
   },

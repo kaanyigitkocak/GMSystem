@@ -38,4 +38,14 @@ export interface ApiResponse<T> {
   message?: string;
 }
 
+// Notification type
+export interface Notification {
+  id: string;
+  title: string;
+  message: string;
+  type: "info" | "warning" | "error" | "success";
+  read: boolean;
+  date: string;
+}
+
 // Add more common types as needed

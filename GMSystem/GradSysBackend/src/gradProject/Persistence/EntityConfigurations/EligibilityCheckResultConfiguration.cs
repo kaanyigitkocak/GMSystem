@@ -22,6 +22,12 @@ public class EligibilityCheckResultConfiguration : IEntityTypeConfiguration<Elig
         builder.Property(ecr => ecr.UpdatedDate).HasColumnName("UpdatedDate");
         builder.Property(ecr => ecr.DeletedDate).HasColumnName("DeletedDate");
 
+        // Foreign key relationship with GraduationProcess
+        builder.HasOne(ecr => ecr.GraduationProcess)
+               .WithMany(gp => gp.EligibilityCheckResults)
+               .HasForeignKey(ecr => ecr.ProcessId)
+               .OnDelete(DeleteBehavior.Cascade);
+
         builder.HasQueryFilter(ecr => !ecr.DeletedDate.HasValue);
     }
 }

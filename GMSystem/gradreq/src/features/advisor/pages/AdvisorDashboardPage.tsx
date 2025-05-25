@@ -2,7 +2,7 @@ import {
   Box, 
   Typography, 
   Paper, 
-  Grid, 
+  Grid as MuiGrid, 
   Card, 
   CardContent, 
   CardHeader, 
@@ -11,41 +11,115 @@ import {
   ListItemText, 
   Button,
   Divider,
-  Alert
+  Alert,
+  CircularProgress,
+  Chip,
+  IconButton,
+  Tooltip,
+  Snackbar
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Refresh, PlayArrow, ClearAll } from '@mui/icons-material';
 import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { useAdvisorDashboard } from '../hooks/useAdvisorDashboard';
+import { LoadingOverlay } from '../../../shared/components';
 
-const mockStats = {
-  totalStudents: 24,
-  pendingGraduation: 3,
-  manualCheckRequests: 2,
-};
-
-const mockAlerts = [
-  { id: 1, message: 'Petition deadline: May 30, 2025' },
-  { id: 2, message: 'Student John Doe is at risk of not graduating' },
-];
-
-const mockNotifications = [
-  { id: 1, title: 'Graduation approval pending', detail: '3 students are waiting for your approval.' },
-  { id: 2, title: 'Manual check request', detail: 'A new manual check request has been submitted.' },
-];
+const Grid = MuiGrid as any;
 
 const AdvisorDashboardPage = () => {
   const navigate = useNavigate();
-  const [stats] = useState(mockStats);
-  const [alerts] = useState(mockAlerts);
-  const [notifications] = useState(mockNotifications);
+  const { 
+    dashboardData, 
+    loading, 
+    error, 
+    eligibilityData, 
+    eligibilityLoading, 
+    performingChecks,
+    refetch, 
+    refreshEligibility,
+    performEligibilityChecksForMissingStudents,
+    refreshEligibilityData
+  } = useAdvisorDashboard();
 
-  const pendingRequests = [
-    { id: 1, studentName: 'Ahmet Yilmaz', requestType: 'Transcript Review', date: '2023-08-15' },
-    { id: 2, studentName: 'Ayse Kaya', requestType: 'Petition', date: '2023-08-17' },
-    { id: 3, studentName: 'Mehmet Demir', requestType: 'Graduation Review', date: '2023-08-20' },
-  ];
+  const [successMessage, setSuccessMessage] = useState<string>('');
+  const [errorMessage, setErrorMessage] = useState<string>('');
+
+  const handlePerformEligibilityChecks = async () => {
+    try {
+      const result = await performEligibilityChecksForMissingStudents();
+      
+      if (result.processedStudents.length > 0) {
+        setSuccessMessage(
+          `Eligibility checks completed for ${result.processedStudents.length} students. Results are being processed...`
+        );
+      } else {
+        setSuccessMessage('All students already have eligibility check results.');
+      }
+    } catch (error) {
+      setErrorMessage('Failed to perform eligibility checks. Please try again.');
+      console.error('Failed to perform eligibility checks:', error);
+    }
+  };
+
+  const handleRefreshWithClearCache = async () => {
+    try {
+      await refreshEligibilityData(true);
+      setSuccessMessage('Eligibility data refreshed successfully.');
+    } catch (error) {
+      setErrorMessage('Failed to refresh eligibility data. Please try again.');
+      console.error('Failed to refresh eligibility data:', error);
+    }
+  };
+
+  const handleCloseSuccessMessage = () => {
+    setSuccessMessage('');
+  };
+
+  const handleCloseErrorMessage = () => {
+    setErrorMessage('');
+  };
+
+  if (loading) {
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '50vh' }}>
+        <CircularProgress />
+      </Box>
+    );
+  }
+
+  if (error) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="error" sx={{ mb: 2 }}>
+          {error}
+        </Alert>
+        <Button variant="contained" onClick={refetch}>
+          Retry
+        </Button>
+      </Box>
+    );
+  }
+
+  if (!dashboardData) {
+    return (
+      <Box sx={{ p: 3 }}>
+        <Alert severity="warning">
+          No dashboard data available
+        </Alert>
+      </Box>
+    );
+  }
+
+  const { stats, alerts, notifications, pendingRequests } = dashboardData;
 
   return (
-    <>
+    <Box sx={{ position: 'relative' }}>
+      <LoadingOverlay 
+        isLoading={performingChecks}
+        message="Performing eligibility checks for students..."
+        color="warning"
+      />
+      
       <Box sx={{ mb: 4 }}>
         <Typography variant="h4" gutterBottom>
           Advisor Dashboard
@@ -56,7 +130,20 @@ const AdvisorDashboardPage = () => {
         <Alert severity="info" sx={{ mb: 2 }}>
           <strong>Tip:</strong> Use the sidebar to quickly access your students, review manual check requests, and send petitions.
         </Alert>
+        {eligibilityLoading && (
+          <Alert severity="info" sx={{ mb: 2 }}>
+            <CircularProgress size={16} sx={{ mr: 1 }} />
+            <strong>Loading eligibility data...</strong> Please wait while we fetch existing graduation requirement results.
+          </Alert>
+        )}
+        {performingChecks && (
+          <Alert severity="warning" sx={{ mb: 2 }}>
+            <CircularProgress size={16} sx={{ mr: 1 }} />
+            <strong>Running eligibility checks...</strong> Please wait while we check graduation requirements for students without existing results.
+          </Alert>
+        )}
       </Box>
+      
       <Grid container spacing={3}>
         {/* Example Announcement */}
         <Grid item xs={12}>
@@ -69,8 +156,9 @@ const AdvisorDashboardPage = () => {
             </Typography>
           </Paper>
         </Grid>
+
         {/* Statistics */}
-        <Grid item xs={12} md={4}>
+        <Grid item xs={12} md={3}>
           <Paper
             elevation={2}
             sx={{ 
@@ -88,7 +176,8 @@ const AdvisorDashboardPage = () => {
             <Typography variant="body1">Total Students</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        
+        <Grid item xs={12} md={3}>
           <Paper
             elevation={2}
             sx={{ 
@@ -106,7 +195,8 @@ const AdvisorDashboardPage = () => {
             <Typography variant="body1">Pending Graduation</Typography>
           </Paper>
         </Grid>
-        <Grid item xs={12} md={4}>
+        
+        <Grid item xs={12} md={3}>
           <Paper
             elevation={2}
             sx={{ 
@@ -124,10 +214,194 @@ const AdvisorDashboardPage = () => {
             <Typography variant="body1">Manual Check Requests</Typography>
           </Paper>
         </Grid>
+        
+        <Grid item xs={12} md={3}>
+          <Paper
+            elevation={2}
+            sx={{ 
+              height: '100%',
+              p: 3, 
+              display: 'flex', 
+              flexDirection: 'column', 
+              alignItems: 'center', 
+              justifyContent: 'center'
+            }}
+          >
+            <Typography variant="h3" color="info.main" gutterBottom>
+              {stats.totalPetitions}
+            </Typography>
+            <Typography variant="body1">Total Petitions</Typography>
+          </Paper>
+        </Grid>
+
+        {/* Eligibility Statistics */}
+        {eligibilityData && (
+          <>
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography variant="h3" color="success.main" gutterBottom>
+                  {eligibilityData.eligibleCount}
+                </Typography>
+                <Typography variant="body1">Eligible Students</Typography>
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography variant="h3" color="error.main" gutterBottom>
+                  {eligibilityData.ineligibleCount}
+                </Typography>
+                <Typography variant="body1">Ineligible Students</Typography>
+              </Paper>
+            </Grid>
+            
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Typography variant="h3" color="warning.main" gutterBottom>
+                  {eligibilityData.pendingCheckCount}
+                </Typography>
+                <Typography variant="body1">Pending Checks</Typography>
+              </Paper>
+            </Grid>
+
+            <Grid item xs={12} md={3}>
+              <Paper
+                elevation={2}
+                sx={{ 
+                  height: '100%',
+                  p: 3, 
+                  display: 'flex', 
+                  flexDirection: 'column', 
+                  alignItems: 'center', 
+                  justifyContent: 'center'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 1, mb: 1 }}>
+                  <Tooltip title="Refresh Eligibility Data">
+                    <IconButton 
+                      onClick={refreshEligibility} 
+                      disabled={eligibilityLoading || performingChecks}
+                      color="primary"
+                      size="small"
+                    >
+                      <Refresh />
+                    </IconButton>
+                  </Tooltip>
+                  <Tooltip title="Clear Cache & Refresh">
+                    <IconButton 
+                      onClick={handleRefreshWithClearCache} 
+                      disabled={eligibilityLoading || performingChecks}
+                      color="secondary"
+                      size="small"
+                    >
+                      <ClearAll />
+                    </IconButton>
+                  </Tooltip>
+                </Box>
+                <Typography variant="body2">Refresh Data</Typography>
+              </Paper>
+            </Grid>
+          </>
+        )}
+
+        {/* Eligibility Actions */}
+        {eligibilityData && eligibilityData.pendingCheckCount > 0 && (
+          <Grid item xs={12}>
+            <Alert severity="warning" sx={{ mb: 2 }}>
+              <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                <Box>
+                  <Typography variant="body1" sx={{ fontWeight: 'bold' }}>
+                    {eligibilityData.pendingCheckCount} students don't have eligibility check results.
+                  </Typography>
+                  <Typography variant="body2">
+                    Click the button below to perform eligibility checks for students without existing results.
+                  </Typography>
+                </Box>
+                <Button
+                  variant="contained"
+                  color="warning"
+                  onClick={handlePerformEligibilityChecks}
+                  disabled={performingChecks || eligibilityLoading}
+                  startIcon={performingChecks ? <CircularProgress size={16} /> : <PlayArrow />}
+                  sx={{ ml: 2, minWidth: '200px' }}
+                >
+                  {performingChecks ? 'Running Checks...' : 'Perform Eligibility Check'}
+                </Button>
+              </Box>
+            </Alert>
+          </Grid>
+        )}
+
+        {/* Quick Actions */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 3 }}>
+            <Typography variant="h6" gutterBottom>
+              Quick Actions
+            </Typography>
+            <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/advisor/my-students')}
+              >
+                My Students
+              </Button>
+              <Button 
+                variant="contained" 
+                onClick={() => navigate('/advisor/manual-check-requests')}
+              >
+                Manual Check Requests
+              </Button>
+              <Button 
+                variant="contained" 
+                color="secondary" 
+                onClick={() => navigate('/advisor/petition-management')}
+              >
+                Petition Management
+              </Button>
+              <Button 
+                variant="contained" 
+                color="primary" 
+                onClick={() => navigate('/advisor/approval-ranking')}
+              >
+                Approval & Ranking
+              </Button>
+            </Box>
+          </Paper>
+        </Grid>
 
         {/* Pending Requests */}
         <Grid item xs={12} md={6}>
-          <Card>
+          <Card sx={{ height: '100%' }}>
             <CardHeader 
               title="Pending Requests" 
             />
@@ -140,9 +414,19 @@ const AdvisorDashboardPage = () => {
                         primary={`${request.studentName} - ${request.requestType}`}
                         secondary={`Request Date: ${request.date}`}
                       />
-                      <Button variant="outlined" size="small">
-                        Review
-                      </Button>
+                      <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                        <Chip 
+                          label={request.priority} 
+                          size="small"
+                          color={
+                            request.priority === 'high' ? 'error' : 
+                            request.priority === 'medium' ? 'warning' : 'default'
+                          }
+                        />
+                        <Button variant="outlined" size="small">
+                          Review
+                        </Button>
+                      </Box>
                     </ListItem>
                     {index < pendingRequests.length - 1 && <Divider />}
                   </Box>
@@ -152,21 +436,22 @@ const AdvisorDashboardPage = () => {
           </Card>
         </Grid>
 
-        {/* Alerts */}
+        {/* Alerts & Actions */}
         <Grid item xs={12} md={6}>
-          <Paper sx={{ p: 2 }}>
+          <Paper sx={{ p: 2, height: '100%' }}>
             <Typography variant="h6" gutterBottom>
               Alerts
             </Typography>
             <Box sx={{ mb: 2 }}>
               {alerts.map(alert => (
-                <Alert key={alert.id} severity="warning" sx={{ mb: 1 }}>{alert.message}</Alert>
+                <Alert 
+                  key={alert.id} 
+                  severity={alert.type || 'info'} 
+                  sx={{ mb: 1 }}
+                >
+                  {alert.message}
+                </Alert>
               ))}
-            </Box>
-            <Box sx={{ display: 'flex', gap: 2 }}>
-              <Button variant="contained" onClick={() => navigate('/advisor/my-students')}>My Students</Button>
-              <Button variant="contained" onClick={() => navigate('/advisor/manual-check-requests')}>Manual Check Requests</Button>
-              <Button variant="contained" color="secondary" onClick={() => navigate('/advisor/petition-management')}>Petition Management</Button>
             </Box>
           </Paper>
         </Grid>
@@ -179,9 +464,15 @@ const AdvisorDashboardPage = () => {
             />
             <CardContent>
               <List>
-                {notifications.map(n => (
-                  <ListItem key={n.id} divider>
-                    <ListItemText primary={n.title} secondary={n.detail} />
+                {notifications.map(notification => (
+                  <ListItem key={notification.id} divider>
+                    <ListItemText 
+                      primary={notification.title} 
+                      secondary={`${notification.message} - ${notification.date}`}
+                    />
+                    {!notification.read && (
+                      <Chip label="New" color="primary" size="small" />
+                    )}
                   </ListItem>
                 ))}
               </List>
@@ -189,8 +480,30 @@ const AdvisorDashboardPage = () => {
           </Card>
         </Grid>
       </Grid>
-    </>
+
+      {/* Success Snackbar */}
+      <Snackbar
+        open={!!successMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseSuccessMessage}
+      >
+        <Alert onClose={handleCloseSuccessMessage} severity="success" sx={{ width: '100%' }}>
+          {successMessage}
+        </Alert>
+      </Snackbar>
+
+      {/* Error Snackbar */}
+      <Snackbar
+        open={!!errorMessage}
+        autoHideDuration={6000}
+        onClose={handleCloseErrorMessage}
+      >
+        <Alert onClose={handleCloseErrorMessage} severity="error" sx={{ width: '100%' }}>
+          {errorMessage}
+        </Alert>
+      </Snackbar>
+    </Box>
   );
 };
 
-export default AdvisorDashboardPage; 
+export default AdvisorDashboardPage;

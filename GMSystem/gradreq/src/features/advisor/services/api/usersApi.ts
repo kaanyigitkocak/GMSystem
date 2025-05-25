@@ -15,14 +15,23 @@ const fetchOptions = {
   },
 };
 
-// User data interface
+// User data interface for GetFromAuth endpoint
 export interface UserFromAuth {
   id: string;
   firstName: string;
   lastName: string;
   email: string;
-  createdDate: string;
-  updatedDate?: string;
+  status: boolean;
+  userRole: string;
+  studentNumber?: string | null;
+  currentGpa?: number | null;
+  currentEctsCompleted?: number | null;
+  staffIdentificationNumber?: string;
+  title?: string;
+  departmentId: string;
+  departmentName: string;
+  facultyId: string;
+  facultyName: string;
 }
 
 // Get current user from auth token

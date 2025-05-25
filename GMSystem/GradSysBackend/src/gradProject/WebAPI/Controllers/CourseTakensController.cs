@@ -53,6 +53,18 @@ public class CourseTakensController : BaseController
         return Ok(response);
     }
 
+    [HttpGet("by-student/{studentUserId}")]
+    public async Task<IActionResult> GetByStudentId([FromRoute] Guid studentUserId, [FromQuery] PageRequest pageRequest)
+    {
+        GetListCourseTakenQuery getListCourseTakenQuery = new() 
+        { 
+            PageRequest = pageRequest,
+            StudentUserId = studentUserId 
+        };
+        GetListResponse<GetListCourseTakenListItemDto> response = await Mediator.Send(getListCourseTakenQuery);
+        return Ok(response);
+    }
+
     [HttpGet("student-course-ids")]
     public async Task<IActionResult> GetStudentCourseIds()
     {

@@ -66,6 +66,7 @@ export const getNotificationsApi = async (): Promise<Notification[]> => {
       type: item.notificationType || item.type || "info",
       read: item.isRead || item.read || false,
       date: item.createdDate || item.date || new Date().toISOString(),
+      createdAt: item.createdDate || item.date || new Date().toISOString(),
     }));
   } catch (error) {
     console.error("Failed to fetch notifications:", error);

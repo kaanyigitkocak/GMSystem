@@ -5,12 +5,7 @@ import {
   Paper,
   TextField,
   InputAdornment,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
+
   Chip,
   Button,
   Card,
@@ -25,7 +20,7 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  SelectChangeEvent,
+  type SelectChangeEvent,
   Alert,
   Dialog,
   DialogTitle,
@@ -40,7 +35,7 @@ import {
   CalendarMonth as CalendarIcon,
   MoreVert as MoreVertIcon,
   Visibility as VisibilityIcon,
-  Edit as EditIcon,
+
   Email as EmailIcon,
 } from '@mui/icons-material';
 import { useNavigate } from 'react-router-dom';

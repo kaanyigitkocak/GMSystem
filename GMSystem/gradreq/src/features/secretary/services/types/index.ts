@@ -6,6 +6,7 @@ export interface Notification {
   type: string;
   read: boolean;
   date: string;
+  createdAt?: string;
 }
 
 export interface GraduationRequest {
@@ -50,6 +51,16 @@ export interface TranscriptData {
   gpa?: string;
   totalCredits?: string;
   faculty?: string;
+}
+
+// Dashboard stats interface
+export interface DashboardStats {
+  graduatesCount: number;
+  graduationDate: string;
+  totalStudents?: number;
+  eligibleStudents?: number;
+  ineligibleStudents?: number;
+  pendingChecks?: number;
 }
 
 // Interface for creating student from parsed transcript
@@ -113,4 +124,33 @@ export interface UploadProcessingResult {
 export interface ServiceConfig {
   apiBaseUrl: string;
   useMock: boolean;
+}
+
+// Interface for student transcript data - adapted for secretary needs
+export interface StudentTranscript {
+  studentId: string;
+  studentName: string;
+  department: string;
+  faculty: string;
+  gpa: number;
+  totalCredits: number;
+  graduationEligible: boolean;
+  courses: Array<{
+    courseCode: string;
+    courseName: string;
+    credit: number;
+    grade: string;
+    semester: string;
+    courseType:
+      | "Mandatory"
+      | "Technical Elective"
+      | "Non-Technical Elective"
+      | "Other";
+  }>;
+  graduationRequirements: {
+    mandatoryCredits: { required: number; completed: number };
+    technicalElectives: { required: number; completed: number };
+    nonTechnicalElectives: { required: number; completed: number };
+    totalRequired: number;
+  };
 }

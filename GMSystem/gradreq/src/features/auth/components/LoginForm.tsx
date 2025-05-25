@@ -18,7 +18,7 @@ import { useAuth } from '../contexts/AuthContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
 import theme from '../../../core/styles/theme';
 import { useNavigate } from 'react-router-dom';
-import { UserType } from '../types';
+// import { UserType } from '../types';
 
 interface LoginFormProps {
   onForgotPasswordClick: () => void;
