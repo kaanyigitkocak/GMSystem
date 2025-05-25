@@ -269,54 +269,11 @@ const DashboardLayout = ({ children, title = "Dashboard" }: DashboardLayoutProps
               <Typography variant="body2" sx={{ ml: 2, mr: 1, display: { xs: 'none', sm: 'block' } }}>
                 {user?.name || 'User'} 
               </Typography>
-              
-              {/* Profile Menu Button */}
-              <IconButton 
-                onClick={handleProfileMenuOpen}
-                size="small" 
-                edge="end" 
-                aria-label="account of current user"
-                aria-controls="profile-menu"
-                aria-haspopup="true"
-                color="inherit"
-              >
-                <Avatar 
-                  sx={{ width: 32, height: 32 }}
-                  alt={user?.name || 'User'}
-                >
-                  {user?.name?.charAt(0) || 'U'}
-                </Avatar>
-              </IconButton>
             </Box>
           </Toolbar>
         </AppBar>
         
         {/* Menus */}
-        {/* Profile Menu */}
-        <Menu
-          id="profile-menu"
-          anchorEl={profileMenuAnchor}
-          open={profileMenuOpen}
-          onClose={handleProfileMenuClose}
-          MenuListProps={{
-            'aria-labelledby': 'profile-button',
-          }}
-          transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-          anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-        >
-          <MenuItem onClick={handleProfileMenuClose}>
-            <ListItemIcon>
-              <AccountCircleIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>My Profile</ListItemText>
-          </MenuItem>
-          <MenuItem onClick={handleLogout}>
-            <ListItemIcon>
-              <LogoutIcon fontSize="small" />
-            </ListItemIcon>
-            <ListItemText>Logout</ListItemText>
-          </MenuItem>
-        </Menu>
         
         {/* Notifications Menu */}
         <Menu

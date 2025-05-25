@@ -379,48 +379,7 @@ const DeansOfficeDashboardLayout = () => {
               </MenuItem>
             </Menu>
             
-            <Tooltip title="Profile settings">
-              <IconButton 
-                onClick={handleProfileMenuOpen} 
-                sx={{ ml: 1 }}
-                aria-label="account settings"
-              >
-                <Avatar 
-                  alt={user?.name || 'User'} 
-                  src="/static/images/avatar/default.jpg"
-                  sx={{ width: 32, height: 32 }}
-                />
-              </IconButton>
-            </Tooltip>
-            
-            <Menu
-              anchorEl={profileMenuAnchor}
-              open={Boolean(profileMenuAnchor)}
-              onClose={handleProfileMenuClose}
-              PaperProps={{
-                elevation: 0,
-                sx: {
-                  overflow: 'visible',
-                  filter: 'drop-shadow(0px 2px 8px rgba(0,0,0,0.32))',
-                  mt: 1.5,
-                  '& .MuiAvatar-root': {
-                    width: 32,
-                    height: 32,
-                    ml: -0.5,
-                    mr: 1,
-                  },
-                },
-              }}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-              <MenuItem onClick={handleProfileMenuClose}>
-                Profile Settings 
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                Logout
-              </MenuItem>
-            </Menu>
+
           </Box>
         </Toolbar>
       </AppBar>

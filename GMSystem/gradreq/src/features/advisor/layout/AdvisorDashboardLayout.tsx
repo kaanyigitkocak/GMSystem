@@ -156,40 +156,9 @@ const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
                   <NotificationsIcon />
                 </Badge>
               </IconButton>
-              
-              <IconButton
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-                edge="end"
-                sx={{ ml: 1 }}
-              >
-                <Avatar sx={{ bgcolor: 'primary.main', width: 32, height: 32 }}>
-                  {(user?.name || 'A')[0]}
-                </Avatar>
-              </IconButton>
             </Box>
             
-            {/* Profile Menu */}
-            <Menu
-              anchorEl={profileMenuAnchor}
-              open={Boolean(profileMenuAnchor)}
-              onClose={handleProfileMenuClose}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-              <MenuItem onClick={handleProfileMenuClose}>
-                <ListItemIcon>
-                  <AccountCircleIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>My Profile</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon>
-                  <LogoutIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Logout</ListItemText>
-              </MenuItem>
-            </Menu>
+
             
             {/* Notifications Menu */}
             <Menu

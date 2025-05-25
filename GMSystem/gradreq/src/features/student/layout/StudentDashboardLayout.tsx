@@ -260,38 +260,9 @@ const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) =>
               <Typography variant="body2" sx={{ ml: 2, mr: 1, display: { xs: 'none', sm: 'block' } }}>
                 {user?.name || 'Student'} 
               </Typography>
-              <IconButton
-                onClick={handleProfileMenuOpen}
-                color="inherit"
-                edge="end"
-              >
-                <Avatar sx={{ bgcolor: theme.palette.primary.main, width: 32, height: 32 }}>
-                  {(user?.name || 'U')[0]}
-                </Avatar>
-              </IconButton>
             </Box>
             
-            {/* Profile Menu */}
-            <Menu
-              anchorEl={profileMenuAnchor}
-              open={Boolean(profileMenuAnchor)}
-              onClose={handleProfileMenuClose}
-              transformOrigin={{ horizontal: 'right', vertical: 'top' }}
-              anchorOrigin={{ horizontal: 'right', vertical: 'bottom' }}
-            >
-              <MenuItem onClick={handleProfileMenuClose}>
-                <ListItemIcon>
-                  <AccountCircleIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>My Profile</ListItemText>
-              </MenuItem>
-              <MenuItem onClick={handleLogout}>
-                <ListItemIcon>
-                  <LogoutIcon fontSize="small" />
-                </ListItemIcon>
-                <ListItemText>Logout</ListItemText>
-              </MenuItem>
-            </Menu>
+
             
             {/* Notifications Menu */}
             <Menu
