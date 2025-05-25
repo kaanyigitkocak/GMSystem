@@ -7,7 +7,6 @@ import type {
   BackendUserResponse,
   BackendCourseTakensResponse,
   BackendEligibilityCheckResponse,
-  BackendEligibilityCheckItem,
 } from "../types/backendTypes";
 import type { TranscriptData } from "../types";
 

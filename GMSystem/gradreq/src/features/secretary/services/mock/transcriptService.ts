@@ -5,7 +5,7 @@ export const generateMockTranscript = (
   studentId: string,
   studentName: string,
   department: string,
-  faculty: string,
+  _faculty: string,
   gpa: number,
   credits: number
 ): StudentTranscript => {
@@ -124,7 +124,6 @@ export const generateMockTranscript = (
 
     // Generate grades based on GPA
     const generateGradeForCourse = (studentGpa: number): string => {
-      const grades = ["AA", "BA", "BB", "CB", "CC", "DC", "DD", "FD", "FF"];
       let randomIndex;
       // GPA\'ya göre not olasılıklarını ayarla
       if (studentGpa >= 3.5) {

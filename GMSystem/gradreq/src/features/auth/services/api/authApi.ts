@@ -194,7 +194,7 @@ export const loginUserApi = async (
 // Token validation API service
 // This is now a stub function that's no longer used
 // It's kept for API consistency but should not be called
-export const validateTokenApi = async (token: string): Promise<User> => {
+export const validateTokenApi = async (_token: string): Promise<User> => {
   // No longer validating token with the server
   throw new Error("Token validation has been disabled");
 };

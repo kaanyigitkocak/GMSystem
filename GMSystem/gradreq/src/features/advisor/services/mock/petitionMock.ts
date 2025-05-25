@@ -14,8 +14,10 @@ export const getStudentsForPetitionMock = async (): Promise<
   // Map to PetitionStudent type
   return students.map((student) => ({
     id: student.id,
+    firstName: student.firstName,
+    lastName: student.lastName,
     name: student.name,
-    department: student.department,
+    departmentName: student.departmentName,
   }));
 };
 

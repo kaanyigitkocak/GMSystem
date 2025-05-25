@@ -112,8 +112,8 @@ const sortStudentsByEligibilityAndGPA = (students: Student[]): Student[] => {
     if (!aEligible && bEligible) return 1;
     
     // If both have same eligibility status, sort by GPA (descending)
-    const aGPA = parseFloat(a.gpa) || 0;
-    const bGPA = parseFloat(b.gpa) || 0;
+    const aGPA = a.gpa || 0;
+    const bGPA = b.gpa || 0;
     
     return bGPA - aGPA;
   });
@@ -505,7 +505,7 @@ const ApprovalRankingPage = () => {
                               variant="body2" 
                               sx={{ 
                                 fontWeight: 'bold',
-                                color: parseFloat(student.gpa) >= 3.0 ? 'success.main' : 'error.main'
+                                color: student.gpa >= 3.0 ? 'success.main' : 'error.main'
                               }}
                             >
                               {student.gpa}

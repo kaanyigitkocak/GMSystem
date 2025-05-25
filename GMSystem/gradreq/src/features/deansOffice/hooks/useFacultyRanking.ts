@@ -6,7 +6,6 @@ import type {
   ApprovalAction,
   FilterOptions,
   SortOptions,
-  TranscriptReview,
 } from "../types";
 import { getFacultyRankings } from "../services"; // Import the service
 import type { StudentRanking } from "../services/types"; // Import service types

@@ -1,52 +1,9 @@
-import {
-  getServiceConfig,
-  handleApiResponse,
-  debugFetch,
-  ServiceError,
-} from "../../../common/utils/serviceUtils";
-import type { BackendUserResponse } from "../types/backendTypes";
-import {
-  getCurrentStudentApi,
-  type BackendStudentResponse,
-} from "./studentApi";
+import { getServiceConfig } from "../../../common/utils/serviceUtils";
+import { getCurrentStudentApi } from "./studentApi";
 
-const { apiBaseUrl, fetchOptions } = getServiceConfig();
+getServiceConfig();
 
 // Helper function to get access token with debug
-const getAccessToken = (): string | null => {
-  const token = localStorage.getItem("authToken");
-  console.log("🔑 Graduation Progress API - Access Token Check:", {
-    tokenExists: !!token,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : "null",
-  });
-  return token;
-};
-
-// Helper function to create headers with debug
-const createAuthHeaders = () => {
-  const token = getAccessToken();
-  return {
-    ...fetchOptions.headers,
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
-
-// Graduation process status enum mapping
-const GraduationProcessStatus = {
-  AWAITING_DEPT_SECRETARY_TRANSCRIPT_UPLOAD: 1,
-  TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK: 3,
-  TRANSCRIPT_PARSE_ERROR_AWAITING_REUPLOAD: 4,
-  ADVISOR_ELIGIBLE: 5,
-  ADVISOR_NOT_ELIGIBLE: 6,
-  DEPT_SECRETARY_APPROVED_PENDING_DEAN: 8,
-  DEPT_SECRETARY_REJECTED_PROCESS: 9,
-  DEANS_OFFICE_APPROVED: 11,
-  DEANS_OFFICE_REJECTED: 12,
-  STUDENT_AFFAIRS_APPROVED: 14,
-  STUDENT_AFFAIRS_REJECTED: 15,
-  COMPLETED_GRADUATED: 18,
-  PROCESS_TERMINATED_BY_ADMIN: 19,
-} as const;
 
 // Map graduation process status to step index and completion status
 const mapStatusToProgress = (status: number) => {

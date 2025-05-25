@@ -5,9 +5,7 @@ import type {
   TranscriptData,
   Student,
   CertificateType,
-  UniversityRanking,
   GraduationDecision,
-  CourseInfo,
 } from "../types";
 // import { calculateGPA, determineDepartment } from "../utils/serviceUtils";
 
@@ -193,20 +191,6 @@ const students: Student[] = [
       { certificateId: "1", status: "Ready", issueDate: "2023-06-15" },
       { certificateId: "2", status: "Ready", issueDate: "2023-06-20" },
       { certificateId: "3", status: "Ready", issueDate: "2023-06-10" },
-    ],
-  },
-];
-
-// University rankings data
-const universityRankings: UniversityRanking[] = [
-  {
-    id: "1",
-    year: "2023",
-    department: "Computer Engineering",
-    faculty: "Engineering",
-    students: [
-      { id: "1", name: "Jane Smith", gpa: 3.95, rank: 1 },
-      { id: "2", name: "John Doe", gpa: 3.75, rank: 2 },
     ],
   },
 ];
@@ -409,17 +393,6 @@ export const updateCertificateStatusMock = async (
       }
       resolve(student);
     }, 400);
-  });
-};
-
-// University rankings services
-export const getUniversityRankingsMock = async (): Promise<
-  UniversityRanking[]
-> => {
-  return new Promise((resolve) => {
-    setTimeout(() => {
-      resolve([...universityRankings]);
-    }, 500);
   });
 };
 

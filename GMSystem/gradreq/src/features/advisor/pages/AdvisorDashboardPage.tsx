@@ -196,24 +196,7 @@ const AdvisorDashboardPage = () => {
           </Paper>
         </Grid>
         
-        <Grid item xs={12} md={3}>
-          <Paper
-            elevation={2}
-            sx={{ 
-              height: '100%',
-              p: 3, 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center'
-            }}
-          >
-            <Typography variant="h3" color="success.main" gutterBottom>
-              {stats.manualCheckRequests}
-            </Typography>
-            <Typography variant="body1">Manual Check Requests</Typography>
-          </Paper>
-        </Grid>
+
         
         <Grid item xs={12} md={3}>
           <Paper
@@ -369,18 +352,6 @@ const AdvisorDashboardPage = () => {
               Quick Actions
             </Typography>
             <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap' }}>
-              <Button 
-                variant="contained" 
-                onClick={() => navigate('/advisor/my-students')}
-              >
-                My Students
-              </Button>
-              <Button 
-                variant="contained" 
-                onClick={() => navigate('/advisor/manual-check-requests')}
-              >
-                Manual Check Requests
-              </Button>
               <Button 
                 variant="contained" 
                 color="secondary" 

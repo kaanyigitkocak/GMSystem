@@ -6,7 +6,6 @@ import {
 } from "../../../common/utils/serviceUtils";
 import { getUserFromAuthApi } from "./usersApi";
 import { executeWithRetry } from "../../../common/utils/rateLimitUtils";
-import type { UserFromAuth } from "./usersApi"; // Ensure UserFromAuth is imported
 
 // Get service configuration
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
@@ -195,8 +194,10 @@ export const getStudentsApi = async (): Promise<Student[]> => {
               }
             );
 
-            const studentDetailData = await handleApiResponse<any>(studentResponse);
-            
+            const studentDetailData = await handleApiResponse<any>(
+              studentResponse
+            );
+
             console.log(
               `🔍 [AdvisorApiDebug] Student ${item.firstName} ${item.lastName} graduation process:`,
               studentDetailData.graduationProcess
@@ -204,18 +205,38 @@ export const getStudentsApi = async (): Promise<Student[]> => {
 
             return {
               id: item.id || item.studentId || item.studentNumber,
+              studentNumber: item.studentNumber || item.id,
+              firstName: item.firstName || "",
+              lastName: item.lastName || "",
               name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
-              department: item.departmentName || advisorData.departmentName,
-              gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A",
-              status: mapStudentStatus(item.graduationStatus),
               email: item.email || "",
+              departmentId: item.departmentId || advisorData.departmentId,
+              departmentName: item.departmentName || advisorData.departmentName,
+              department: item.departmentName || advisorData.departmentName,
+              facultyId: item.facultyId || "",
+              facultyName: item.facultyName || "",
+              programName: item.programName || "",
+              enrollDate: item.enrollDate || "",
+              currentGpa: item.currentGpa || 0,
+              gpa: item.currentGpa || 0,
+              currentEctsCompleted: item.currentEctsCompleted || 0,
+              graduationStatus: item.graduationStatus || 0,
+              status: mapStudentStatus(item.graduationStatus),
+              assignedAdvisorUserId: item.assignedAdvisorUserId || null,
+              activeGraduationProcessId:
+                studentDetailData.graduationProcess?.id || null,
+              activeGraduationProcessStatus:
+                studentDetailData.graduationProcess?.status || null,
+              activeGraduationProcessAcademicTerm:
+                studentDetailData.graduationProcess?.academicTerm || null,
+              activeGraduationProcessInitiationDate:
+                studentDetailData.graduationProcess?.creationDate || null,
+              activeGraduationProcessLastUpdateDate:
+                studentDetailData.graduationProcess?.lastUpdateDate || null,
+              graduationProcess:
+                studentDetailData.graduationProcess || undefined,
               phone: item.phoneNumber || item.phone || "",
               lastMeeting: item.lastMeetingDate || "",
-              studentNumber: item.studentNumber || item.id,
-              ectsCompleted: item.currentEctsCompleted || 0,
-              enrollDate: item.enrollDate || "",
-              graduationStatus: item.graduationStatus || 0,
-              graduationProcess: studentDetailData.graduationProcess || undefined,
             };
           } catch (error) {
             console.warn(
@@ -225,17 +246,31 @@ export const getStudentsApi = async (): Promise<Student[]> => {
             // Return basic student data without graduation process if individual fetch fails
             return {
               id: item.id || item.studentId || item.studentNumber,
+              studentNumber: item.studentNumber || item.id,
+              firstName: item.firstName || "",
+              lastName: item.lastName || "",
               name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
-              department: item.departmentName || advisorData.departmentName,
-              gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A",
-              status: mapStudentStatus(item.graduationStatus),
               email: item.email || "",
+              departmentId: item.departmentId || advisorData.departmentId,
+              departmentName: item.departmentName || advisorData.departmentName,
+              department: item.departmentName || advisorData.departmentName,
+              facultyId: item.facultyId || "",
+              facultyName: item.facultyName || "",
+              programName: item.programName || "",
+              enrollDate: item.enrollDate || "",
+              currentGpa: item.currentGpa || 0,
+              gpa: item.currentGpa || 0,
+              currentEctsCompleted: item.currentEctsCompleted || 0,
+              graduationStatus: item.graduationStatus || 0,
+              status: mapStudentStatus(item.graduationStatus),
+              assignedAdvisorUserId: item.assignedAdvisorUserId || null,
+              activeGraduationProcessId: null,
+              activeGraduationProcessStatus: null,
+              activeGraduationProcessAcademicTerm: null,
+              activeGraduationProcessInitiationDate: null,
+              activeGraduationProcessLastUpdateDate: null,
               phone: item.phoneNumber || item.phone || "",
               lastMeeting: item.lastMeetingDate || "",
-              studentNumber: item.studentNumber || item.id,
-              ectsCompleted: item.currentEctsCompleted || 0,
-              enrollDate: item.enrollDate || "",
-              graduationStatus: item.graduationStatus || 0,
             };
           }
         })

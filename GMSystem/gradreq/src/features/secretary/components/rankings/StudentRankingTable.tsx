@@ -84,7 +84,7 @@ const StudentRankingTable: React.FC<StudentRankingTableProps> = ({
             </TableRow>
           </TableHead>
           <TableBody>
-            {students.map((student, index) => (
+            {students.map((student) => (
               <TableRow key={student.id}>
                 <TableCell>{student.ranking}</TableCell>
                 <TableCell>{student.studentId}</TableCell>

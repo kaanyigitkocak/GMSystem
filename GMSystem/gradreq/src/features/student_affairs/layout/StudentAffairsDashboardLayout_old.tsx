@@ -25,12 +25,10 @@ import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
   CloudUpload as CloudUploadIcon,
-  FormatListNumbered as FormatListNumberedIcon,
   Notifications as NotificationsIcon,
   Logout as LogoutIcon,
   Close as CloseIcon,
   FileUpload as FileUploadIcon,
-  AccountCircle as AccountCircleIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,
   CheckCircle as CheckCircleIcon,
@@ -59,7 +57,7 @@ const StudentAffairsDashboardLayout = () => {
   const pathname = window.location.pathname;
   const navItems = [
     { path: '/student-affairs', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/student-affairs/university-rankings', icon: <CloudUploadIcon />, label: 'Approval & Ranking', exact: false },
+    { path: '/student-affairs/approval-ranking', icon: <CloudUploadIcon />, label: 'Approval & Ranking', exact: false },
     { path: '/student-affairs/upload-graduation-decisions', icon: <FileUploadIcon />, label: 'Upload Graduation Decisions', exact: false },
     { path: '/student-affairs/notifications', icon: <NotificationsIcon />, label: 'Notifications', exact: false },
   ];
@@ -439,7 +437,7 @@ const StudentAffairsDashboardLayout = () => {
           </Toolbar>
         </AppBar>
         <Toolbar />
-        {children}
+        <Outlet />
       </Box>
     </Box>
   );

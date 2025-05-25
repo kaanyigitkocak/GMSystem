@@ -56,7 +56,7 @@ const StudentAffairsDashboardLayout = () => {
   const pathname = window.location.pathname;
   const navItems = [
     { path: '/student-affairs', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
-    { path: '/student-affairs/university-rankings', icon: <FormatListNumberedIcon />, label: 'Approval & Ranking' },
+    { path: '/student-affairs/approval-ranking', icon: <FormatListNumberedIcon />, label: 'Approval & Ranking' },
     { path: '/student-affairs/upload-graduation-decisions', icon: <FileUploadIcon />, label: 'Upload Graduation Decisions' },
     { path: '/student-affairs/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];

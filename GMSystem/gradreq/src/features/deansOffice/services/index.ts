@@ -25,8 +25,6 @@ import type {
   UploadedFile,
   ValidationSummary,
   FileValidationResult,
-  FileStatus,
-  Notification,
 } from "./types";
 
 /**
@@ -64,7 +62,7 @@ export const processCSVFiles = (selectedFiles: File[]): UploadedFile[] => {
   if (useMock) {
     return processCSVFilesMock(selectedFiles);
   }
-  return processCSVFilesApi(selectedFiles);
+  return processCSVFilesApi();
 };
 
 /**
@@ -88,7 +86,7 @@ export const generateValidationSummary = (
   if (useMock) {
     return generateValidationSummaryMock(files);
   }
-  return generateValidationSummaryApi(files);
+  return generateValidationSummaryApi();
 };
 
 // Export types for external use
@@ -98,6 +96,4 @@ export type {
   UploadedFile,
   ValidationSummary,
   FileValidationResult,
-  FileStatus,
-  Notification,
 } from "./types";

@@ -18,9 +18,11 @@ import {
   getStudentsApi,
   getStudentByIdApi,
   updateCertificateStatusApi,
-  getUniversityRankingsApi,
   getGraduationDecisionsApi,
   getEligibilityCheckResultsApi,
+  setStudentAffairsApprovedApi,
+  setStudentAffairsRejectedApi,
+  getStudentAffairsUserInfoApi,
 } from "./api/studentAffairsApi";
 
 // Import mock services
@@ -39,7 +41,6 @@ import {
   getStudentsMock,
   getStudentByIdMock,
   updateCertificateStatusMock,
-  getUniversityRankingsMock,
   getGraduationDecisionsMock,
 } from "./mock/studentAffairsMock";
 
@@ -51,10 +52,7 @@ import type {
   TranscriptData,
   Student,
   CertificateType,
-  UniversityRanking,
   GraduationDecision,
-  EligibilityCheckResult,
-  EligibilityCheckType,
 } from "./types";
 
 // Notification services
@@ -198,15 +196,6 @@ export const updateCertificateStatus = async (
   );
 };
 
-// University rankings services
-export const getUniversityRankings = async (): Promise<UniversityRanking[]> => {
-  const { useMock } = getServiceConfig();
-  if (useMock) {
-    return getUniversityRankingsMock();
-  }
-  return getUniversityRankingsApi();
-};
-
 // Graduation decisions services
 export const getGraduationDecisions = async (): Promise<
   GraduationDecision[]
@@ -226,6 +215,67 @@ export const getEligibilityCheckResults = async (studentId: string) => {
     return [];
   }
   return getEligibilityCheckResultsApi(studentId);
+};
+
+// Student Affairs approval/rejection services
+export const setStudentAffairsApproved = async (
+  studentUserIds: string[],
+  studentAffairsUserId: string
+): Promise<void> => {
+  const { useMock } = getServiceConfig();
+  if (useMock) {
+    // Mock implementation - just log the action
+    console.log(
+      "Mock: Approving students",
+      studentUserIds,
+      "by",
+      studentAffairsUserId
+    );
+    return Promise.resolve();
+  }
+  return setStudentAffairsApprovedApi(studentUserIds, studentAffairsUserId);
+};
+
+export const setStudentAffairsRejected = async (
+  studentUserIds: string[],
+  studentAffairsUserId: string,
+  rejectionReason: string
+): Promise<void> => {
+  const { useMock } = getServiceConfig();
+  if (useMock) {
+    // Mock implementation - just log the action
+    console.log(
+      "Mock: Rejecting students",
+      studentUserIds,
+      "by",
+      studentAffairsUserId,
+      "reason:",
+      rejectionReason
+    );
+    return Promise.resolve();
+  }
+  return setStudentAffairsRejectedApi(
+    studentUserIds,
+    studentAffairsUserId,
+    rejectionReason
+  );
+};
+
+export const getStudentAffairsUserInfo = async (): Promise<{
+  userId: string;
+  name: string;
+  email: string;
+}> => {
+  const { useMock } = getServiceConfig();
+  if (useMock) {
+    // Mock implementation
+    return {
+      userId: "mock-student-affairs-user-id",
+      name: "Student Affairs Officer",
+      email: "studentaffairs@iyte.edu.tr",
+    };
+  }
+  return getStudentAffairsUserInfoApi();
 };
 
 // Export eligibility types for use in components

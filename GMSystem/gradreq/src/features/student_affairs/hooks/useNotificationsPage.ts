@@ -60,7 +60,7 @@ export const useNotificationsPage = (): UseNotificationsPageReturn => {
     );
   };
 
-  const getNotificationIcon = (type: Notification["type"]) => {
+  const getNotificationIcon = () => {
     // Note: Icons will be imported in the component that uses this hook
     // This function will be implemented in the component
     return null;

@@ -5,7 +5,6 @@ import type {
   TranscriptData,
   Student,
   CertificateType,
-  UniversityRanking,
   GraduationDecision,
   EligibilityCheckResponse,
   EligibilityCheckResult,
@@ -368,65 +367,6 @@ export const updateCertificateStatusApi = async (
   throw new Error("Not implemented");
 };
 
-// University rankings services
-export const getUniversityRankingsApi = async (): Promise<
-  UniversityRanking[]
-> => {
-  try {
-    return await executeWithRetry(async () => {
-      const { apiBaseUrl, fetchOptions } = getServiceConfig();
-      const authToken = localStorage.getItem("authToken");
-
-      if (!authToken) {
-        throw new ServiceError("No authentication token found");
-      }
-
-      const maxPageSize = 2147483647; // Integer.MAX_VALUE
-      const response = await fetch(
-        `${apiBaseUrl}/UniversityRankings?PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`,
-        {
-          ...fetchOptions,
-          method: "GET",
-          headers: {
-            ...fetchOptions.headers,
-            Authorization: `Bearer ${authToken}`,
-          },
-        }
-      );
-
-      const data = await handleApiResponse<{
-        items: any[];
-        index: number;
-        size: number;
-        count: number;
-        pages: number;
-        hasPrevious: boolean;
-        hasNext: boolean;
-      }>(response);
-
-      const rankings = data?.items || [];
-
-      // Transform backend data to frontend format
-      return rankings.map((ranking: any) => ({
-        id: ranking.id,
-        universityName: ranking.universityName || "Unknown University",
-        rank: ranking.rank || 0,
-        score: ranking.score || 0,
-        year: ranking.year || new Date().getFullYear(),
-        category: ranking.category || "General",
-        source: ranking.source || "Unknown",
-        department: ranking.department || "All Departments",
-        faculty: ranking.faculty || "All Faculties",
-        students: ranking.students || [],
-      }));
-    });
-  } catch (error) {
-    console.error("Error fetching university rankings:", error);
-    // Return empty array instead of throwing error to prevent dashboard crash
-    return [];
-  }
-};
-
 // Graduation decisions services
 export const getGraduationDecisionsApi = async (): Promise<
   GraduationDecision[]
@@ -526,5 +466,121 @@ export const getEligibilityCheckResultsApi = async (
     );
     // Return empty array instead of throwing error to prevent dashboard crash
     return [];
+  }
+};
+
+// Student Affairs approval/rejection services
+export const setStudentAffairsApprovedApi = async (
+  studentUserIds: string[],
+  studentAffairsUserId: string
+): Promise<void> => {
+  try {
+    return await executeWithRetry(async () => {
+      const { apiBaseUrl, fetchOptions } = getServiceConfig();
+      const authToken = localStorage.getItem("authToken");
+
+      if (!authToken) {
+        throw new ServiceError("No authentication token found");
+      }
+
+      const response = await fetch(
+        `${apiBaseUrl}/GraduationProcesses/SetStudentAffairsApproved`,
+        {
+          ...fetchOptions,
+          method: "POST",
+          headers: {
+            ...fetchOptions.headers,
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            studentUserIds,
+            studentAffairsUserId,
+          }),
+        }
+      );
+
+      await handleApiResponse(response);
+    });
+  } catch (error) {
+    console.error("Error approving students:", error);
+    throw new ServiceError("Failed to approve students");
+  }
+};
+
+export const setStudentAffairsRejectedApi = async (
+  studentUserIds: string[],
+  studentAffairsUserId: string,
+  rejectionReason: string
+): Promise<void> => {
+  try {
+    return await executeWithRetry(async () => {
+      const { apiBaseUrl, fetchOptions } = getServiceConfig();
+      const authToken = localStorage.getItem("authToken");
+
+      if (!authToken) {
+        throw new ServiceError("No authentication token found");
+      }
+
+      const response = await fetch(
+        `${apiBaseUrl}/GraduationProcesses/SetStudentAffairsRejected`,
+        {
+          ...fetchOptions,
+          method: "POST",
+          headers: {
+            ...fetchOptions.headers,
+            Authorization: `Bearer ${authToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            studentUserIds,
+            studentAffairsUserId,
+            rejectionReason,
+          }),
+        }
+      );
+
+      await handleApiResponse(response);
+    });
+  } catch (error) {
+    console.error("Error rejecting students:", error);
+    throw new ServiceError("Failed to reject students");
+  }
+};
+
+// Get current user info for Student Affairs
+export const getStudentAffairsUserInfoApi = async (): Promise<{
+  userId: string;
+  name: string;
+  email: string;
+}> => {
+  try {
+    return await executeWithRetry(async () => {
+      const { apiBaseUrl, fetchOptions } = getServiceConfig();
+      const authToken = localStorage.getItem("authToken");
+
+      if (!authToken) {
+        throw new ServiceError("No authentication token found");
+      }
+
+      const response = await fetch(`${apiBaseUrl}/Users/current`, {
+        ...fetchOptions,
+        method: "GET",
+        headers: {
+          ...fetchOptions.headers,
+          Authorization: `Bearer ${authToken}`,
+        },
+      });
+
+      const data = await handleApiResponse<any>(response);
+      return {
+        userId: data.id,
+        name: data.name || `${data.firstName} ${data.lastName}`,
+        email: data.email,
+      };
+    });
+  } catch (error) {
+    console.error("Error fetching user info:", error);
+    throw new ServiceError("Failed to fetch user information");
   }
 };

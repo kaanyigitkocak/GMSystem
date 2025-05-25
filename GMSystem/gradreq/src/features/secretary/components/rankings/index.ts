@@ -3,7 +3,4 @@ export {
   type ExtendedStudentRanking,
 } from "./StudentRankingTable";
 export { default as RankingActions } from "./RankingActions";
-export {
-  default as TranscriptDialog,
-  type StudentTranscript,
-} from "./TranscriptDialog";
+export { default as TranscriptDialog } from "./TranscriptDialog";

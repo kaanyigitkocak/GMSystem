@@ -30,11 +30,8 @@ const TranscriptProcessingPage = () => {
   const {
     transcripts,
     loading,
-    error,
-    uploadProgress,
     uploadAndParsePDF,
     uploadTranscript,
-    submitParsedTranscript,
     deleteTranscript,
     fetchTranscripts,
     addTranscript
@@ -42,14 +39,7 @@ const TranscriptProcessingPage = () => {
 
   const {
     conflicts,
-    processing: conflictProcessing,
-    error: conflictError,
-    processCSVForConflicts,
-    resolveConflict,
-    removeConflict,
-    clearConflicts,
-    clearError: clearConflictError
-  } = useTranscriptConflicts();
+    resolveConflict  } = useTranscriptConflicts();
 
   // State management
   const [file, setFile] = useState<File | null>(null);
@@ -131,7 +121,7 @@ const TranscriptProcessingPage = () => {
             }
             
             // Parse CSV using our new function
-            const parsedResult = parseTranscriptCSV(csvContent, file.name);
+            const parsedResult = parseTranscriptCSV(csvContent);
             
             console.log('Parsed CSV transcript:', parsedResult);
             

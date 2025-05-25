@@ -9,7 +9,7 @@ export const getStudentsForPetitionApi = async (): Promise<
 
 // API function to create a petition
 export const createPetitionApi = async (
-  petitionData: PetitionData
+  _petitionData: PetitionData
 ): Promise<PetitionResult> => {
   throw new Error("Not implemented");
 };

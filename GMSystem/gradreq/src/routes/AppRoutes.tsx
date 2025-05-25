@@ -39,7 +39,7 @@ const DeansOfficeNotificationsPage = lazy(() => import('../features/deansOffice/
 const StudentAffairsDashboard = lazy(() => import('../features/student_affairs/pages/StudentAffairsDashboardPage'));
 const StudentAffairsLayout = lazy(() => import('../features/student_affairs/layout/StudentAffairsLayout'));
 const UploadGraduationDecisionsPage = lazy(() => import('../features/student_affairs/pages/UploadGraduationDecisionsPage'));
-const UniversityRankingsPage = lazy(() => import('../features/student_affairs/pages/UniversityRankingsPage'));
+
 const StudentAffairsNotificationsPage = lazy(() => import('../features/student_affairs/pages/NotificationsPage'));
 const StudentAffairsApprovalRankingPage = lazy(() => import('../features/student_affairs/pages/ApprovalRankingPage'));
 
@@ -48,8 +48,6 @@ const AdminDashboard = lazy(() => import('../features/admin/pages/AdminDashboard
 
 // Advisor pages
 import AdvisorDashboardPage from '../features/advisor/pages/AdvisorDashboardPage';
-import MyStudentsPage from '../features/advisor/pages/MyStudentsPage';
-import ManualCheckRequestsPage from '../features/advisor/pages/ManualCheckRequestsPage';
 
 // Loading component - positioned fixed to cover the whole screen
 const LoadingComponent = () => (
@@ -264,15 +262,13 @@ const AppRoutes = () => {
           <Route index element={<StudentAffairsDashboard />} />
           <Route path="approval-ranking" element={<StudentAffairsApprovalRankingPage />} />
           <Route path="upload-graduation-decisions" element={<UploadGraduationDecisionsPage />} />
-          <Route path="university-rankings" element={<UniversityRankingsPage />} />
+
           <Route path="notifications" element={<StudentAffairsNotificationsPage />} />
         </Route>
         
         {/* Advisor Dashboard routes */}
         <Route path="/advisor" element={<ProtectedRoute element={<AdvisorDashboardLayout />} />}>
           <Route index element={<AdvisorDashboardPage />} />
-          <Route path="my-students" element={<MyStudentsPage />} />
-          <Route path="manual-check-requests" element={<ManualCheckRequestsPage />} />
           <Route path="approval-ranking" element={<ApprovalRankingPage />} />
           <Route path="notifications" element={<AdvisorNotificationsPage />} />
         </Route>

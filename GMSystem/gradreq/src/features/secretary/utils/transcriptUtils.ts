@@ -232,8 +232,7 @@ export const analyzeGraduationEligibility = (
  * Expected format: Student ID,Student Name,Department,Course Code,Course Name,Grade,Credits,Semester,Course Type
  */
 export const parseTranscriptCSV = (
-  csvContent: string,
-  fileName: string
+  csvContent: string
 ): ParsedStudentTranscript => {
   const lines = csvContent.trim().split("\n");
 

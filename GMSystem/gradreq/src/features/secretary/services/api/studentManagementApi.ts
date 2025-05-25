@@ -1,8 +1,4 @@
-import type {
-  TranscriptData,
-  CreateStudentFromTranscriptRequest,
-  CreateTranscriptDataRequest,
-} from "../types";
+import type { TranscriptData } from "../types";
 import {
   getServiceConfig,
   handleApiResponse,

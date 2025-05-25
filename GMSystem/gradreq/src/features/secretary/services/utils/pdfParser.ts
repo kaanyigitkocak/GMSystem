@@ -1,4 +1,3 @@
-import type { CreateTranscriptDataRequest } from "../types";
 import * as pdfjsLib from "pdfjs-dist";
 import { createWorker } from "tesseract.js";
 

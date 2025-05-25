@@ -618,12 +618,6 @@ let mockTranscripts: TranscriptData[] = [
   },
 ];
 
-// Mock data for dashboard statistics
-const mockDashboardStats = {
-  graduatesCount: 23,
-  graduationDate: "2023-06-15",
-};
-
 // Mock function for getting user data
 export const getUserFromAuthMock = async () => {
   return new Promise((resolve) => {

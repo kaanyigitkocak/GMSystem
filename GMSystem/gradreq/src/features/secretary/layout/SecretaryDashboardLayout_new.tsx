@@ -34,7 +34,6 @@ import {
   Warning as WarningIcon,
   Error as ErrorIcon,
   CheckCircle as CheckCircleIcon,
-  Close as CloseIcon,
   Logout as LogoutIcon,
 } from '@mui/icons-material';
 import { useAuth } from '../../auth/contexts/AuthContext';

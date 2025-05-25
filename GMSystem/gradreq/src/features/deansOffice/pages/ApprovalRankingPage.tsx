@@ -574,10 +574,7 @@ const ApprovalRankingPage = () => {
   
   // Calculate dean-specific statistics
   const waitingForDeanCount = students.filter(s => s.activeGraduationProcessStatus === 8).length;
-  const approvedByDeanCount = students.filter(s => s.activeGraduationProcessStatus === 11).length;
-  const rejectedByDeanCount = students.filter(s => s.activeGraduationProcessStatus === 12).length;
   const graduatedCount = students.filter(s => s.activeGraduationProcessStatus === 18).length;
-  const noProcessCount = students.filter(s => !s.activeGraduationProcessStatus).length;
 
   return (
     <Box sx={{ p: 3, position: 'relative' }}>

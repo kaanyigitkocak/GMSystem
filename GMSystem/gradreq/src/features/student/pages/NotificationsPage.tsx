@@ -27,7 +27,7 @@ import { useNotifications } from '../hooks/useNotifications';
 import type { Notification } from '../types';
 
 const NotificationsPage = () => {
-  const { notifications, markAsRead, markAllAsRead, deleteNotification, loading } = useNotifications();
+  const { notifications, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
   const [activeTab, setActiveTab] = useState(0);
 
   const handleTabChange = (_event: React.SyntheticEvent, newValue: number) => {

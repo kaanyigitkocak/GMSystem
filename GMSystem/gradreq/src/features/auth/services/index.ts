@@ -48,7 +48,7 @@ export const loginUser = async (
 // Registration services
 export const sendVerificationEmail = async (
   email: string,
-  validationType: number = 2
+  _validationType: number = 2
 ): Promise<{ success: boolean }> => {
   if (useMock) {
     return sendVerificationEmailMock(email);

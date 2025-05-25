@@ -5,6 +5,7 @@ import { calculateGPA } from "../utils/serviceUtils";
 const mockTranscriptCourses: Course[] = [
   {
     id: "CENG101",
+    code: "CENG101",
     name: "Introduction to Computer Engineering",
     credits: 4,
     grade: "AA",
@@ -12,6 +13,7 @@ const mockTranscriptCourses: Course[] = [
   },
   {
     id: "CENG211",
+    code: "CENG211",
     name: "Data Structures",
     credits: 4,
     grade: "BA",
@@ -19,6 +21,7 @@ const mockTranscriptCourses: Course[] = [
   },
   {
     id: "CENG311",
+    code: "CENG311",
     name: "Algorithms",
     credits: 4,
     grade: "BB",
@@ -26,6 +29,7 @@ const mockTranscriptCourses: Course[] = [
   },
   {
     id: "MATH101",
+    code: "MATH101",
     name: "Calculus I",
     credits: 4,
     grade: "AA",
@@ -33,6 +37,7 @@ const mockTranscriptCourses: Course[] = [
   },
   {
     id: "MATH102",
+    code: "MATH102",
     name: "Calculus II",
     credits: 4,
     grade: "BA",
@@ -40,6 +45,7 @@ const mockTranscriptCourses: Course[] = [
   },
   {
     id: "PHYS101",
+    code: "PHYS101",
     name: "Physics I",
     credits: 4,
     grade: "BB",
@@ -47,6 +53,7 @@ const mockTranscriptCourses: Course[] = [
   },
   {
     id: "PHYS102",
+    code: "PHYS102",
     name: "Physics II",
     credits: 4,
     grade: "CB",

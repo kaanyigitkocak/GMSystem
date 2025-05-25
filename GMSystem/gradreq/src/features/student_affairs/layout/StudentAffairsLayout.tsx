@@ -59,7 +59,6 @@ const StudentAffairsLayout = () => {
     { path: '/student-affairs', icon: <DashboardIcon />, label: 'Dashboard', exact: true },
     { path: '/student-affairs/approval-ranking', icon: <BarChartIcon />, label: 'Approval & Ranking' },
     { path: '/student-affairs/upload-graduation-decisions', icon: <CloudUploadIcon />, label: 'Upload Graduation Decisions' },
-    { path: '/student-affairs/university-rankings', icon: <BarChartIcon />, label: 'University Rankings' },
     { path: '/student-affairs/notifications', icon: <NotificationsIcon />, label: 'Notifications' },
   ];
 

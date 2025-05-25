@@ -197,23 +197,35 @@ export const getStudentsApi = async (): Promise<Student[]> => {
             }`.trim(),
             email: studentDetailData.email,
             departmentId: studentDetailData.departmentId,
+            departmentName:
+              studentDetailData.departmentName || secretaryData.departmentName,
             department:
               studentDetailData.departmentName || secretaryData.departmentName, // Prefer departmentName from studentDetailData if available
-            programName: studentDetailData.programName,
-            enrollDate: studentDetailData.enrollDate,
-            currentGpa: studentDetailData.currentGpa,
-            gpa: studentDetailData.currentGpa
-              ? studentDetailData.currentGpa.toFixed(2)
-              : "N/A",
-            currentEctsCompleted: studentDetailData.currentEctsCompleted,
-            ectsCompleted: studentDetailData.currentEctsCompleted || 0,
+            facultyId: studentDetailData.facultyId || "",
+            facultyName: studentDetailData.facultyName || "",
+            programName: studentDetailData.programName || "",
+            enrollDate: studentDetailData.enrollDate || "",
+            currentGpa: studentDetailData.currentGpa || 0,
+            gpa: studentDetailData.currentGpa || 0,
+            currentEctsCompleted: studentDetailData.currentEctsCompleted || 0,
+            graduationStatus: studentDetailData.graduationStatus || 0,
             status: mapStudentStatus(studentDetailData.graduationStatus), // Student's general status from backend's graduationStatus field
-            graduationStatus: studentDetailData.graduationStatus, // Store raw backend value of student's overall status
-            assignedAdvisorUserId: studentDetailData.assignedAdvisorUserId,
+            assignedAdvisorUserId:
+              studentDetailData.assignedAdvisorUserId || null,
+            activeGraduationProcessId:
+              studentDetailData.graduationProcess?.id || null,
+            activeGraduationProcessStatus:
+              studentDetailData.graduationProcess?.status || null,
+            activeGraduationProcessAcademicTerm:
+              studentDetailData.graduationProcess?.academicTerm || null,
+            activeGraduationProcessInitiationDate:
+              studentDetailData.graduationProcess?.creationDate || null,
+            activeGraduationProcessLastUpdateDate:
+              studentDetailData.graduationProcess?.lastUpdateDate || null,
             graduationProcess: studentDetailData.graduationProcess || undefined, // This is the GraduationProcess object
-            // Ensure other fields used by UI are mapped if they come from studentDetailData
-            // phone: studentDetailData.phoneNumber || "", // Example, adjust if backend provides phoneNumber
-            // lastMeeting: studentDetailData.lastMeetingDate || "", // Example, adjust if backend provides lastMeetingDate
+            phone:
+              studentDetailData.phoneNumber || studentDetailData.phone || "",
+            lastMeeting: studentDetailData.lastMeetingDate || "",
           };
         } catch (error) {
           console.warn(
@@ -229,18 +241,26 @@ export const getStudentsApi = async (): Promise<Student[]> => {
             name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
             email: item.email, // from list item
             departmentId: item.departmentId, // from list item
+            departmentName: secretaryData.departmentName, // Default department name
             department: secretaryData.departmentName, // Default department name
-            gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A", // from list item
+            facultyId: item.facultyId || "",
+            facultyName: item.facultyName || "",
+            programName: item.programName || "",
+            enrollDate: item.enrollDate || "",
+            currentGpa: item.currentGpa || 0,
+            gpa: item.currentGpa || 0,
+            currentEctsCompleted: item.currentEctsCompleted || 0,
+            graduationStatus: item.graduationStatus || 0,
             status: mapStudentStatus(item.graduationStatus), // from list item
-            graduationStatus: item.graduationStatus, // from list item
-            // Ensure all required fields for Student type are present, even if undefined
-            programName: undefined,
-            enrollDate: undefined,
-            currentGpa: undefined,
-            currentEctsCompleted: undefined,
-            ectsCompleted: item.currentEctsCompleted || 0,
-            assignedAdvisorUserId: undefined,
+            assignedAdvisorUserId: item.assignedAdvisorUserId || null,
+            activeGraduationProcessId: null,
+            activeGraduationProcessStatus: null,
+            activeGraduationProcessAcademicTerm: null,
+            activeGraduationProcessInitiationDate: null,
+            activeGraduationProcessLastUpdateDate: null,
             graduationProcess: undefined,
+            phone: item.phoneNumber || item.phone || "",
+            lastMeeting: item.lastMeetingDate || "",
           };
         }
       })
@@ -269,104 +289,10 @@ export const getStudentsApi = async (): Promise<Student[]> => {
 };
 
 // Helper function to fetch the raw list of students for a department
-const fetchStudentsList = async (departmentId: string, authToken: string) => {
-  const maxPageSize = 2147483647; // Integer.MAX_VALUE
-  const studentsListUrl = `${apiBaseUrl}/Students?departmentId=${departmentId}&PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`;
-
-  console.log(" fetching students list from:", studentsListUrl);
-
-  const response = await fetch(studentsListUrl, {
-    ...fetchOptions,
-    method: "GET",
-    headers: { ...fetchOptions.headers, Authorization: `Bearer ${authToken}` },
-  });
-
-  const data = await handleApiResponse<{ items: any[] }>(response);
-  console.log(` Fetched ${data.items.length} students from API.`);
-  return data;
-};
 
 // Helper function to fetch the raw list of graduation processes
-const fetchGraduationProcessesList = async (authToken: string) => {
-  const maxPageSize = 2147483647; // Integer.MAX_VALUE
-  const graduationProcessesUrl = `${apiBaseUrl}/GraduationProcesses?PageRequest.PageIndex=0&PageRequest.PageSize=${maxPageSize}`;
-
-  console.log(" fetching graduation processes from:", graduationProcessesUrl);
-
-  const response = await fetch(graduationProcessesUrl, {
-    ...fetchOptions,
-    method: "GET",
-    headers: { ...fetchOptions.headers, Authorization: `Bearer ${authToken}` },
-  });
-  const data = await handleApiResponse<{ items: any[] }>(response);
-  console.log(` Fetched ${data.items.length} graduation processes from API.`);
-  return data;
-};
 
 // Helper function to map students with their corresponding graduation processes
-const mapStudentsWithProcesses = (
-  studentItems: any[],
-  processItems: any[],
-  defaultDepartmentName: string
-): Student[] => {
-  const graduationProcessMap = new Map();
-  console.log(
-    "🔍 [mapStudentsWithProcesses] Raw processItems count:",
-    processItems.length
-  );
-  processItems.forEach((process) => {
-    if (process.studentId) {
-      graduationProcessMap.set(process.studentId, process);
-    } else {
-      console.warn(
-        "⚠️ [mapStudentsWithProcesses] Process item missing studentId:",
-        process
-      );
-    }
-  });
-  console.log(
-    "🔍 [mapStudentsWithProcesses] graduationProcessMap size:",
-    graduationProcessMap.size
-  );
-  // console.log("🔍 [mapStudentsWithProcesses] graduationProcessMap content:", Object.fromEntries(graduationProcessMap)); // Can be very verbose
-
-  return studentItems.map((item) => {
-    if (!item.id) {
-      console.warn(
-        "⚠️ [mapStudentsWithProcesses] Student item missing id:",
-        item
-      );
-    }
-    const studentId = item.id;
-    const graduationProcess = graduationProcessMap.get(studentId);
-
-    if (!graduationProcess) {
-      // This log is important to see if a student doesn't have a matching process
-      console.log(
-        `ℹ️ [mapStudentsWithProcesses] No graduation process found for studentId: ${studentId} (Name: ${item.firstName} ${item.lastName})`
-      );
-    }
-
-    // console.log( // This log can be very verbose, enable if needed for specific student debugging
-    //   ` Student ${item.firstName} ${item.lastName} (${studentId}) mapped with GP:`, graduationProcess
-    // );
-    return {
-      id: studentId,
-      name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
-      department: item.departmentName || defaultDepartmentName,
-      gpa: item.currentGpa ? item.currentGpa.toFixed(2) : "N/A",
-      status: mapStudentStatus(item.graduationStatus), // This is student's general status, not process status
-      email: item.email || "",
-      phone: item.phoneNumber || item.phone || "",
-      lastMeeting: item.lastMeetingDate || "",
-      studentNumber: item.studentNumber || item.id, // Ensure studentNumber is populated
-      ectsCompleted: item.currentEctsCompleted || 0,
-      enrollDate: item.enrollDate || "",
-      graduationStatus: item.graduationStatus || 0, // This is student's general status
-      graduationProcess: graduationProcess || undefined, // This is the crucial part
-    };
-  });
-};
 
 // Helper function to map backend graduation status to frontend status
 const mapStudentStatus = (graduationStatus: number): Student["status"] => {

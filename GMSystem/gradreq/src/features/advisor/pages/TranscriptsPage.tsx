@@ -32,7 +32,7 @@ import AdvisorDashboardLayout from '../layout/AdvisorDashboardLayout';
 import { useTranscripts } from '../hooks/useTranscripts';
 
 const TranscriptsPage = () => {
-  const [selectedStudent, setSelectedStudent] = useState<string | null>(null);
+  const [, setSelectedStudent] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [departmentFilter, setDepartmentFilter] = useState('');
   const [dialogOpen, setDialogOpen] = useState(false);

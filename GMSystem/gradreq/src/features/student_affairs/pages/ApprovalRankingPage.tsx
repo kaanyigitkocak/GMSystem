@@ -32,11 +32,17 @@ import {
   Cancel, 
   Description 
 } from '@mui/icons-material';
-import { useState, useCallback, useMemo } from 'react';
+import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useStudentAffairs } from '../contexts/StudentAffairsContext';
-import { getStudentTranscript } from '../services';
+import { 
+  getStudentTranscript, 
+  setStudentAffairsApproved, 
+  setStudentAffairsRejected, 
+  getStudentAffairsUserInfo 
+} from '../services';
 import type { Student } from '../services/types';
 import type { StudentTranscript } from '../components/TranscriptDialog';
+import RejectDialog from '../components/RejectDialog';
 
 const Grid = MuiGrid as any; // MuiGrid type issue workaround
 
@@ -74,11 +80,28 @@ const ApprovalRankingPage = () => {
   const [transcriptLoading, setTranscriptLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string>('');
   const [errorMessage, setErrorMessage] = useState<string>('');
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [studentToReject, setStudentToReject] = useState<Student | null>(null);
+  const [userInfo, setUserInfo] = useState<{ userId: string; name: string; email: string } | null>(null);
 
   // Get sorted students
   const sortedStudents = useMemo(() => {
     return sortStudentsByEligibilityAndGPA(students);
   }, [students]);
+
+  // Fetch user info on component mount
+  useEffect(() => {
+    const fetchUserInfo = async () => {
+      try {
+        const info = await getStudentAffairsUserInfo();
+        setUserInfo(info);
+      } catch (err) {
+        console.error('Failed to fetch user info:', err);
+        setErrorMessage('Failed to fetch user information');
+      }
+    };
+    fetchUserInfo();
+  }, []);
 
   const handleRefreshData = useCallback(async () => {
     try {
@@ -123,24 +146,54 @@ const ApprovalRankingPage = () => {
   }, []);
 
   const handleApproveStudent = useCallback(async (student: Student) => {
-    try {
-      console.log("🔍 [StudentAffairsApprovalRanking] Approving student (placeholder):", student.studentId);
-      setSuccessMessage(`Student ${student.name} (${student.studentId}) approval noted.`);
-    } catch (err) {
-      setErrorMessage('Failed to process approval. Please try again.');
-      console.error('Failed to process approval:', err);
+    if (!userInfo) {
+      setErrorMessage('User information not available. Please refresh the page.');
+      return;
     }
+
+    try {
+      console.log("🔍 [StudentAffairsApprovalRanking] Approving student:", student.studentId);
+      await setStudentAffairsApproved([student.id], userInfo.userId);
+      setSuccessMessage(`Student ${student.name} (${student.studentId}) has been approved for graduation.`);
+      
+      // Refresh data to show updated status
+      await refreshStudentsData();
+    } catch (err) {
+      setErrorMessage('Failed to approve student. Please try again.');
+      console.error('Failed to approve student:', err);
+    }
+  }, [userInfo, refreshStudentsData]);
+
+  const handleOpenRejectDialog = useCallback((student: Student) => {
+    setStudentToReject(student);
+    setRejectDialogOpen(true);
   }, []);
 
-  const handleRejectStudent = useCallback(async (student: Student) => {
-    try {
-      console.log("🔍 [StudentAffairsApprovalRanking] Rejecting student (placeholder):", student.studentId);
-      setSuccessMessage(`Student ${student.name} (${student.studentId}) rejection noted.`);
-    } catch (err) {
-      setErrorMessage('Failed to process rejection. Please try again.');
-      console.error('Failed to process rejection:', err);
-    }
+  const handleCloseRejectDialog = useCallback(() => {
+    setStudentToReject(null);
+    setRejectDialogOpen(false);
   }, []);
+
+  const handleConfirmReject = useCallback(async (rejectionReason: string) => {
+    if (!studentToReject || !userInfo) {
+      setErrorMessage('Missing information for rejection. Please try again.');
+      return;
+    }
+
+    try {
+      console.log(`🔍 [StudentAffairsApprovalRanking] Rejecting student: ${studentToReject.studentId} with reason: ${rejectionReason}`);
+      await setStudentAffairsRejected([studentToReject.id], userInfo.userId, rejectionReason);
+      setSuccessMessage(`Student ${studentToReject.name} (${studentToReject.studentId}) has been rejected.`);
+      
+      // Refresh data to show updated status
+      await refreshStudentsData();
+    } catch (err) {
+      setErrorMessage('Failed to reject student. Please try again.');
+      console.error('Failed to reject student:', err);
+    } finally {
+      handleCloseRejectDialog();
+    }
+  }, [studentToReject, userInfo, refreshStudentsData, handleCloseRejectDialog]);
 
   const handleCloseSuccessMessage = useCallback(() => {
     setSuccessMessage('');
@@ -367,7 +420,7 @@ const ApprovalRankingPage = () => {
                               <Tooltip title="Reject for Graduation">
                                 <span>
                                 <IconButton
-                                  onClick={() => handleRejectStudent(student)}
+                                  onClick={() => handleOpenRejectDialog(student)}
                                   disabled={!student.eligibilityResults || student.eligibilityResults.length === 0}
                                   size="small"
                                   color="error"
@@ -536,6 +589,16 @@ const ApprovalRankingPage = () => {
           <Button onClick={handleCloseTranscriptDialog}>Close</Button>
         </DialogActions>
       </Dialog>
+
+      {/* Reject Confirmation Dialog */}
+      {studentToReject && (
+        <RejectDialog
+          open={rejectDialogOpen}
+          onClose={handleCloseRejectDialog}
+          onConfirm={handleConfirmReject}
+          studentName={`${studentToReject.name} (${studentToReject.studentId})`}
+        />
+      )}
 
       {/* Success/Error Messages */}
       <Snackbar

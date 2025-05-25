@@ -107,7 +107,7 @@ export const loginUserMock = async (
 };
 
 // Function to check if a token is valid
-export const validateTokenMock = async (token: string): Promise<User> => {
+export const validateTokenMock = async (_token: string): Promise<User> => {
   // No longer validating token
   throw new Error("Token validation has been disabled");
 };
@@ -135,9 +135,9 @@ export const sendVerificationEmailMock = async (
 };
 
 export const verifyCodeMock = async (
-  email: string,
+  _email: string,
   code: string,
-  validationType?: number
+  _validationType?: number
 ): Promise<{ success: boolean }> => {
   // Simulate network request delay
   return new Promise((resolve, reject) => {
@@ -206,7 +206,7 @@ export const sendPasswordResetEmailMock = async (
   email: string
 ): Promise<{ success: boolean }> => {
   // Simulate network request delay
-  return new Promise((resolve, reject) => {
+  return new Promise((resolve, _reject) => {
     setTimeout(() => {
       console.log("Mock: Sending password reset email to:", email);
 

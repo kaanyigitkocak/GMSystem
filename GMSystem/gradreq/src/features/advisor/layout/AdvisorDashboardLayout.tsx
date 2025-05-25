@@ -21,8 +21,6 @@ import {
 import {
   Menu as MenuIcon,
   Dashboard as DashboardIcon,
-  School as SchoolIcon,
-  Assignment as AssignmentIcon,
   Group as GroupIcon,
   Logout as LogoutIcon,
   Notifications as NotificationsIcon,
@@ -39,7 +37,11 @@ import { EligibilityProvider } from '../contexts/EligibilityContext';
 
 const drawerWidth = 240;
 
-const AdvisorDashboardLayout = () => {
+interface AdvisorDashboardLayoutProps {
+  children?: React.ReactNode;
+}
+
+const AdvisorDashboardLayout = ({ children }: AdvisorDashboardLayoutProps) => {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -84,8 +86,6 @@ const AdvisorDashboardLayout = () => {
   };
   const menuItems = [
     { text: 'Dashboard', icon: <DashboardIcon />, path: '/advisor' },
-    { text: 'My Students', icon: <SchoolIcon />, path: '/advisor/my-students' },
-    { text: 'Manual Check Requests', icon: <AssignmentIcon />, path: '/advisor/manual-check-requests' },
     { text: 'Approval & Ranking', icon: <GroupIcon />, path: '/advisor/approval-ranking' },
     { text: 'Notifications', icon: <NotificationsIcon />, path: '/advisor/notifications' },
   ];
@@ -358,7 +358,7 @@ const AdvisorDashboardLayout = () => {
             mt: 8,
           }}
         >
-          <Outlet />
+          {children || <Outlet />}
         </Box>
       </Box>
     </EligibilityProvider>

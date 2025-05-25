@@ -12,8 +12,6 @@ import type {
   BackendUserResponse,
   BackendCourseTakensResponse,
   BackendCoursesResponse,
-  BackendCourseItem,
-  BackendCourseTakenItem,
 } from "../types/backendTypes";
 
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
@@ -108,9 +106,6 @@ export const getGraduationRequirementsApi =
       const mandatoryCourses = coursesData.items.filter(
         (course) => course.courseType === 1
       );
-      const electiveCourses = coursesData.items.filter(
-        (course) => course.courseType === 2
-      );
 
       // Create requirement items for mandatory courses
       const mandatoryRequirementItems: RequirementItem[] = mandatoryCourses.map(
@@ -132,9 +127,6 @@ export const getGraduationRequirementsApi =
             )?.courseType === 2
         )
         .map((taken) => {
-          const course = coursesData.items.find(
-            (c) => c.id === taken.matchedCourseId
-          );
           return {
             id: taken.id,
             name: `${taken.courseCodeInTranscript} - ${taken.courseNameInTranscript}`,

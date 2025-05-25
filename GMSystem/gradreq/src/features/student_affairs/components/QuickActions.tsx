@@ -20,7 +20,7 @@ const QuickActions = () => {
             variant="contained"
             color="secondary"
             fullWidth
-            onClick={() => navigate('/student-affairs/university-rankings')}
+            onClick={() => navigate('/student-affairs/approval-ranking')}
             sx={{
               height: '120px',
               display: 'flex',
@@ -31,7 +31,7 @@ const QuickActions = () => {
           >
             <SchoolIcon sx={{ fontSize: 40 }} />
             <Typography variant="body1">
-              University Rankings
+              Approval & Ranking
             </Typography>
           </Button>
         </Grid>

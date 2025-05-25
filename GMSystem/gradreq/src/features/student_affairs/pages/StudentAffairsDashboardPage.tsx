@@ -34,7 +34,7 @@ const StudentAffairsDashboardPage = () => {
           Welcome, {user?.name || 'Student Affairs Officer'}!
         </Typography>
         <Typography variant="body1" color="text.secondary">
-          Welcome to the Student Affairs Panel of the Graduation Management System. From this panel, you can determine student certificates, generate university ranking lists, and upload graduation decisions for each department.
+          Welcome to the Student Affairs Panel of the Graduation Management System. From this panel, you can determine student certificates, manage student approvals and rankings, and upload graduation decisions for each department.
         </Typography>
       </Paper>
       

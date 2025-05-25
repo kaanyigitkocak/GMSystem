@@ -27,7 +27,7 @@ import {
 const ManualCheckPage = () => {
   const [activeStep, setActiveStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isSubmitted, setIsSubmitted] = useState(false);
+  const [_isSubmitted, _setIsSubmitted] = useState(false);
   const [formData, setFormData] = useState({
     reason: '',
     details: '',
@@ -49,7 +49,7 @@ const ManualCheckPage = () => {
     
     // Simulate API call
     setTimeout(() => {
-      setIsSubmitted(true);
+      _setIsSubmitted(true);
       setIsSubmitting(false);
       setActiveStep(2);
     }, 1500);

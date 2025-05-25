@@ -4,7 +4,6 @@ import {
   getNotifications,
   markNotificationAsRead,
   markAllNotificationsAsRead,
-  deleteNotification,
 } from "../services";
 
 interface UseNotificationsReturn {

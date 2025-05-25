@@ -140,9 +140,6 @@ export const getDashboardDataApi = async (): Promise<DashboardData> => {
         pendingGraduation: advisorGraduationProcesses.filter(
           (process) => process.status >= 8 && process.status <= 9 // Graduation stages
         ).length,
-        manualCheckRequests: advisorGraduationProcesses.filter(
-          (process) => process.advisorDecision === null && process.status >= 6 // Waiting for advisor decision
-        ).length,
         totalPetitions: 0, // Will be updated when petition system is ready
       };
 

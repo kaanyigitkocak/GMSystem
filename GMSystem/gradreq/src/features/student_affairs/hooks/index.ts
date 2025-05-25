@@ -3,7 +3,7 @@
 
 export { useNotifications } from "./useNotifications";
 export { useStudentAffairsDashboard } from "./useStudentAffairsDashboard";
-export { useUniversityRankings } from "./useUniversityRankings";
+
 export { useDetermineCertificates } from "./useDetermineCertificates";
 export { useUploadGraduationDecisions } from "./useUploadGraduationDecisions";
 export { useNotificationsPage } from "./useNotificationsPage";

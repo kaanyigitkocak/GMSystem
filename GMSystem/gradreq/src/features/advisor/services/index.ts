@@ -11,14 +11,6 @@ import * as notificationApiService from "./api/notificationsApi";
 import * as notificationMockService from "./mock/notificationMock";
 import { getDashboardDataMock } from "./mock/dashboardMock";
 import { getDashboardDataApi } from "./api/dashboardApi";
-import {
-  getManualCheckRequestsMock,
-  updateManualCheckRequestMock,
-} from "./mock/manualCheckRequestsMock";
-import {
-  getManualCheckRequestsApi,
-  updateManualCheckRequestApi,
-} from "./api/manualCheckRequestsApi";
 
 import type {
   Student,
@@ -31,17 +23,9 @@ import type {
   Notification,
   CourseTaken,
 } from "./types";
-import type { DashboardData, ManualCheckRequest } from "./types/dashboard";
+import type { DashboardData } from "./types/dashboard";
 
 const { useMock } = getServiceConfig();
-
-// Student service functions
-export const getStudents = async (): Promise<Student[]> => {
-  if (useMock) {
-    return studentMockService.getStudentsMock();
-  }
-  return advisorStudentDataApiService.getStudentsApi();
-};
 
 export const sendEmailToStudent = async (
   studentId: string,
@@ -140,26 +124,6 @@ export const dashboardService = {
       return getDashboardDataMock();
     }
     return getDashboardDataApi();
-  },
-};
-
-// Manual check requests service functions
-export const manualCheckRequestsService = {
-  getManualCheckRequests: async (): Promise<ManualCheckRequest[]> => {
-    if (useMock) {
-      return getManualCheckRequestsMock();
-    }
-    return getManualCheckRequestsApi();
-  },
-
-  updateManualCheckRequest: async (
-    id: string,
-    updates: Partial<ManualCheckRequest>
-  ): Promise<ManualCheckRequest> => {
-    if (useMock) {
-      return updateManualCheckRequestMock(id, updates);
-    }
-    return updateManualCheckRequestApi(id, updates);
   },
 };
 

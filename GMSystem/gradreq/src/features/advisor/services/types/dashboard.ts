@@ -4,7 +4,6 @@ import type { Notification } from "../../../../core/types/common.types";
 export interface DashboardStats {
   totalStudents: number;
   pendingGraduation: number;
-  manualCheckRequests: number;
   totalPetitions: number;
 }
 
@@ -12,7 +11,7 @@ export interface DashboardStats {
 export interface Alert {
   id: string;
   message: string;
-  type?: 'info' | 'warning' | 'error' | 'success';
+  type?: "info" | "warning" | "error" | "success";
 }
 
 // Pending request interface
@@ -21,19 +20,7 @@ export interface PendingRequest {
   studentName: string;
   requestType: string;
   date: string;
-  priority: 'low' | 'medium' | 'high';
-}
-
-// Manual check request interface
-export interface ManualCheckRequest {
-  id: string;
-  student: string;
-  studentId: string;
-  date: string;
-  reason: string;
-  status: 'Pending' | 'In Review' | 'Completed' | 'Rejected';
-  notes: string;
-  priority: 'low' | 'medium' | 'high';
+  priority: "low" | "medium" | "high";
 }
 
 // Dashboard response interface

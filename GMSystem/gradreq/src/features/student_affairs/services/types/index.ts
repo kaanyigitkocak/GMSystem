@@ -8,7 +8,7 @@ export enum EligibilityCheckType {
   TECHNICAL_ELECTIVES = 4,
   NON_TECHNICAL_ELECTIVES = 5,
   UNIVERSITY_ELECTIVES = 6,
-  FAILED_COURSE_LIMIT = 7
+  FAILED_COURSE_LIMIT = 7,
 }
 
 export interface EligibilityCheckResult {
@@ -90,19 +90,6 @@ export interface Student {
   certificateStatus: CertificateStatus[];
   eligibilityResults?: EligibilityCheckResult[];
   isEligible?: boolean;
-}
-
-export interface UniversityRanking {
-  id: string;
-  year: string;
-  department: string;
-  faculty: string;
-  students: {
-    id: string;
-    name: string;
-    gpa: number;
-    rank: number;
-  }[];
 }
 
 export interface GraduationDecision {

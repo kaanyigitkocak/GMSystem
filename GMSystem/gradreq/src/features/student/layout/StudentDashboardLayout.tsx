@@ -3,7 +3,6 @@ import {
   Box, 
   Typography, 
   Paper,
-  Container,
   IconButton,
   Menu,
   MenuItem,
@@ -37,14 +36,13 @@ import {
 } from '@mui/icons-material';
 import { useAuth } from '../../../features/auth/contexts/AuthContext';
 import iyteLogoPng from '../../../core/assets/iyte-logo.png';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import { useNotifications } from '../hooks/useNotifications';
 
 // Main StudentDashboardLayout component
 const StudentDashboardLayout = ({ children }: { children?: React.ReactNode }) => {
   const { user, logout } = useAuth();
   const theme = useTheme();
-  const navigate = useNavigate();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(!isMobile);
   

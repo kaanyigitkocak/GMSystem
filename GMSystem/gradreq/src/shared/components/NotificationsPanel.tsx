@@ -16,7 +16,6 @@ import {
 import {
   Notifications as NotificationsIcon,
   NotificationsActive as NotificationsActiveIcon,
-  NotificationsOff as NotificationsOffIcon,
   Info as InfoIcon,
   Warning as WarningIcon,
   Error as ErrorIcon,

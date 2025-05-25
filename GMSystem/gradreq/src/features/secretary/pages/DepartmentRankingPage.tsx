@@ -20,9 +20,7 @@ import {
   RankingActions,
   TranscriptDialog,
   type ExtendedStudentRanking,
-  type StudentTranscript,
 } from '../components';
-
 
 
 const DepartmentRankingPage = () => {
@@ -43,7 +41,6 @@ const DepartmentRankingPage = () => {
   
   // New state for transcript dialog
   const [openTranscriptDialog, setOpenTranscriptDialog] = useState(false);
-  const [currentTranscript, setCurrentTranscript] = useState<StudentTranscript | null>(null);
   const [currentStudentId, setCurrentStudentId] = useState<string>('');
   
   // Loading states for LoadingOverlay
@@ -74,7 +71,7 @@ const DepartmentRankingPage = () => {
       // Simulate loading transcript data
       await new Promise(resolve => setTimeout(resolve, 1500));
       
-      const transcript = await getStudentTranscript(
+      await getStudentTranscript(
         student.studentId,
         student.studentName,
         student.department,
@@ -82,7 +79,6 @@ const DepartmentRankingPage = () => {
         student.gpa,
         Math.floor(Math.random() * 50) + 100
       );
-      setCurrentTranscript(transcript);
     } catch (error) {
       console.error('Failed to load transcript:', error);
       setSnackbarMessage('Failed to load transcript');
@@ -95,7 +91,6 @@ const DepartmentRankingPage = () => {
 
   const handleCloseTranscriptDialog = () => {
     setOpenTranscriptDialog(false);
-    setCurrentTranscript(null);
     setCurrentStudentId('');
   };
 
@@ -357,7 +352,8 @@ const DepartmentRankingPage = () => {
       {/* View Transcript Dialog */}
       <TranscriptDialog
         open={openTranscriptDialog}
-        transcript={currentTranscript}
+        student={null}
+        courses={null}
         onClose={handleCloseTranscriptDialog}
         onApprove={handleApproveStudent}
         onReject={handleRejectStudent}

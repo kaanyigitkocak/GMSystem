@@ -80,16 +80,20 @@ export interface Student {
   studentNumber: string;
   firstName: string;
   lastName: string;
+  name: string; // Computed property: firstName + lastName
   email: string;
   departmentId: string;
   departmentName: string;
+  department: string; // Alias for departmentName
   facultyId: string;
   facultyName: string;
   programName: string;
   enrollDate: string;
   currentGpa: number;
+  gpa: number; // Alias for currentGpa
   currentEctsCompleted: number;
   graduationStatus: GraduationProcessStatus;
+  status: string; // String representation of graduationStatus
   assignedAdvisorUserId: string | null;
   activeGraduationProcessId: string | null;
   activeGraduationProcessStatus: GraduationProcessStatus | null;
@@ -97,6 +101,9 @@ export interface Student {
   activeGraduationProcessInitiationDate: string | null;
   activeGraduationProcessLastUpdateDate: string | null;
   eligibilityStatus?: StudentEligibilityStatus;
+  graduationProcess?: GraduationProcess; // Optional graduation process details
+  phone?: string; // Optional phone number
+  lastMeeting?: string; // Optional last meeting date
 }
 
 // Types for course taken data
@@ -115,7 +122,7 @@ export interface CourseTaken {
 // Types for petition
 export type PetitionStudent = Pick<
   Student,
-  "id" | "firstName" | "lastName" | "departmentName"
+  "id" | "firstName" | "lastName" | "name" | "departmentName"
 >;
 
 export interface PetitionData {

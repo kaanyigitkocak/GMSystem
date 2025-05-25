@@ -48,7 +48,7 @@ export const useTranscript = () => {
     fetchTranscript();
   }, []);
 
-  const submitMissingDocumentReport = async (message: string) => {
+  const submitMissingDocumentReport = async (_message: string) => {
     setReportState({
       isSubmitting: true,
       error: null,

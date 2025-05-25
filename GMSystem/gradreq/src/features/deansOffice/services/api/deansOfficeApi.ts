@@ -7,7 +7,7 @@ import type {
 } from "../types";
 import { getServiceConfig } from "../utils/serviceUtils";
 
-const { apiBaseUrl } = getServiceConfig();
+const { apiBaseUrl: _apiBaseUrl } = getServiceConfig();
 
 /**
  * Get faculty-wide student rankings
@@ -23,7 +23,7 @@ export const getFacultyRankingsApi = async (): Promise<{
  * Process uploaded department ranking files
  */
 export const processDepartmentFilesApi = async (
-  files: File[]
+  _files: File[]
 ): Promise<FileValidationResult> => {
   throw new Error("Not implemented");
 };
@@ -31,7 +31,7 @@ export const processDepartmentFilesApi = async (
 /**
  * Process CSV files and extract UploadedFile objects
  */
-export const processCSVFilesApi = (selectedFiles: File[]): UploadedFile[] => {
+export const processCSVFilesApi = (): UploadedFile[] => {
   throw new Error("Not implemented");
 };
 
@@ -45,8 +45,6 @@ export const exportFacultyRankingsToCSVApi = async (): Promise<boolean> => {
 /**
  * Generate a validation summary from uploaded files
  */
-export const generateValidationSummaryApi = (
-  files: UploadedFile[]
-): ValidationSummary => {
+export const generateValidationSummaryApi = (): ValidationSummary => {
   throw new Error("Not implemented");
 };

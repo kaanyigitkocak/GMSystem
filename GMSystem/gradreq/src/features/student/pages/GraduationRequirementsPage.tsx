@@ -8,7 +8,6 @@ import {
   ListItem,
   ListItemIcon,
   ListItemText,
-  Divider,
   Accordion,
   AccordionSummary,
   AccordionDetails,
@@ -26,7 +25,6 @@ import {
 } from '@mui/material';
 import {
   ExpandMore as ExpandMoreIcon,
-  School as SchoolIcon,
   CheckCircle as CheckCircleIcon,
   Cancel as CancelIcon,
   Error as ErrorIcon
