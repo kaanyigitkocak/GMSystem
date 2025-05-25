@@ -88,7 +88,7 @@ const TranscriptPage = () => {
     // Create table for courses
     const tableColumn = ["Course Code", "Course Name", "Credits", "Grade", "Semester"];
     const tableRows = courses.map(course => [
-      course.id,
+      course.code,
       course.name,
       course.credits,
       course.grade,
@@ -217,7 +217,7 @@ const TranscriptPage = () => {
             <TableBody>
               {courses.map((course) => (
                 <TableRow key={course.id}>
-                  <TableCell>{course.id}</TableCell>
+                  <TableCell>{course.code}</TableCell>
                   <TableCell>{course.name}</TableCell>
                   <TableCell align="center">{course.credits}</TableCell>
                   <TableCell align="center">

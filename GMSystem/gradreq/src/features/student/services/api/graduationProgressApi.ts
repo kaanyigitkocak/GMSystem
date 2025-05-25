@@ -5,6 +5,10 @@ import {
   ServiceError,
 } from "../../../common/utils/serviceUtils";
 import type { BackendUserResponse } from "../types/backendTypes";
+import {
+  getCurrentStudentApi,
+  type BackendStudentResponse,
+} from "./studentApi";
 
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
 
@@ -27,16 +31,121 @@ const createAuthHeaders = () => {
   };
 };
 
+// Graduation process status enum mapping
+const GraduationProcessStatus = {
+  AWAITING_DEPT_SECRETARY_TRANSCRIPT_UPLOAD: 1,
+  TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK: 3,
+  TRANSCRIPT_PARSE_ERROR_AWAITING_REUPLOAD: 4,
+  ADVISOR_ELIGIBLE: 5,
+  ADVISOR_NOT_ELIGIBLE: 6,
+  DEPT_SECRETARY_APPROVED_PENDING_DEAN: 8,
+  DEPT_SECRETARY_REJECTED_PROCESS: 9,
+  DEANS_OFFICE_APPROVED: 11,
+  DEANS_OFFICE_REJECTED: 12,
+  STUDENT_AFFAIRS_APPROVED: 14,
+  STUDENT_AFFAIRS_REJECTED: 15,
+  COMPLETED_GRADUATED: 18,
+  PROCESS_TERMINATED_BY_ADMIN: 19,
+} as const;
+
+// Map graduation process status to step index and completion status
+const mapStatusToProgress = (status: number) => {
+  const steps: Array<{
+    label: string;
+    description: string;
+    statuses: number[];
+  }> = [
+    {
+      label: "Transcript Upload",
+      description: "Upload your transcript",
+      statuses: [1, 4], // AWAITING_DEPT_SECRETARY_TRANSCRIPT_UPLOAD, TRANSCRIPT_PARSE_ERROR_AWAITING_REUPLOAD
+    },
+    {
+      label: "Advisor Check",
+      description: "Advisor reviews your eligibility",
+      statuses: [3, 5, 6], // TRANSCRIPT_PARSE_SUCCESSFUL_PENDING_ADVISOR_CHECK, ADVISOR_ELIGIBLE, ADVISOR_NOT_ELIGIBLE
+    },
+    {
+      label: "Department Approval",
+      description: "Department secretary approval",
+      statuses: [8, 9], // DEPT_SECRETARY_APPROVED_PENDING_DEAN, DEPT_SECRETARY_REJECTED_PROCESS
+    },
+    {
+      label: "Dean's Office",
+      description: "Final approval from dean's office",
+      statuses: [11, 12], // DEANS_OFFICE_APPROVED, DEANS_OFFICE_REJECTED
+    },
+    {
+      label: "Student Affairs",
+      description: "Student affairs final check",
+      statuses: [14, 15], // STUDENT_AFFAIRS_APPROVED, STUDENT_AFFAIRS_REJECTED
+    },
+    {
+      label: "Graduation Complete",
+      description: "Congratulations! You have graduated",
+      statuses: [18], // COMPLETED_GRADUATED
+    },
+  ];
+
+  // Find current step based on status
+  let activeStep = 0;
+  let stepStatuses: Array<"pending" | "approved" | "rejected"> = [];
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    if (step.statuses.includes(status)) {
+      activeStep = i;
+
+      // Determine step status based on specific status values
+      if (
+        status === 6 ||
+        status === 9 ||
+        status === 12 ||
+        status === 15 ||
+        status === 19
+      ) {
+        // ADVISOR_NOT_ELIGIBLE, DEPT_SECRETARY_REJECTED_PROCESS, DEANS_OFFICE_REJECTED, STUDENT_AFFAIRS_REJECTED, PROCESS_TERMINATED_BY_ADMIN
+        stepStatuses[i] = "rejected";
+      } else if (
+        status === 5 ||
+        status === 8 ||
+        status === 11 ||
+        status === 14 ||
+        status === 18
+      ) {
+        // ADVISOR_ELIGIBLE, DEPT_SECRETARY_APPROVED_PENDING_DEAN, DEANS_OFFICE_APPROVED, STUDENT_AFFAIRS_APPROVED, COMPLETED_GRADUATED
+        stepStatuses[i] = "approved";
+      } else {
+        stepStatuses[i] = "pending";
+      }
+      break;
+    }
+  }
+
+  // Mark previous steps as approved if current step is beyond them
+  for (let i = 0; i < activeStep; i++) {
+    stepStatuses[i] = "approved";
+  }
+
+  return {
+    steps: steps.map((step) => ({
+      label: step.label,
+      description: step.description,
+    })),
+    activeStep,
+    stepStatuses,
+  };
+};
+
 // Mock graduation progress for when student record doesn't exist
 const createMockGraduationProgress = () => {
   console.log("📋 Creating mock graduation progress data");
   return {
     steps: [
       { label: "Transcript Upload", description: "Upload your transcript" },
-      { label: "System Check", description: "Automated eligibility check" },
       {
-        label: "Advisor Approval",
-        description: "Advisor reviews your application",
+        label: "Advisor Check",
+        description: "Advisor reviews your eligibility",
       },
       {
         label: "Department Approval",
@@ -47,8 +156,20 @@ const createMockGraduationProgress = () => {
         description: "Final approval from dean's office",
       },
       { label: "Student Affairs", description: "Student affairs final check" },
+      {
+        label: "Graduation Complete",
+        description: "Congratulations! You have graduated",
+      },
     ],
-    activeStep: 1, // Mock progress
+    activeStep: 0,
+    stepStatuses: [
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+      "pending",
+    ] as Array<"pending" | "approved" | "rejected">,
   };
 };
 
@@ -56,96 +177,40 @@ const createMockGraduationProgress = () => {
 export const getGraduationProgressApi = async (): Promise<{
   steps: Array<{ label: string; description: string }>;
   activeStep: number;
+  stepStatuses: Array<"pending" | "approved" | "rejected">;
 }> => {
   console.log("🎓 Starting graduation progress API call...");
 
   try {
-    // First get current user to get student ID
-    const userUrl = `${apiBaseUrl}/users/GetFromAuth`;
-    console.log("🔍 Step 1: Getting current user from:", userUrl);
+    // Get current student data with graduation process
+    const studentData = await getCurrentStudentApi();
 
-    const userResponse = await debugFetch(userUrl, {
-      ...fetchOptions,
-      headers: createAuthHeaders(),
-    });
-    const userData = await handleApiResponse<BackendUserResponse>(
-      userResponse,
-      userUrl
-    );
-    console.log("✅ Got user data for graduation progress:", {
-      id: userData.id,
-    });
-
-    try {
-      // Get graduation processes for the student
-      const graduationProcessUrl = `${apiBaseUrl}/graduationprocesses?studentId=${userData.id}`;
+    if (studentData.graduationProcess && studentData.graduationProcess.status) {
       console.log(
-        "📋 Step 2: Getting graduation processes from:",
-        graduationProcessUrl
+        "✅ Got student graduation process status:",
+        studentData.graduationProcess.status
       );
 
-      const graduationProcessResponse = await debugFetch(graduationProcessUrl, {
-        ...fetchOptions,
-        headers: createAuthHeaders(),
-      });
-      const graduationData = await handleApiResponse<any>(
-        graduationProcessResponse,
-        graduationProcessUrl
-      );
-      console.log("✅ Got graduation process data:", graduationData);
-
-      // Transform to frontend format - this will need adjustment based on actual backend structure
-      const result = {
-        steps: [
-          { label: "Transcript Upload", description: "Upload your transcript" },
-          { label: "System Check", description: "Automated eligibility check" },
-          {
-            label: "Advisor Approval",
-            description: "Advisor reviews your application",
-          },
-          {
-            label: "Department Approval",
-            description: "Department secretary approval",
-          },
-          {
-            label: "Dean's Office",
-            description: "Final approval from dean's office",
-          },
-          {
-            label: "Student Affairs",
-            description: "Student affairs final check",
-          },
-        ],
-        activeStep: 0, // This should be calculated based on graduation process status
-      };
-
-      console.log("🎉 Graduation progress API completed successfully:", result);
-      return result;
-    } catch (graduationError) {
-      console.warn(
-        "⚠️ Graduation process data not found, using mock data:",
-        graduationError
+      // Map the status to progress
+      const progress = mapStatusToProgress(
+        studentData.graduationProcess.status
       );
 
-      // Check if it's a StudentNotExists or related error
-      if (
-        graduationError instanceof ServiceError &&
-        (graduationError.message.includes("StudentNotExists") ||
-          graduationError.statusCode === 500 ||
-          graduationError.statusCode === 404)
-      ) {
-        console.log(
-          "📋 No graduation process found. Creating mock graduation progress..."
-        );
-        return createMockGraduationProgress();
-      }
-
-      // If it's a different error, re-throw it
-      throw graduationError;
+      console.log(
+        "🎉 Graduation progress API completed successfully:",
+        progress
+      );
+      return progress;
+    } else {
+      console.log("⚠️ No graduation process found, using mock data");
+      return createMockGraduationProgress();
     }
   } catch (error) {
     console.error("❌ Graduation progress API failed:", error);
-    throw error;
+
+    // If there's an error, return mock data
+    console.log("📋 Returning mock graduation progress due to error");
+    return createMockGraduationProgress();
   }
 };
 

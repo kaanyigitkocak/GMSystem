@@ -38,7 +38,7 @@ const CodeVerificationForm = ({ email, onVerified }: CodeVerificationFormProps) 
     
     try {
       // Use the auth service to verify the code
-      await verifyCode(email, verificationCode);
+      await verifyCode(email, verificationCode, 2);
       onVerified();
     } catch (error) {
       setVerificationError(

@@ -232,7 +232,8 @@ export const sendVerificationEmailApi = async (
 
 export const verifyCodeApi = async (
   email: string,
-  code: string
+  code: string,
+  validationType: number = 2 // Default to 2 for email verification
 ): Promise<{ success: boolean }> => {
   try {
     return await executeWithRetry(async () => {
@@ -242,6 +243,7 @@ export const verifyCodeApi = async (
         body: JSON.stringify({
           email,
           code,
+          validationType, // Add validationType to the request body
         }),
       });
 
@@ -312,6 +314,67 @@ export const registerUserApi = async (userData: any): Promise<AuthResponse> => {
     }
     const errorMessage =
       error instanceof Error ? error.message : "Failed to register";
+    throw new ServiceError(errorMessage, 500);
+  }
+};
+
+export const resetPasswordApi = async (
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean }> => {
+  try {
+    return await executeWithRetry(async () => {
+      const response = await fetch(`${apiBaseUrl}/Auth/reset-password`, {
+        ...fetchOptions,
+        method: "POST",
+        body: JSON.stringify({
+          email,
+          newPassword,
+        }),
+      });
+
+      await handleApiResponse<any>(response);
+      return { success: true };
+    });
+  } catch (error) {
+    console.error("Reset password API error:", error);
+    if (error instanceof ServiceError) {
+      throw error;
+    }
+    const errorMessage =
+      error instanceof Error ? error.message : "Failed to reset password";
+    throw new ServiceError(errorMessage, 500);
+  }
+};
+
+// Send password reset verification email
+export const sendPasswordResetEmailApi = async (
+  email: string
+): Promise<{ success: boolean }> => {
+  try {
+    return await executeWithRetry(async () => {
+      console.log("Sending password reset email to:", email);
+      const response = await fetch(`${apiBaseUrl}/Auth/send-password-reset`, {
+        ...fetchOptions,
+        method: "POST",
+        body: JSON.stringify({
+          email,
+        }),
+      });
+
+      console.log("Password reset email API response status:", response.status);
+      await handleApiResponse<any>(response);
+      return { success: true };
+    });
+  } catch (error) {
+    console.error("Send password reset email API error:", error);
+    if (error instanceof ServiceError) {
+      throw error;
+    }
+    const errorMessage =
+      error instanceof Error
+        ? error.message
+        : "Failed to send password reset email";
     throw new ServiceError(errorMessage, 500);
   }
 };

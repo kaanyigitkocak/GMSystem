@@ -15,6 +15,7 @@ import {
 } from '@mui/material';
 import { Close, Visibility, VisibilityOff } from '@mui/icons-material';
 import theme from '../../../core/styles/theme';
+import { sendPasswordResetEmail, verifyCode, resetPassword } from '../services'; // Updated import
 
 interface ForgotPasswordDialogProps {
   open: boolean;
@@ -76,7 +77,7 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
   };
   
   // Send verification code to email
-  const handleSendVerificationCode = () => {
+  const handleSendVerificationCode = async () => {
     setResetEmailError(null);
     
     if (!resetEmail.trim()) {
@@ -90,24 +91,25 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
     }
     
     setResetEmailSending(true);
-    
-    // Simulate API call
-    setTimeout(() => {
-      console.log('Sending verification code to:', resetEmail);
+    console.log('[ForgotPasswordDialog] Sending password reset code to:', resetEmail);
+    try {
+      await sendPasswordResetEmail(resetEmail); // Using the correct service
+      console.log('[ForgotPasswordDialog] Password reset code sent successfully to:', resetEmail);
+      setCurrentStage(ForgotPasswordStage.CODE_VERIFICATION);
+    } catch (error) {
+      console.error('[ForgotPasswordDialog] Error sending password reset code:', error);
+      setResetEmailError(
+        error instanceof Error 
+          ? error.message 
+          : 'Unable to send verification code. Please try again later.'
+      );
+    } finally {
       setResetEmailSending(false);
-      
-      // Simulate API errors for testing
-      if (resetEmail.includes('error') || resetEmail.includes('test')) {
-        setResetEmailError('Unable to send verification code. Please try again later.');
-      } else {
-        // Move to next stage - code verification
-        setCurrentStage(ForgotPasswordStage.CODE_VERIFICATION);
-      }
-    }, 1500);
+    }
   };
   
   // Verify the code
-  const handleVerifyCode = () => {
+  const handleVerifyCode = async () => {
     setVerificationError(null);
     
     if (!verificationCode.trim()) {
@@ -115,30 +117,31 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
       return;
     }
     
-    // Simple validation for verification code
     if (!/^\d+$/.test(verificationCode)) {
       setVerificationError('Verification code must contain numbers only');
       return;
     }
     
     setVerifying(true);
-    
-    // Simulate API verification
-    setTimeout(() => {
-      console.log('Verifying code:', verificationCode);
+    console.log('[ForgotPasswordDialog] Verifying code:', verificationCode, 'for email:', resetEmail, 'ValidationType: 1');
+    try {
+      await verifyCode(resetEmail, verificationCode, 1); // ValidationType 1 for password reset verification
+      console.log('[ForgotPasswordDialog] Code verified successfully for:', resetEmail);
+      setCurrentStage(ForgotPasswordStage.PASSWORD_RESET);
+    } catch (error) {
+      console.error('[ForgotPasswordDialog] Error verifying code:', error);
+      setVerificationError(
+        error instanceof Error 
+          ? error.message 
+          : 'Invalid verification code. Please try again.'
+      );
+    } finally {
       setVerifying(false);
-      
-      // For demo, "123456" is valid
-      if (verificationCode === '123456') {
-        setCurrentStage(ForgotPasswordStage.PASSWORD_RESET);
-      } else {
-        setVerificationError('Invalid verification code. Please try again.');
-      }
-    }, 1000);
+    }
   };
   
   // Reset password
-  const handleResetPassword = () => {
+  const handleResetPassword = async () => {
     setResetError(null);
     
     if (!newPassword.trim() || !confirmPassword.trim()) {
@@ -146,27 +149,32 @@ const ForgotPasswordDialog = ({ open, initialEmail, onClose }: ForgotPasswordDia
       return;
     }
     
-    // Validate password strength
     if (newPassword.length < 8) {
       setResetError('Password must be at least 8 characters long');
       return;
     }
     
-    // Check if passwords match
     if (newPassword !== confirmPassword) {
       setResetError('Passwords do not match');
       return;
     }
     
     setResetting(true);
-    
-    // Simulate API reset
-    setTimeout(() => {
-      console.log('Resetting password for:', resetEmail);
-      setResetting(false);
-      // Password reset successful
+    console.log('[ForgotPasswordDialog] Resetting password for:', resetEmail);
+    try {
+      await resetPassword(resetEmail, newPassword);
+      console.log('[ForgotPasswordDialog] Password reset successful for:', resetEmail);
       setCurrentStage(ForgotPasswordStage.COMPLETE);
-    }, 1500);
+    } catch (error) {
+      console.error('[ForgotPasswordDialog] Error resetting password:', error);
+      setResetError(
+        error instanceof Error 
+          ? error.message 
+          : 'Failed to reset password. Please try again.'
+      );
+    } finally {
+      setResetting(false);
+    }
   };
   
   return (

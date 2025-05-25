@@ -136,7 +136,8 @@ export const sendVerificationEmailMock = async (
 
 export const verifyCodeMock = async (
   email: string,
-  code: string
+  code: string,
+  validationType?: number
 ): Promise<{ success: boolean }> => {
   // Simulate network request delay
   return new Promise((resolve, reject) => {
@@ -172,5 +173,54 @@ export const registerUserMock = async (
         token: `mock-jwt-token-${newUser.id}-${Date.now()}`,
       });
     }, 1000);
+  });
+};
+
+export const resetPasswordMock = async (
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean }> => {
+  // Simulate network request delay
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      const userIndex = MOCK_USERS.findIndex(
+        (user) => user.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (userIndex === -1) {
+        reject(new Error("User not found"));
+        return;
+      }
+
+      // Simulate password update (in a real scenario, you wouldn't store plaintext passwords)
+      MOCK_USERS[userIndex].password = newPassword;
+      console.log(
+        `Mock: Password for ${email} has been reset to ${newPassword}`
+      );
+      resolve({ success: true });
+    }, 700);
+  });
+};
+
+export const sendPasswordResetEmailMock = async (
+  email: string
+): Promise<{ success: boolean }> => {
+  // Simulate network request delay
+  return new Promise((resolve, reject) => {
+    setTimeout(() => {
+      console.log("Mock: Sending password reset email to:", email);
+
+      // Check if email exists in mock data
+      const userExists = MOCK_USERS.some(
+        (user) => user.email.toLowerCase() === email.toLowerCase()
+      );
+
+      if (!userExists) {
+        // For testing purposes, we'll allow any email
+        console.log("Mock: Email not found, but allowing reset for testing");
+      }
+
+      resolve({ success: true });
+    }, 800);
   });
 };

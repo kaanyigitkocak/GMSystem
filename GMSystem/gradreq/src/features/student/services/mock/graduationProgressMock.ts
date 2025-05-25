@@ -7,33 +7,48 @@ export const getGraduationProgressMock = async () => {
 
   const mockSteps: GraduationStep[] = [
     {
-      label: "Application Submitted",
-      description: "Your graduation application has been received.",
+      label: "Transcript Upload",
+      description: "Upload your transcript",
     },
     {
-      label: "Department Review",
-      description: "Your application is under review by the department.",
+      label: "Advisor Check",
+      description: "Advisor reviews your eligibility",
     },
     {
-      label: "Disconnection Procedures",
-      description: "Complete necessary disconnection procedures.",
+      label: "Department Approval",
+      description: "Department secretary approval",
     },
     {
-      label: "Dean's Office Approval",
-      description: "Awaiting approval from the Dean's Office.",
+      label: "Dean's Office",
+      description: "Final approval from dean's office",
     },
     {
-      label: "Graduation Approved",
-      description: "Congratulations! Your graduation is approved.",
+      label: "Student Affairs",
+      description: "Student affairs final check",
+    },
+    {
+      label: "Graduation Complete",
+      description: "Congratulations! You have graduated",
     },
   ];
 
   // Current active step (0-based index)
   const activeStep = 1;
 
+  // Mock step statuses
+  const stepStatuses: Array<"pending" | "approved" | "rejected"> = [
+    "approved", // Transcript Upload - completed
+    "pending", // Advisor Check - current step
+    "pending", // Department Approval
+    "pending", // Dean's Office
+    "pending", // Student Affairs
+    "pending", // Graduation Complete
+  ];
+
   return {
     steps: mockSteps,
     activeStep,
+    stepStatuses,
   };
 };
 

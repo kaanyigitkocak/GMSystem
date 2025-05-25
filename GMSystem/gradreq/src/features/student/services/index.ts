@@ -117,6 +117,7 @@ export const getTranscript = async (): Promise<TranscriptData> => {
 export const getGraduationProgress = async (): Promise<{
   steps: GraduationStep[];
   activeStep: number;
+  stepStatuses: Array<"pending" | "approved" | "rejected">;
 }> => {
   const { useMock } = getServiceConfig();
   if (useMock) {

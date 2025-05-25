@@ -1,30 +1,30 @@
-import type { GraduationRequirementsData } from "../types";
+import type {
+  GraduationRequirementsData,
+  RequirementCategory,
+  RequirementItem,
+} from "../types";
 import {
   getServiceConfig,
   handleApiResponse,
   debugFetch,
-  ServiceError,
 } from "../../../common/utils/serviceUtils";
 import type {
   BackendUserResponse,
-  BackendStudentResponse,
   BackendCourseTakensResponse,
+  BackendCoursesResponse,
+  BackendCourseItem,
+  BackendCourseTakenItem,
 } from "../types/backendTypes";
-import { executeWithRetry } from "../../../common/utils/rateLimitUtils";
 
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
 
-// Helper function to get access token with debug
+// Helper function to get access token
 const getAccessToken = (): string | null => {
-  const token = localStorage.getItem("authToken"); // Changed from "accessToken" to "authToken"
-  console.log("🔑 Graduation Requirements API - Access Token Check:", {
-    tokenExists: !!token,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : "null",
-  });
+  const token = localStorage.getItem("authToken");
   return token;
 };
 
-// Helper function to create headers with debug
+// Helper function to create headers
 const createAuthHeaders = () => {
   const token = getAccessToken();
   return {
@@ -33,178 +33,182 @@ const createAuthHeaders = () => {
   };
 };
 
-// Mock graduation requirements for when student record doesn't exist
-const createMockGraduationRequirements = (
-  userData: BackendUserResponse
-): GraduationRequirementsData => {
-  console.log(
-    "📋 Creating mock graduation requirements data for user:",
-    userData.id
-  );
-  return {
-    studentInfo: {
-      department: "Computer Engineering", // Mock department
-      requiredCredits: 240,
-      completedCredits: 180, // Mock completed credits
-    },
-    requirements: [
-      {
-        category: "Core Courses",
-        progress: 75,
-        completed: 18,
-        total: 24,
-        items: [], // This should be populated from requirement sets
-      },
-      {
-        category: "Elective Courses",
-        progress: 60,
-        completed: 12,
-        total: 20,
-        items: [],
-      },
-    ],
-    overallProgress: 75, // Mock overall progress
-  };
-};
-
 // Get graduation requirements data for current student
 export const getGraduationRequirementsApi =
   async (): Promise<GraduationRequirementsData> => {
-    return await executeWithRetry(async () => {
+    try {
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("No authentication token found. Please log in first.");
+      }
+
       console.log("📋 Starting graduation requirements API call...");
 
-      try {
-        // First get current user to get student ID
-        const userResponse = await debugFetch(
-          `${apiBaseUrl}/users/GetFromAuth`,
-          {
-            ...fetchOptions,
-            headers: createAuthHeaders(),
-          }
-        );
-        const userData = await handleApiResponse<BackendUserResponse>(
-          userResponse,
-          `${apiBaseUrl}/users/GetFromAuth`
-        );
-        console.log("✅ Got user data for graduation requirements:", {
-          id: userData.id,
+      // 1. Get current user data
+      const userResponse = await debugFetch(`${apiBaseUrl}/users/GetFromAuth`, {
+        ...fetchOptions,
+        headers: createAuthHeaders(),
+      });
+      const userData: BackendUserResponse = await handleApiResponse(
+        userResponse
+      );
+
+      console.log("✅ Got user data:", {
+        id: userData.id,
+        studentNumber: userData.studentNumber,
+        departmentName: userData.departmentName,
+      });
+
+      const userGuidId = userData.id;
+
+      // 2. Get all courses from the department/system
+      const coursesResponse = await debugFetch(
+        `${apiBaseUrl}/Courses?PageIndex=0&PageSize=200`,
+        {
+          ...fetchOptions,
+          headers: createAuthHeaders(),
+        }
+      );
+      const coursesData: BackendCoursesResponse = await handleApiResponse(
+        coursesResponse
+      );
+
+      console.log("✅ Got courses data:", {
+        totalCourses: coursesData.items.length,
+      });
+
+      // 3. Get student's completed courses
+      const courseTakensResponse = await debugFetch(
+        `${apiBaseUrl}/CourseTakens/by-student/${userGuidId}?PageIndex=0&PageSize=100`,
+        {
+          ...fetchOptions,
+          headers: createAuthHeaders(),
+        }
+      );
+      const courseTakensData: BackendCourseTakensResponse =
+        await handleApiResponse(courseTakensResponse);
+
+      console.log("✅ Got course takens data:", {
+        completedCourses: courseTakensData.items.length,
+      });
+
+      // 4. Process the data to create graduation requirements
+      const completedCourseIds = new Set(
+        courseTakensData.items
+          .filter((course) => course.isSuccessfullyCompleted)
+          .map((course) => course.matchedCourseId)
+      );
+
+      // Calculate total completed credits
+      const completedCredits = courseTakensData.items
+        .filter((course) => course.isSuccessfullyCompleted)
+        .reduce((sum, course) => sum + course.creditsEarned, 0);
+
+      // Categorize courses by type
+      const mandatoryCourses = coursesData.items.filter(
+        (course) => course.courseType === 1
+      );
+      const electiveCourses = coursesData.items.filter(
+        (course) => course.courseType === 2
+      );
+
+      // Create requirement items for mandatory courses
+      const mandatoryRequirementItems: RequirementItem[] = mandatoryCourses.map(
+        (course) => ({
+          id: course.id,
+          name: `${course.courseCode} - ${course.courseName}`,
+          credits: course.ects,
+          completed: completedCourseIds.has(course.id),
+        })
+      );
+
+      // Create requirement items for elective courses (only show completed ones)
+      const completedElectives = courseTakensData.items
+        .filter(
+          (taken) =>
+            taken.isSuccessfullyCompleted &&
+            coursesData.items.find(
+              (course) => course.id === taken.matchedCourseId
+            )?.courseType === 2
+        )
+        .map((taken) => {
+          const course = coursesData.items.find(
+            (c) => c.id === taken.matchedCourseId
+          );
+          return {
+            id: taken.id,
+            name: `${taken.courseCodeInTranscript} - ${taken.courseNameInTranscript}`,
+            credits: taken.creditsEarned,
+            completed: true,
+          };
         });
 
-        try {
-          // Get student info
-          const studentResponse = await debugFetch(
-            `${apiBaseUrl}/students/${userData.id}`,
-            {
-              ...fetchOptions,
-              headers: createAuthHeaders(),
-            }
-          );
-          const studentData = await handleApiResponse<BackendStudentResponse>(
-            studentResponse,
-            `${apiBaseUrl}/students/${userData.id}`
-          );
-          console.log("✅ Got student data:", {
-            department: studentData.departmentName,
-          });
+      // Calculate progress for mandatory courses
+      const completedMandatory = mandatoryRequirementItems.filter(
+        (item) => item.completed
+      );
+      const mandatoryProgress =
+        mandatoryCourses.length > 0
+          ? Math.round(
+              (completedMandatory.length / mandatoryCourses.length) * 100
+            )
+          : 0;
 
-          // Get course takens
-          const courseTakensResponse = await debugFetch(
-            `${apiBaseUrl}/coursetakens?studentId=${userData.id}`,
-            {
-              ...fetchOptions,
-              headers: createAuthHeaders(),
-            }
-          );
-          const courseTakensData =
-            await handleApiResponse<BackendCourseTakensResponse>(
-              courseTakensResponse,
-              `${apiBaseUrl}/coursetakens?studentId=${userData.id}`
-            );
-          console.log("✅ Got course takens data:", {
-            itemCount: courseTakensData.items?.length || 0,
-          });
+      // Calculate progress for electives (assume need at least 60 ECTS from electives)
+      const electiveCreditsNeeded = 60;
+      const completedElectiveCredits = completedElectives.reduce(
+        (sum, item) => sum + item.credits,
+        0
+      );
+      const electiveProgress = Math.min(
+        Math.round((completedElectiveCredits / electiveCreditsNeeded) * 100),
+        100
+      );
 
-          // Get graduation requirement sets (this might need adjustment based on actual API structure)
-          const requirementSetsResponse = await debugFetch(
-            `${apiBaseUrl}/graduationrequirementsets?departmentId=${studentData.id}`,
-            {
-              ...fetchOptions,
-              headers: createAuthHeaders(),
-            }
-          );
-          const requirementSetsData = await handleApiResponse<any>(
-            requirementSetsResponse,
-            `${apiBaseUrl}/graduationrequirementsets?departmentId=${studentData.id}`
-          );
-          console.log(
-            "✅ Got graduation requirement sets:",
-            requirementSetsData
-          );
+      // Create requirement categories
+      const requirements: RequirementCategory[] = [
+        {
+          category: "Mandatory Courses",
+          progress: mandatoryProgress,
+          completed: completedMandatory.length,
+          total: mandatoryCourses.length,
+          items: mandatoryRequirementItems,
+        },
+        {
+          category: "Elective Courses",
+          progress: electiveProgress,
+          completed: completedElectives.length,
+          total: Math.ceil(electiveCreditsNeeded / 6), // Assuming average 6 ECTS per elective
+          items: completedElectives,
+        },
+      ];
 
-          // Calculate completed credits
-          const completedCredits =
-            courseTakensData.items?.reduce(
-              (sum, course) => sum + course.credits,
-              0
-            ) || 0;
+      // Calculate overall progress (assume 240 ECTS total needed)
+      const totalCreditsNeeded = 240;
+      const overallProgress = Math.min(
+        Math.round((completedCredits / totalCreditsNeeded) * 100),
+        100
+      );
 
-          // This will need to be adjusted based on actual backend structure
-          const result: GraduationRequirementsData = {
-            studentInfo: {
-              department: studentData.departmentName,
-              requiredCredits: 240, // This should come from requirement sets
-              completedCredits: completedCredits,
-            },
-            requirements: [
-              {
-                category: "Core Courses",
-                progress: 75,
-                completed: 18,
-                total: 24,
-                items: [], // This should be populated from requirement sets
-              },
-              {
-                category: "Elective Courses",
-                progress: 60,
-                completed: 12,
-                total: 20,
-                items: [],
-              },
-            ],
-            overallProgress: Math.round((completedCredits / 240) * 100),
-          };
+      const result: GraduationRequirementsData = {
+        studentInfo: {
+          department: userData.departmentName || "N/A",
+          requiredCredits: totalCreditsNeeded,
+          completedCredits: completedCredits,
+        },
+        requirements: requirements,
+        overallProgress: overallProgress,
+      };
 
-          console.log(
-            "🎉 Graduation requirements API completed successfully:",
-            result
-          );
-          return result;
-        } catch (studentError) {
-          console.warn(
-            "⚠️ Student record not found, using mock data:",
-            studentError
-          );
-
-          // Check if it's a StudentNotExists error
-          if (
-            studentError instanceof ServiceError &&
-            (studentError.message.includes("StudentNotExists") ||
-              studentError.statusCode === 500)
-          ) {
-            console.log(
-              "📋 User exists but no student record found. Creating mock graduation requirements..."
-            );
-            return createMockGraduationRequirements(userData);
-          }
-
-          // If it's a different error, re-throw it
-          throw studentError;
-        }
-      } catch (error) {
-        console.error("❌ Graduation requirements API failed:", error);
-        throw error;
-      }
-    });
+      console.log(
+        "🎉 Graduation requirements API completed successfully:",
+        result
+      );
+      return result;
+    } catch (error) {
+      console.error("❌ Graduation requirements API failed:", error);
+      throw error;
+    }
   };
 
 // Report missing files
@@ -212,27 +216,12 @@ export const reportMissingFilesApi = async (
   message: string
 ): Promise<{ success: boolean }> => {
   try {
-    return await executeWithRetry(async () => {
-      // This might be implemented as a notification or support ticket
-      const response = await debugFetch(`${apiBaseUrl}/notifications`, {
-        ...fetchOptions,
-        method: "POST",
-        headers: createAuthHeaders(),
-        body: JSON.stringify({
-          title: "Missing Files Report",
-          message: message,
-          type: "info",
-        }),
-      });
-
-      await handleApiResponse(response, `${apiBaseUrl}/notifications`);
-      return { success: true };
-    });
+    // For now, just simulate success
+    console.log("📝 Reporting missing files:", message);
+    await new Promise((resolve) => setTimeout(resolve, 1000));
+    return { success: true };
   } catch (error) {
-    console.warn(
-      "⚠️ Could not send notification, but returning success:",
-      error
-    );
-    return { success: true }; // Return success even if notification fails
+    console.error("❌ Failed to report missing files:", error);
+    throw error;
   }
 };

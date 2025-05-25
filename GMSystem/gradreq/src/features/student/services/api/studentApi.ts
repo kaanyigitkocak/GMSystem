@@ -7,50 +7,103 @@ import { executeWithRetry } from "../../../common/utils/rateLimitUtils";
 
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
 
-// Helper function to get access token with debug
+// Helper function to get access token
 const getAccessToken = (): string | null => {
   const token = localStorage.getItem("authToken");
-  console.log("🔑 Access Token Check:", {
-    tokenExists: !!token,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : "null",
-    localStorage: Object.keys(localStorage),
-  });
   return token;
 };
 
-// Helper function to create headers with debug
+// Helper function to create headers
 const createAuthHeaders = () => {
   const token = getAccessToken();
-  const headers = {
+  return {
     ...fetchOptions.headers,
     ...(token && { Authorization: `Bearer ${token}` }),
   };
-
-  console.log("📋 Request Headers:", headers);
-  return headers;
 };
 
-// Get current user info from auth token
-export const getCurrentUserApi = async () => {
-  return await executeWithRetry(async () => {
-    const url = `${apiBaseUrl}/users/GetFromAuth`;
+// Backend response interfaces
+export interface BackendStudentResponse {
+  id: string;
+  studentNumber: string;
+  firstName: string;
+  lastName: string;
+  email: string;
+  departmentId: string;
+  programName: string;
+  enrollDate: string;
+  currentGpa: number;
+  currentEctsCompleted: number;
+  graduationStatus: number;
+  assignedAdvisorUserId: string;
+  graduationProcess: {
+    id: string;
+    status: number;
+    academicTerm: string;
+    creationDate: string;
+    lastUpdateDate: string;
+    notes: string | null;
+    advisorUserId: string;
+    advisorReviewDate: string | null;
+    deptSecretaryUserId: string | null;
+    deptSecretaryReviewDate: string | null;
+    deansOfficeUserId: string | null;
+    deansOfficeReviewDate: string | null;
+    studentAffairsUserId: string | null;
+    studentAffairsReviewDate: string | null;
+  };
+}
 
-    console.log("🔍 Getting current user from:", url);
-
-    const options = {
-      ...fetchOptions,
-      headers: createAuthHeaders(),
-    };
-
+// Get current student data with graduation process
+export const getCurrentStudentApi =
+  async (): Promise<BackendStudentResponse> => {
     try {
-      const response = await debugFetch(url, options);
-      return await handleApiResponse(response, url);
+      const token = getAccessToken();
+      if (!token) {
+        throw new Error("No authentication token found. Please log in first.");
+      }
+
+      console.log("👤 Starting get current student API call...");
+
+      // First get current user to get student ID
+      const userResponse = await debugFetch(`${apiBaseUrl}/users/GetFromAuth`, {
+        ...fetchOptions,
+        headers: createAuthHeaders(),
+      });
+      const userData = (await handleApiResponse(userResponse)) as {
+        id: string;
+        studentNumber: string;
+      };
+
+      console.log("✅ Got user data:", {
+        id: userData.id,
+        studentNumber: userData.studentNumber,
+      });
+
+      // Get detailed student data with graduation process
+      const studentResponse = await debugFetch(
+        `${apiBaseUrl}/Students/${userData.id}`,
+        {
+          ...fetchOptions,
+          headers: createAuthHeaders(),
+        }
+      );
+      const studentData: BackendStudentResponse = await handleApiResponse(
+        studentResponse
+      );
+
+      console.log("✅ Got student data with graduation process:", {
+        id: studentData.id,
+        graduationStatus: studentData.graduationStatus,
+        graduationProcessStatus: studentData.graduationProcess?.status,
+      });
+
+      return studentData;
     } catch (error) {
-      console.error("❌ getCurrentUserApi failed:", error);
+      console.error("❌ Get current student API failed:", error);
       throw error;
     }
-  });
-};
+  };
 
 // Get student by ID
 export const getStudentByIdApi = async (studentId: string) => {

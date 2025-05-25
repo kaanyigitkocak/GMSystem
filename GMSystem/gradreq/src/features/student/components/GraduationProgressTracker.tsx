@@ -29,6 +29,7 @@ const GraduationProgressTracker = () => {
   const { 
     activeStep, 
     steps, 
+    stepStatuses,
     disconnectionProcedures, 
     isLoading, 
     error,
@@ -42,9 +43,10 @@ const GraduationProgressTracker = () => {
       <ThumbUpIcon />,
       <BookmarkRemoveIcon />,
       <VerifiedUserIcon />,
-      <EmojiEventsIcon />
+      <EmojiEventsIcon />,
+      <SchoolIcon />
     ];
-    return icons[index];
+    return icons[index] || <SchoolIcon />;
   };
   
   // Style for the active step
@@ -150,28 +152,48 @@ const GraduationProgressTracker = () => {
         {steps.map((step, index) => (
           <Step key={step.label}>
             <StepLabel 
-              StepIconComponent={() => (
-                <Box 
-                  sx={{ 
-                    width: 40, 
-                    height: 40, 
-                    borderRadius: '50%', 
-                    display: 'flex', 
-                    alignItems: 'center', 
-                    justifyContent: 'center',
-                    bgcolor: index <= activeStep ? theme.palette.primary.main : theme.palette.grey[300],
-                    color: index <= activeStep ? 'white' : theme.palette.grey[600]
-                  }}
-                >
-                  {getStepIcon(index)}
-                </Box>
-              )}
+              StepIconComponent={() => {
+                const stepStatus = stepStatuses[index];
+                let bgColor = theme.palette.grey[300];
+                let textColor = theme.palette.grey[600];
+                
+                if (stepStatus === 'approved') {
+                  bgColor = theme.palette.success.main;
+                  textColor = 'white';
+                } else if (stepStatus === 'rejected') {
+                  bgColor = theme.palette.error.main;
+                  textColor = 'white';
+                } else if (index === activeStep) {
+                  bgColor = theme.palette.primary.main;
+                  textColor = 'white';
+                }
+                
+                return (
+                  <Box 
+                    sx={{ 
+                      width: 40, 
+                      height: 40, 
+                      borderRadius: '50%', 
+                      display: 'flex', 
+                      alignItems: 'center', 
+                      justifyContent: 'center',
+                      bgcolor: bgColor,
+                      color: textColor
+                    }}
+                  >
+                    {getStepIcon(index)}
+                  </Box>
+                );
+              }}
             >
               <Typography 
                 variant="body2" 
                 sx={{ 
                   fontWeight: index === activeStep ? 'bold' : 'normal',
-                  mb: 0.5
+                  mb: 0.5,
+                  color: stepStatuses[index] === 'rejected' ? theme.palette.error.main : 
+                         stepStatuses[index] === 'approved' ? theme.palette.success.main : 
+                         index === activeStep ? theme.palette.primary.main : 'inherit'
                 }}
               >
                 {step.label}

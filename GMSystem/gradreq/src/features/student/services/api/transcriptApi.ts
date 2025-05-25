@@ -1,188 +1,129 @@
-import type { TranscriptData } from "../types";
 import {
-  getServiceConfig,
-  handleApiResponse,
   debugFetch,
-  ServiceError,
+  handleApiResponse,
+  getServiceConfig,
 } from "../../../common/utils/serviceUtils";
 import type {
   BackendUserResponse,
-  BackendStudentResponse,
   BackendCourseTakensResponse,
+  BackendEligibilityCheckResponse,
+  BackendEligibilityCheckItem,
 } from "../types/backendTypes";
+import type { TranscriptData } from "../types";
 
 const { apiBaseUrl, fetchOptions } = getServiceConfig();
 
-// Helper function to get access token with debug
+// Helper function to get access token
 const getAccessToken = (): string | null => {
   const token = localStorage.getItem("authToken");
-  console.log("🔑 Transcript API - Access Token Check:", {
-    tokenExists: !!token,
-    tokenPreview: token ? `${token.substring(0, 20)}...` : "null",
-  });
+  // console.log("🔑 Transcript API - Access Token Check:", {
+  //   tokenExists: !!token,
+  //   tokenLength: token?.length || 0,
+  // });
   return token;
 };
 
-// Helper function to create headers with debug
-const createAuthHeaders = () => {
-  const token = getAccessToken();
-  return {
-    ...fetchOptions.headers,
-    ...(token && { Authorization: `Bearer ${token}` }),
-  };
-};
-
-// Mock data for when student record doesn't exist
-const createMockTranscriptData = (
-  userData: BackendUserResponse
-): TranscriptData => {
-  console.log("📋 Creating mock transcript data for user:", userData.id);
-  return {
-    studentInfo: {
-      name: `${userData.firstName} ${userData.lastName}`,
-      id: userData.studentNumber || userData.id,
-      department: "Computer Engineering", // Mock department
-    },
-    courses: [
-      {
-        id: "CS101",
-        name: "Introduction to Programming",
-        credits: 3,
-        grade: "AA",
-        semester: "2023 Fall",
-      },
-      {
-        id: "CS102",
-        name: "Data Structures",
-        credits: 4,
-        grade: "BA",
-        semester: "2024 Spring",
-      },
-      {
-        id: "MATH101",
-        name: "Calculus I",
-        credits: 4,
-        grade: "BB",
-        semester: "2023 Fall",
-      },
-    ],
-    gpa: "3.45",
-  };
-};
-
-// Get transcript data for current student
 export const getTranscriptApi = async (): Promise<TranscriptData> => {
-  console.log("📄 Starting transcript API call...");
-
   try {
-    // First get current user to get student ID
-    const userUrl = `${apiBaseUrl}/users/GetFromAuth`;
-    console.log("🔍 Step 1: Getting current user from:", userUrl);
-
-    const userResponse = await debugFetch(userUrl, {
-      ...fetchOptions,
-      headers: createAuthHeaders(),
-    });
-    const userData = await handleApiResponse<BackendUserResponse>(
-      userResponse,
-      userUrl
-    );
-    console.log("✅ Got user data:", {
-      id: userData.id,
-      name: `${userData.firstName} ${userData.lastName}`,
-    });
-
-    // Try to get student info using user's student ID
-    try {
-      const studentUrl = `${apiBaseUrl}/students/${userData.id}`;
-      console.log("🎓 Step 2: Getting student info from:", studentUrl);
-
-      const studentResponse = await debugFetch(studentUrl, {
-        ...fetchOptions,
-        headers: createAuthHeaders(),
-      });
-      const studentData = await handleApiResponse<BackendStudentResponse>(
-        studentResponse,
-        studentUrl
-      );
-      console.log("✅ Got student data:", {
-        department: studentData.departmentName,
-      });
-
-      // Get transcript data (this might need adjustment based on actual API structure)
-      const transcriptUrl = `${apiBaseUrl}/transcriptdatas?studentId=${userData.id}`;
-      console.log("📋 Step 3: Getting transcript data from:", transcriptUrl);
-
-      const transcriptResponse = await debugFetch(transcriptUrl, {
-        ...fetchOptions,
-        headers: createAuthHeaders(),
-      });
-      const transcriptData = await handleApiResponse<any>(
-        transcriptResponse,
-        transcriptUrl
-      );
-      console.log("✅ Got transcript data:", transcriptData);
-
-      // Get course takens for the student
-      const courseTakensUrl = `${apiBaseUrl}/coursetakens?studentId=${userData.id}`;
-      console.log("📚 Step 4: Getting course takens from:", courseTakensUrl);
-
-      const courseTakensResponse = await debugFetch(courseTakensUrl, {
-        ...fetchOptions,
-        headers: createAuthHeaders(),
-      });
-      const courseTakensData =
-        await handleApiResponse<BackendCourseTakensResponse>(
-          courseTakensResponse,
-          courseTakensUrl
-        );
-      console.log("✅ Got course takens data:", {
-        itemCount: courseTakensData.items?.length || 0,
-      });
-
-      // Transform backend data to frontend format
-      const result: TranscriptData = {
-        studentInfo: {
-          name: `${userData.firstName} ${userData.lastName}`,
-          id: userData.studentNumber || userData.id,
-          department: studentData.departmentName || "N/A",
-        },
-        courses:
-          courseTakensData.items?.map((course) => ({
-            id: course.id,
-            name: course.courseName,
-            credits: course.credits,
-            grade: course.grade,
-            semester: course.semester,
-          })) || [],
-        gpa: "0.00", // This will need to be calculated or retrieved from backend
-      };
-
-      console.log("🎉 Transcript API completed successfully:", result);
-      return result;
-    } catch (studentError) {
-      console.warn(
-        "⚠️ Student record not found, using mock data:",
-        studentError
-      );
-
-      // Check if it's a StudentNotExists error
-      if (
-        studentError instanceof ServiceError &&
-        (studentError.message.includes("StudentNotExists") ||
-          studentError.statusCode === 500)
-      ) {
-        console.log(
-          "📋 User exists but no student record found. Creating mock transcript data..."
-        );
-        return createMockTranscriptData(userData);
-      }
-
-      // If it's a different error, re-throw it
-      throw studentError;
+    const token = getAccessToken();
+    if (!token) {
+      throw new Error("No authentication token found. Please log in first.");
     }
+
+    // 1. Get user data from auth endpoint
+    const userResponse = await debugFetch(`${apiBaseUrl}/users/GetFromAuth`, {
+      ...fetchOptions,
+      headers: {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const userData: BackendUserResponse = await handleApiResponse(userResponse);
+
+    // Debug: Log the actual user data to see what we're getting
+    console.log("🔍 Debug - User data from /users/GetFromAuth:", {
+      id: userData.id,
+      firstName: userData.firstName,
+      lastName: userData.lastName,
+      email: userData.email,
+      studentNumber: userData.studentNumber,
+      departmentName: userData.departmentName,
+      fullUserData: userData,
+    });
+
+    const userGuidId = userData.id; // This is the User's Guid ID
+    if (!userGuidId) {
+      throw new Error("No user ID (GUID) found in user data");
+    }
+
+    // 2. Get course taken data
+    const courseTakensUrl = `${apiBaseUrl}/coursetakens/by-student/${userGuidId}?PageIndex=0&PageSize=2147483647`;
+    const courseTakensResponse = await debugFetch(courseTakensUrl, {
+      ...fetchOptions,
+      headers: {
+        ...fetchOptions.headers,
+        Authorization: `Bearer ${token}`,
+      },
+    });
+    const courseTakensData: BackendCourseTakensResponse =
+      await handleApiResponse(courseTakensResponse);
+
+    // 3. Get eligibility check results for GPA
+    let gpaFromEligibility = "N/A";
+    try {
+      const eligibilityUrl = `${apiBaseUrl}/EligibilityCheckResults/student/${userGuidId}?PageIndex=0&PageSize=10`; // Assuming PageSize 10 is enough
+      const eligibilityResponse = await debugFetch(eligibilityUrl, {
+        ...fetchOptions,
+        headers: {
+          ...fetchOptions.headers,
+          Authorization: `Bearer ${token}`,
+        },
+      });
+      const eligibilityData: BackendEligibilityCheckResponse =
+        await handleApiResponse(eligibilityResponse);
+
+      const gpaItem = eligibilityData.items.find(
+        (item) => item.checkType === 1
+      );
+      if (gpaItem && gpaItem.actualValue) {
+        gpaFromEligibility = parseFloat(gpaItem.actualValue).toFixed(2);
+      }
+    } catch (eligibilityError) {
+      console.warn(
+        "Could not fetch or parse GPA from eligibility results:",
+        eligibilityError
+      );
+      // GPA will remain "N/A"
+    }
+
+    // 4. Transform the data for the frontend
+    const transcriptData: TranscriptData = {
+      studentInfo: {
+        id: userData.studentNumber || userGuidId, // Use studentNumber, fallback to user GUID
+        name: `${userData.firstName} ${userData.lastName}`,
+        department: userData.departmentName || "N/A", // Use departmentName from auth response
+      },
+      courses: courseTakensData.items.map((course) => ({
+        id: course.id, // This is CourseTakenId
+        code: course.courseCodeInTranscript,
+        name: course.courseNameInTranscript,
+        credits: course.creditsEarned,
+        grade: course.grade,
+        semester: course.semesterTaken,
+      })),
+      gpa: gpaFromEligibility, // Use GPA from eligibility check
+    };
+
+    return transcriptData;
   } catch (error) {
-    console.error("❌ Transcript API failed:", error);
+    console.error("Error fetching transcript data:", error);
+    // It's important to check if it's an auth error to redirect to login
+    if (error instanceof Error && error.message.includes("401")) {
+      // Potentially clear token and redirect to login page
+      // localStorage.removeItem("authToken");
+      // window.location.href = "/login";
+      throw new Error("Authentication failed. Please log in again.");
+    }
     throw error;
   }
 };

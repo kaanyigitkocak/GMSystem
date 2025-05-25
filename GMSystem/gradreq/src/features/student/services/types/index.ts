@@ -51,7 +51,8 @@ export interface DisconnectionItem {
 
 // Types for transcript data
 export interface Course {
-  id: string;
+  id: string; // This is CourseTakenId from backend
+  code: string; // This is CourseCodeInTranscript from backend
   name: string;
   credits: number;
   grade: string;

@@ -5,6 +5,7 @@ import type { GraduationStep, DisconnectionItem } from "../services";
 interface GraduationProgressData {
   activeStep: number;
   steps: GraduationStep[];
+  stepStatuses: Array<"pending" | "approved" | "rejected">;
   isLoading: boolean;
   error: Error | null;
 }
@@ -19,6 +20,7 @@ export const useGraduationProgress = () => {
   const [progressData, setProgressData] = useState<GraduationProgressData>({
     activeStep: 0,
     steps: [],
+    stepStatuses: [],
     isLoading: true,
     error: null,
   });
@@ -40,6 +42,7 @@ export const useGraduationProgress = () => {
           ...prev,
           activeStep: data.activeStep,
           steps: data.steps,
+          stepStatuses: data.stepStatuses,
           isLoading: false,
           error: null,
         }));

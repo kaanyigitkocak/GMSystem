@@ -7,6 +7,8 @@ import {
   sendVerificationEmailApi,
   verifyCodeApi,
   registerUserApi,
+  resetPasswordApi,
+  sendPasswordResetEmailApi,
 } from "./api/authApi";
 
 // Import mock services
@@ -16,6 +18,8 @@ import {
   sendVerificationEmailMock,
   verifyCodeMock,
   registerUserMock,
+  resetPasswordMock,
+  sendPasswordResetEmailMock,
 } from "./mock/authMock";
 
 // Import types
@@ -43,7 +47,8 @@ export const loginUser = async (
 
 // Registration services
 export const sendVerificationEmail = async (
-  email: string
+  email: string,
+  validationType: number = 2
 ): Promise<{ success: boolean }> => {
   if (useMock) {
     return sendVerificationEmailMock(email);
@@ -53,12 +58,13 @@ export const sendVerificationEmail = async (
 
 export const verifyCode = async (
   email: string,
-  code: string
+  code: string,
+  validationType: number = 2
 ): Promise<{ success: boolean }> => {
   if (useMock) {
-    return verifyCodeMock(email, code);
+    return verifyCodeMock(email, code, validationType);
   }
-  return verifyCodeApi(email, code);
+  return verifyCodeApi(email, code, validationType);
 };
 
 export const registerUser = async (userData: any): Promise<AuthResponse> => {
@@ -66,4 +72,25 @@ export const registerUser = async (userData: any): Promise<AuthResponse> => {
     return registerUserMock(userData);
   }
   return registerUserApi(userData);
+};
+
+// Password Reset Service
+export const resetPassword = async (
+  email: string,
+  newPassword: string
+): Promise<{ success: boolean }> => {
+  if (useMock) {
+    return resetPasswordMock(email, newPassword);
+  }
+  return resetPasswordApi(email, newPassword);
+};
+
+// Send password reset email service
+export const sendPasswordResetEmail = async (
+  email: string
+): Promise<{ success: boolean }> => {
+  if (useMock) {
+    return sendPasswordResetEmailMock(email);
+  }
+  return sendPasswordResetEmailApi(email);
 };
