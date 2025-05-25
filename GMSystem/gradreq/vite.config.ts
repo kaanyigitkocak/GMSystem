@@ -31,6 +31,9 @@ export default defineConfig(({ mode }) => {
     allowedHosts: ["5d24-193-140-250-85.ngrok-free.app"],
   };
 
+  // Add SPA fallback for development
+  serverConfig.historyApiFallback = true;
+
   // Only add proxy if we're not in mock mode
   if (proxyTarget) {
     serverConfig.proxy = {
