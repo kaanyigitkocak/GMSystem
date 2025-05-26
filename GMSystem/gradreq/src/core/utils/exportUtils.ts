@@ -289,21 +289,37 @@ export const formatGraduationStatus = (
 ): string => {
   if (status === undefined || status === null) return "Bilinmiyor";
 
-  // Handle numeric status codes
+  // Handle numeric status codes (GraduationProcessStatus enum)
   if (typeof status === "number") {
     switch (status) {
       case 1:
-        return "Basvuru Yapildi";
+        return "Advisor Pending";
+      case 3:
+        return "Advisor Review Pending";
+      case 4:
+        return "Transcript Error - Reupload Required";
       case 5:
-        return "Danisman Onayi";
+        return "Advisor Approved";
       case 6:
-        return "Sekreter Onayi";
+        return "Advisor Rejected";
       case 8:
-        return "Dekan Onayi Bekliyor";
+        return "Dean Approval Pending";
+      case 9:
+        return "Department Secretary Rejected";
+      case 11:
+        return "Dean Approved";
+      case 12:
+        return "Dean Rejected";
+      case 14:
+        return "Student Affairs Approved";
+      case 15:
+        return "Student Affairs Rejected";
       case 18:
-        return "Mezun";
+        return "Graduated";
+      case 19:
+        return "Process Terminated";
       default:
-        return `Durum ${status}`;
+        return `Status ${status}`;
     }
   }
 
@@ -315,4 +331,44 @@ export const formatGraduationStatus = (
   if (statusStr.includes("waiting")) return "Bekliyor";
 
   return String(status);
+};
+
+/**
+ * Get status color based on graduation process status
+ */
+export const getStatusColor = (
+  status: number | undefined
+): "success" | "error" | "warning" | "info" => {
+  if (status === undefined || status === null) return "info";
+
+  switch (status) {
+    case 5: // ADVISOR_ELIGIBLE
+    case 11: // DEANS_OFFICE_APPROVED
+    case 14: // STUDENT_AFFAIRS_APPROVED
+    case 18: // COMPLETED_GRADUATED
+      return "success";
+    case 6: // ADVISOR_NOT_ELIGIBLE
+    case 9: // DEPT_SECRETARY_REJECTED_PROCESS
+    case 12: // DEANS_OFFICE_REJECTED
+    case 15: // STUDENT_AFFAIRS_REJECTED
+    case 19: // PROCESS_TERMINATED_BY_ADMIN
+      return "error";
+    case 4: // TRANSCRIPT_PARSE_ERROR_AWAITING_REUPLOAD
+      return "warning";
+    default:
+      return "info";
+  }
+};
+
+/**
+ * Check if student can be approved/rejected by student affairs
+ */
+export const canStudentAffairsModify = (
+  status: number | undefined
+): boolean => {
+  if (status === undefined || status === null) return false;
+
+  // Can only modify if status is DEANS_OFFICE_APPROVED (11)
+  // Cannot modify if already approved (14), rejected (15), or graduated (18)
+  return status === 11;
 };

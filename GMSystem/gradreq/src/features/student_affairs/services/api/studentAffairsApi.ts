@@ -273,6 +273,7 @@ export const getStudentsApi = async (): Promise<Student[]> => {
       certificateStatus: [],
       eligibilityResults: [],
       isEligible: false,
+      activeGraduationProcessStatus: student.activeGraduationProcessStatus,
     }));
 
     // Fetch eligibility check results for all students with rate limiting

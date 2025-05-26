@@ -50,10 +50,38 @@ import {
   exportStudentsToPDF, 
   formatEligibilityStatus, 
   formatGraduationStatus,
+  getStatusColor,
+  canStudentAffairsModify,
   type StudentExportData 
 } from '../../../core/utils/exportUtils';
 
 const Grid = MuiGrid as any; // MuiGrid type issue workaround
+
+// Helper function to check if student is already approved by student affairs
+const isStudentApprovedByStudentAffairs = (student: Student, recentlyApproved: Set<string>): boolean => {
+  const processStatus = student.activeGraduationProcessStatus;
+  return processStatus === 14 || recentlyApproved.has(student.id);
+};
+
+// Helper function to check if student is already rejected by student affairs
+const isStudentRejectedByStudentAffairs = (student: Student, recentlyRejected: Set<string>): boolean => {
+  const processStatus = student.activeGraduationProcessStatus;
+  return processStatus === 15 || recentlyRejected.has(student.id);
+};
+
+// Helper function to get row background color based on approval/rejection status
+const getRowBackgroundColor = (student: Student, recentlyApproved: Set<string>, recentlyRejected: Set<string>): string => {
+  // Priority: Rejected (red) > Approved (green) > Normal (transparent)
+  if (isStudentRejectedByStudentAffairs(student, recentlyRejected)) {
+    return '#ffebee'; // Light red background for rejected students
+  }
+  
+  if (isStudentApprovedByStudentAffairs(student, recentlyApproved)) {
+    return '#e8f5e8'; // Light green background for approved students
+  }
+  
+  return 'transparent'; // Normal background
+};
 
 // Helper function to sort students by eligibility and GPA
 const sortStudentsByEligibilityAndGPA = (students: Student[]): Student[] => {
@@ -92,6 +120,8 @@ const ApprovalRankingPage = () => {
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
   const [userInfo, setUserInfo] = useState<{ userId: string; name: string; email: string } | null>(null);
+  const [recentlyApprovedStudents, setRecentlyApprovedStudents] = useState<Set<string>>(new Set());
+  const [recentlyRejectedStudents, setRecentlyRejectedStudents] = useState<Set<string>>(new Set());
 
   // Get sorted students
   const sortedStudents = useMemo(() => {
@@ -163,6 +193,10 @@ const ApprovalRankingPage = () => {
     try {
       console.log("🔍 [StudentAffairsApprovalRanking] Approving student:", student.studentId);
       await setStudentAffairsApproved([student.id], userInfo.userId);
+      
+      // Add to recently approved set for immediate UI feedback
+      setRecentlyApprovedStudents(prev => new Set(prev).add(student.id));
+      
       setSuccessMessage(`Student ${student.name} (${student.studentId}) has been approved for graduation.`);
       
       // Refresh data to show updated status
@@ -192,6 +226,10 @@ const ApprovalRankingPage = () => {
     try {
       console.log(`🔍 [StudentAffairsApprovalRanking] Rejecting student: ${studentToReject.studentId} with reason: ${rejectionReason}`);
       await setStudentAffairsRejected([studentToReject.id], userInfo.userId, rejectionReason);
+      
+      // Add to recently rejected set for immediate UI feedback
+      setRecentlyRejectedStudents(prev => new Set(prev).add(studentToReject.id));
+      
       setSuccessMessage(`Student ${studentToReject.name} (${studentToReject.studentId}) has been rejected.`);
       
       // Refresh data to show updated status
@@ -223,7 +261,7 @@ const ApprovalRankingPage = () => {
         faculty: student.faculty,
         gpa: student.gpa || 0,
         eligibilityStatus: formatEligibilityStatus(student.graduationStatus),
-        status: formatGraduationStatus(student.graduationStatus),
+        status: formatGraduationStatus(student.activeGraduationProcessStatus),
         lastCheckDate: undefined // Student Affairs doesn't have lastCheckDate
       }));
 
@@ -245,7 +283,7 @@ const ApprovalRankingPage = () => {
         faculty: student.faculty,
         gpa: student.gpa || 0,
         eligibilityStatus: formatEligibilityStatus(student.graduationStatus),
-        status: formatGraduationStatus(student.graduationStatus),
+        status: formatGraduationStatus(student.activeGraduationProcessStatus),
         lastCheckDate: undefined // Student Affairs doesn't have lastCheckDate
       }));
 
@@ -421,12 +459,22 @@ const ApprovalRankingPage = () => {
                         <TableCell>Faculty</TableCell>
                         <TableCell>GPA</TableCell>
                         <TableCell>Eligibility Status</TableCell>
+                        <TableCell>Process Status</TableCell>
                         <TableCell>Actions</TableCell>
                       </TableRow>
                     </TableHead>
                     <TableBody>
-                      {sortedStudents.map((student, index) => (
-                        <TableRow key={student.id}>
+                      {sortedStudents.map((student, index) => {
+                        const statusColor = getStatusColor(student.activeGraduationProcessStatus);
+                        const canModify = canStudentAffairsModify(student.activeGraduationProcessStatus);
+                        const isApproved = isStudentApprovedByStudentAffairs(student, recentlyApprovedStudents);
+                        const isRejected = isStudentRejectedByStudentAffairs(student, recentlyRejectedStudents);
+                        
+                        return (
+                        <TableRow 
+                          key={student.id}
+                          sx={{ backgroundColor: getRowBackgroundColor(student, recentlyApprovedStudents, recentlyRejectedStudents) }}
+                        >
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
                               #{index + 1}
@@ -458,6 +506,48 @@ const ApprovalRankingPage = () => {
                             />
                           </TableCell>
                           <TableCell>
+                            {(() => {
+                              if (isRejected) {
+                                return (
+                                  <Chip
+                                    label="Rejected by Student Affairs"
+                                    color="error"
+                                    size="small"
+                                    sx={{ 
+                                      backgroundColor: '#d32f2f',
+                                      color: 'white',
+                                      fontWeight: 'bold'
+                                    }}
+                                  />
+                                );
+                              }
+                              
+                              if (isApproved) {
+                                return (
+                                  <Chip
+                                    label="Approved by Student Affairs"
+                                    color="success"
+                                    size="small"
+                                    sx={{ 
+                                      backgroundColor: '#2e7d32',
+                                      color: 'white',
+                                      fontWeight: 'bold'
+                                    }}
+                                  />
+                                );
+                              }
+                              
+                              // Normal status
+                              return (
+                                <Chip
+                                  label={formatGraduationStatus(student.activeGraduationProcessStatus)}
+                                  color={statusColor}
+                                  size="small"
+                                />
+                              );
+                            })()}
+                          </TableCell>
+                          <TableCell>
                             <Box sx={{ display: 'flex', gap: 0.5 }}>
                               <Tooltip title="View Eligibility Details">
                                 <span>
@@ -479,11 +569,17 @@ const ApprovalRankingPage = () => {
                                   <Description />
                                 </IconButton>
                               </Tooltip>
-                              <Tooltip title="Approve for Graduation">
+                              <Tooltip title={
+                                isRejected
+                                  ? "Student already rejected by Student Affairs"
+                                  : isApproved 
+                                  ? "Student already approved by Student Affairs" 
+                                  : "Approve for Graduation"
+                              }>
                                 <span>
                                 <IconButton
                                   onClick={() => handleApproveStudent(student)}
-                                  disabled={student.graduationStatus !== 'Eligible'}
+                                  disabled={!canModify || student.graduationStatus !== 'Eligible' || isApproved || isRejected}
                                   size="small"
                                   color="success"
                                 >
@@ -491,11 +587,17 @@ const ApprovalRankingPage = () => {
                                 </IconButton>
                                 </span>
                               </Tooltip>
-                              <Tooltip title="Reject for Graduation">
+                              <Tooltip title={
+                                isRejected
+                                  ? "Student already rejected by Student Affairs"
+                                  : isApproved 
+                                  ? "Student already approved by Student Affairs" 
+                                  : "Reject for Graduation"
+                              }>
                                 <span>
                                 <IconButton
                                   onClick={() => handleOpenRejectDialog(student)}
-                                  disabled={!student.eligibilityResults || student.eligibilityResults.length === 0}
+                                  disabled={!canModify || isApproved || isRejected}
                                   size="small"
                                   color="error"
                                 >
@@ -506,7 +608,8 @@ const ApprovalRankingPage = () => {
                             </Box>
                           </TableCell>
                         </TableRow>
-                      ))}
+                        );
+                      })}
                     </TableBody>
                   </Table>
                 </TableContainer>
