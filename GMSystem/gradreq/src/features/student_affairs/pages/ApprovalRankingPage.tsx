@@ -30,7 +30,9 @@ import {
   ClearAll, 
   CheckCircle, 
   Cancel, 
-  Description 
+  Description,
+  FileDownload,
+  PictureAsPdf
 } from '@mui/icons-material';
 import { useState, useCallback, useMemo, useEffect } from 'react';
 import { useStudentAffairs } from '../contexts/StudentAffairsContext';
@@ -43,6 +45,13 @@ import {
 import type { Student } from '../services/types';
 import type { StudentTranscript } from '../components/TranscriptDialog';
 import RejectDialog from '../components/RejectDialog';
+import { 
+  exportStudentsToCSV, 
+  exportStudentsToPDF, 
+  formatEligibilityStatus, 
+  formatGraduationStatus,
+  type StudentExportData 
+} from '../../../core/utils/exportUtils';
 
 const Grid = MuiGrid as any; // MuiGrid type issue workaround
 
@@ -203,6 +212,51 @@ const ApprovalRankingPage = () => {
     setErrorMessage('');
   }, []);
 
+  // Export functions
+  const handleExportCSV = useCallback(() => {
+    try {
+      const exportData: StudentExportData[] = sortedStudents.map((student, index) => ({
+        rank: index + 1,
+        name: student.name,
+        studentId: student.studentId,
+        department: student.department,
+        faculty: student.faculty,
+        gpa: student.gpa || 0,
+        eligibilityStatus: formatEligibilityStatus(student.graduationStatus),
+        status: formatGraduationStatus(student.graduationStatus),
+        lastCheckDate: undefined // Student Affairs doesn't have lastCheckDate
+      }));
+
+      exportStudentsToCSV(exportData, 'student_affairs_approval_ranking', 'Öğrenci İşleri Onay ve Sıralama');
+      setSuccessMessage('Student data exported to CSV successfully.');
+    } catch (error) {
+      setErrorMessage('Failed to export CSV. Please try again.');
+      console.error('Failed to export CSV:', error);
+    }
+  }, [sortedStudents, setSuccessMessage, setErrorMessage]);
+
+  const handleExportPDF = useCallback(() => {
+    try {
+      const exportData: StudentExportData[] = sortedStudents.map((student, index) => ({
+        rank: index + 1,
+        name: student.name,
+        studentId: student.studentId,
+        department: student.department,
+        faculty: student.faculty,
+        gpa: student.gpa || 0,
+        eligibilityStatus: formatEligibilityStatus(student.graduationStatus),
+        status: formatGraduationStatus(student.graduationStatus),
+        lastCheckDate: undefined // Student Affairs doesn't have lastCheckDate
+      }));
+
+      exportStudentsToPDF(exportData, 'student_affairs_approval_ranking', 'Öğrenci İşleri Onay ve Sıralama');
+      setSuccessMessage('Student data exported to PDF successfully.');
+    } catch (error) {
+      setErrorMessage('Failed to export PDF. Please try again.');
+      console.error('Failed to export PDF:', error);
+    }
+  }, [sortedStudents, setSuccessMessage, setErrorMessage]);
+
   // İlk yükleme (veri yokken) ve genel refresh için loading durumu
   if (loading && students.length === 0) {
     console.log("[StudentAffairsApprovalRanking] Rendering: Initial Loading Screen");
@@ -323,7 +377,27 @@ const ApprovalRankingPage = () => {
               <CardHeader 
                 title="Student Eligibility Details (Sorted by Eligibility & GPA)"
                 action={
-                  <Box sx={{ display: 'flex', gap: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleExportCSV}
+                      disabled={loading || sortedStudents.length === 0}
+                      startIcon={<FileDownload />}
+                      sx={{ minWidth: '100px' }}
+                    >
+                      CSV
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      size="small"
+                      onClick={handleExportPDF}
+                      disabled={loading || sortedStudents.length === 0}
+                      startIcon={<PictureAsPdf />}
+                      sx={{ minWidth: '100px' }}
+                    >
+                      PDF
+                    </Button>
                     <Button
                       variant="outlined"
                       onClick={handleRefreshData}

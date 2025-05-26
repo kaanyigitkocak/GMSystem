@@ -31,7 +31,9 @@ import {
   ClearAll, 
   CheckCircle, 
   Cancel, 
-  Description 
+  Description,
+  FileDownload,
+  PictureAsPdf
 } from '@mui/icons-material';
 import { useState, useCallback, useEffect } from 'react';
 import type { Student, EligibilityCheckType } from '../services/types';
@@ -47,6 +49,13 @@ import {
 import TranscriptDialog from '../components/TranscriptDialog';
 import { LoadingOverlay } from '../../../shared/components';
 import RejectDialog from '../components/RejectDialog';
+import { 
+  exportStudentsToCSV, 
+  exportStudentsToPDF, 
+  formatEligibilityStatus, 
+  formatGraduationStatus,
+  type StudentExportData 
+} from '../../../core/utils/exportUtils';
 
 const Grid = MuiGrid as any;
 
@@ -452,6 +461,63 @@ const ApprovalRankingPage = () => {
   // Get sorted students
   const sortedStudents = sortStudentsByEligibilityAndGPA(students);
 
+  // Export functions
+  const handleExportCSV = useCallback(() => {
+    try {
+      const exportData: StudentExportData[] = sortedStudents.map((student, index) => ({
+        rank: index + 1,
+        name: `${student.firstName} ${student.lastName}`,
+        studentId: student.studentNumber || student.id,
+        department: student.departmentName,
+        faculty: student.facultyName,
+        gpa: student.currentGpa || 0,
+        eligibilityStatus: formatEligibilityStatus(
+          student.eligibilityStatus?.hasResults 
+            ? (student.eligibilityStatus.isEligible ? 'Eligible' : 'Not Eligible')
+            : 'No Results Available'
+        ),
+        status: formatGraduationStatus(student.activeGraduationProcessStatus || undefined),
+        lastCheckDate: student.eligibilityStatus?.lastCheckDate
+          ? new Date(student.eligibilityStatus.lastCheckDate).toLocaleDateString('tr-TR')
+          : undefined
+      }));
+
+      exportStudentsToCSV(exportData, 'dean_approval_ranking', 'Dekan Onay ve Sıralama');
+      setSuccessMessage('Student data exported to CSV successfully.');
+    } catch (error) {
+      setErrorMessage('Failed to export CSV. Please try again.');
+      console.error('Failed to export CSV:', error);
+    }
+  }, [sortedStudents, setSuccessMessage, setErrorMessage]);
+
+  const handleExportPDF = useCallback(() => {
+    try {
+      const exportData: StudentExportData[] = sortedStudents.map((student, index) => ({
+        rank: index + 1,
+        name: `${student.firstName} ${student.lastName}`,
+        studentId: student.studentNumber || student.id,
+        department: student.departmentName,
+        faculty: student.facultyName,
+        gpa: student.currentGpa || 0,
+        eligibilityStatus: formatEligibilityStatus(
+          student.eligibilityStatus?.hasResults 
+            ? (student.eligibilityStatus.isEligible ? 'Eligible' : 'Not Eligible')
+            : 'No Results Available'
+        ),
+        status: formatGraduationStatus(student.activeGraduationProcessStatus || undefined),
+        lastCheckDate: student.eligibilityStatus?.lastCheckDate
+          ? new Date(student.eligibilityStatus.lastCheckDate).toLocaleDateString('tr-TR')
+          : undefined
+      }));
+
+      exportStudentsToPDF(exportData, 'dean_approval_ranking', 'Dekan Onay ve Sıralama');
+      setSuccessMessage('Student data exported to PDF successfully.');
+    } catch (error) {
+      setErrorMessage('Failed to export PDF. Please try again.');
+      console.error('Failed to export PDF:', error);
+    }
+  }, [sortedStudents, setSuccessMessage, setErrorMessage]);
+
   // Debug log for all students and their graduation process status
   useEffect(() => {
     if (sortedStudents.length > 0) {
@@ -665,7 +731,27 @@ const ApprovalRankingPage = () => {
             <CardHeader 
               title="ALL Faculty Students (Sorted by Eligibility & GPA)"
               action={
-                <Box sx={{ display: 'flex', gap: 1 }}>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleExportCSV}
+                    disabled={loading || performingChecks || sortedStudents.length === 0}
+                    startIcon={<FileDownload />}
+                    sx={{ minWidth: '100px' }}
+                  >
+                    CSV
+                  </Button>
+                  <Button
+                    variant="outlined"
+                    size="small"
+                    onClick={handleExportPDF}
+                    disabled={loading || performingChecks || sortedStudents.length === 0}
+                    startIcon={<PictureAsPdf />}
+                    sx={{ minWidth: '100px' }}
+                  >
+                    PDF
+                  </Button>
                   <Button
                     variant="contained"
                     color="primary"
