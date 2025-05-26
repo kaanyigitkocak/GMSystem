@@ -80,8 +80,14 @@ const RegisterDialog = ({ open, onClose }: RegisterDialogProps) => {
       const userData = {
         email,
         type: userType,
+        password: formData.password,
         ...formData
       };
+      
+      // It's good practice to remove confirmPassword before sending to backend
+      if (userData.confirmPassword) {
+        delete userData.confirmPassword;
+      }
       
       await registerUser(userData);
       setCurrentStage(RegisterStage.COMPLETE);

@@ -5,9 +5,10 @@ import {
   Button,
   MenuItem,
   InputAdornment,
-  CircularProgress
+  CircularProgress,
+  IconButton
 } from '@mui/material';
-import { Person } from '@mui/icons-material';
+import { Person, Visibility, VisibilityOff } from '@mui/icons-material';
 import { faculties, departments } from '../../types';
 
 export interface StudentFormData {
@@ -15,6 +16,8 @@ export interface StudentFormData {
   lastName: string;
   faculty: string;
   department: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 interface StudentRegistrationFormProps {
@@ -26,6 +29,8 @@ interface FormErrors {
   lastName?: string;
   faculty?: string;
   department?: string;
+  password?: string;
+  confirmPassword?: string;
 }
 
 const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => {
@@ -34,10 +39,14 @@ const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => 
     lastName: '',
     faculty: '',
     department: '',
+    password: '',
+    confirmPassword: '',
   });
   
   const [formErrors, setFormErrors] = useState<FormErrors>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   
   // Handle input changes
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -71,6 +80,37 @@ const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => 
     if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
     if (!formData.faculty) errors.faculty = 'Faculty is required';
     if (!formData.department) errors.department = 'Department is required';
+    
+    // Password validation
+    if (!formData.password) {
+      errors.password = 'Password is required';
+    } else {
+      if (formData.password.length < 6) {
+        errors.password = 'Password must be at least 6 characters long';
+      }
+      if (formData.password.length > 20) {
+        errors.password = 'Password must be at most 20 characters long';
+      }
+      if (!/[A-Z]/.test(formData.password)) {
+        errors.password = 'Password must contain at least one uppercase letter';
+      }
+      if (!/[a-z]/.test(formData.password)) {
+        errors.password = 'Password must contain at least one lowercase letter';
+      }
+      if (!/[0-9]/.test(formData.password)) {
+        errors.password = 'Password must contain at least one number';
+      }
+      if (!/[^a-zA-Z0-9]/.test(formData.password)) {
+        errors.password = 'Password must contain at least one special character';
+      }
+    }
+
+    // Confirm password validation
+    if (!formData.confirmPassword) {
+      errors.confirmPassword = 'Confirm password is required';
+    } else if (formData.password && formData.confirmPassword !== formData.password) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -173,6 +213,58 @@ const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => 
           </MenuItem>
         ))}
       </TextField>
+      
+      <TextField
+        margin="normal"
+        required
+        fullWidth
+        name="password"
+        label="Password"
+        type={showPassword ? 'text' : 'password'}
+        id="password"
+        value={formData.password}
+        onChange={handleInputChange}
+        error={!!formErrors.password}
+        helperText={formErrors.password || 'Password must be 6-20 characters with uppercase, lowercase, number, and special character'}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowPassword(!showPassword)}
+                edge="end"
+              >
+                {showPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
+      
+      <TextField
+        margin="normal"
+        required
+        fullWidth
+        name="confirmPassword"
+        label="Confirm Password"
+        type={showConfirmPassword ? 'text' : 'password'}
+        id="confirm-password"
+        value={formData.confirmPassword}
+        onChange={handleInputChange}
+        error={!!formErrors.confirmPassword}
+        helperText={formErrors.confirmPassword}
+        InputProps={{
+          endAdornment: (
+            <InputAdornment position="end">
+              <IconButton
+                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                edge="end"
+              >
+                {showConfirmPassword ? <VisibilityOff /> : <Visibility />}
+              </IconButton>
+            </InputAdornment>
+          ),
+        }}
+      />
       
       <Box sx={{ mt: 3 }}>
         <Button
