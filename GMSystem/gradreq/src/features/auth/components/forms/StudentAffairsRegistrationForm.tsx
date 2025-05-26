@@ -6,12 +6,11 @@ import {
   InputAdornment,
   CircularProgress
 } from '@mui/material';
-import { Person, Phone } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
 
 export interface StudentAffairsFormData {
   firstName: string;
   lastName: string;
-  phoneNumber: string;
 }
 
 interface StudentAffairsRegistrationFormProps {
@@ -21,14 +20,12 @@ interface StudentAffairsRegistrationFormProps {
 interface FormErrors {
   firstName?: string;
   lastName?: string;
-  phoneNumber?: string;
 }
 
 const StudentAffairsRegistrationForm = ({ onSubmit }: StudentAffairsRegistrationFormProps) => {
   const [formData, setFormData] = useState<StudentAffairsFormData>({
     firstName: '',
     lastName: '',
-    phoneNumber: '',
   });
   
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -49,13 +46,6 @@ const StudentAffairsRegistrationForm = ({ onSubmit }: StudentAffairsRegistration
     
     if (!formData.firstName.trim()) errors.firstName = 'First name is required';
     if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
-    
-    // Phone number validation
-    if (!formData.phoneNumber.trim()) {
-      errors.phoneNumber = 'Phone number is required';
-    } else if (!/^\+?[0-9\s-]{10,15}$/.test(formData.phoneNumber)) {
-      errors.phoneNumber = 'Please enter a valid phone number';
-    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -113,26 +103,6 @@ const StudentAffairsRegistrationForm = ({ onSubmit }: StudentAffairsRegistration
           startAdornment: (
             <InputAdornment position="start">
               <Person />
-            </InputAdornment>
-          ),
-        }}
-      />
-      
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="phone-number"
-        label="Phone Number"
-        name="phoneNumber"
-        value={formData.phoneNumber}
-        onChange={handleInputChange}
-        error={!!formErrors.phoneNumber}
-        helperText={formErrors.phoneNumber}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Phone />
             </InputAdornment>
           ),
         }}

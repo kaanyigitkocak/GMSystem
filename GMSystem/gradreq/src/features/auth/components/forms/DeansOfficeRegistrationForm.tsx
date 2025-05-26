@@ -7,14 +7,13 @@ import {
   CircularProgress,
   MenuItem
 } from '@mui/material';
-import { Person, Phone } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
 import { faculties } from '../../types';
 
 export interface DeansOfficeFormData {
   firstName: string;
   lastName: string;
   faculty: string;
-  phoneNumber: string;
 }
 
 interface DeansOfficeRegistrationFormProps {
@@ -25,7 +24,6 @@ interface FormErrors {
   firstName?: string;
   lastName?: string;
   faculty?: string;
-  phoneNumber?: string;
 }
 
 const DeansOfficeRegistrationForm = ({ onSubmit }: DeansOfficeRegistrationFormProps) => {
@@ -33,7 +31,6 @@ const DeansOfficeRegistrationForm = ({ onSubmit }: DeansOfficeRegistrationFormPr
     firstName: '',
     lastName: '',
     faculty: '',
-    phoneNumber: '',
   });
   
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -55,13 +52,6 @@ const DeansOfficeRegistrationForm = ({ onSubmit }: DeansOfficeRegistrationFormPr
     if (!formData.firstName.trim()) errors.firstName = 'First name is required';
     if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
     if (!formData.faculty) errors.faculty = 'Faculty is required';
-    
-    // Phone number validation
-    if (!formData.phoneNumber.trim()) {
-      errors.phoneNumber = 'Phone number is required';
-    } else if (!/^\+?[0-9\s-]{10,15}$/.test(formData.phoneNumber)) {
-      errors.phoneNumber = 'Please enter a valid phone number';
-    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -143,26 +133,6 @@ const DeansOfficeRegistrationForm = ({ onSubmit }: DeansOfficeRegistrationFormPr
           </MenuItem>
         ))}
       </TextField>
-      
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="phone-number"
-        label="Phone Number"
-        name="phoneNumber"
-        value={formData.phoneNumber}
-        onChange={handleInputChange}
-        error={!!formErrors.phoneNumber}
-        helperText={formErrors.phoneNumber}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Phone />
-            </InputAdornment>
-          ),
-        }}
-      />
       
       <Box sx={{ mt: 3 }}>
         <Button

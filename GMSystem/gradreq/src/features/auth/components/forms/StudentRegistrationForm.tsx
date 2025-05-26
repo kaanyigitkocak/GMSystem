@@ -7,7 +7,7 @@ import {
   InputAdornment,
   CircularProgress
 } from '@mui/material';
-import { Person, Phone, Numbers } from '@mui/icons-material';
+import { Person } from '@mui/icons-material';
 import { faculties, departments } from '../../types';
 
 export interface StudentFormData {
@@ -15,8 +15,6 @@ export interface StudentFormData {
   lastName: string;
   faculty: string;
   department: string;
-  studentNumber: string;
-  phoneNumber: string;
 }
 
 interface StudentRegistrationFormProps {
@@ -28,8 +26,6 @@ interface FormErrors {
   lastName?: string;
   faculty?: string;
   department?: string;
-  studentNumber?: string;
-  phoneNumber?: string;
 }
 
 const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => {
@@ -38,8 +34,6 @@ const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => 
     lastName: '',
     faculty: '',
     department: '',
-    studentNumber: '',
-    phoneNumber: '',
   });
   
   const [formErrors, setFormErrors] = useState<FormErrors>({});
@@ -77,22 +71,6 @@ const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => 
     if (!formData.lastName.trim()) errors.lastName = 'Last name is required';
     if (!formData.faculty) errors.faculty = 'Faculty is required';
     if (!formData.department) errors.department = 'Department is required';
-    
-    // Student number validation
-    if (!formData.studentNumber.trim()) {
-      errors.studentNumber = 'Student number is required';
-    } else if (!/^\d+$/.test(formData.studentNumber)) {
-      errors.studentNumber = 'Student number must contain only digits';
-    } else if (formData.studentNumber.length !== 9) {
-      errors.studentNumber = 'Student number must be 9 digits';
-    }
-    
-    // Phone number validation
-    if (!formData.phoneNumber.trim()) {
-      errors.phoneNumber = 'Phone number is required';
-    } else if (!/^\+?[0-9\s-]{10,15}$/.test(formData.phoneNumber)) {
-      errors.phoneNumber = 'Please enter a valid phone number';
-    }
     
     setFormErrors(errors);
     return Object.keys(errors).length === 0;
@@ -195,46 +173,6 @@ const StudentRegistrationForm = ({ onSubmit }: StudentRegistrationFormProps) => 
           </MenuItem>
         ))}
       </TextField>
-      
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="student-number"
-        label="Student Number"
-        name="studentNumber"
-        value={formData.studentNumber}
-        onChange={handleInputChange}
-        error={!!formErrors.studentNumber}
-        helperText={formErrors.studentNumber}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Numbers />
-            </InputAdornment>
-          ),
-        }}
-      />
-      
-      <TextField
-        margin="normal"
-        required
-        fullWidth
-        id="phone-number"
-        label="Phone Number"
-        name="phoneNumber"
-        value={formData.phoneNumber}
-        onChange={handleInputChange}
-        error={!!formErrors.phoneNumber}
-        helperText={formErrors.phoneNumber}
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position="start">
-              <Phone />
-            </InputAdornment>
-          ),
-        }}
-      />
       
       <Box sx={{ mt: 3 }}>
         <Button
