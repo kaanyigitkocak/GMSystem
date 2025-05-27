@@ -571,6 +571,7 @@ const ApprovalRankingPage = () => {
                         <TableCell>Department</TableCell>
                         <TableCell>GPA</TableCell>
                         <TableCell>Eligibility Status</TableCell>
+                        <TableCell>Process Status</TableCell>
                         <TableCell>Last Check Date</TableCell>
                         <TableCell>Actions</TableCell>
                       </TableRow>
@@ -648,6 +649,20 @@ const ApprovalRankingPage = () => {
                               
                               return <Chip label="No Results Available" color="warning" size="small" />;
                             })()}
+                          </TableCell>
+                          <TableCell>
+                            <Chip
+                              label={formatGraduationStatus(student.activeGraduationProcessStatus || student.graduationProcess?.status)}
+                              color={(() => {
+                                const status = student.activeGraduationProcessStatus || student.graduationProcess?.status;
+                                if (status === 5) return 'success'; // Advisor Approved
+                                if (status === 6) return 'error';   // Advisor Rejected
+                                if (status === 1) return 'warning'; // Advisor Pending
+                                return 'info';
+                              })()}
+                              size="small"
+                              sx={{ fontWeight: 'bold' }}
+                            />
                           </TableCell>
                           <TableCell>
                             {student.eligibilityStatus?.lastCheckDate
