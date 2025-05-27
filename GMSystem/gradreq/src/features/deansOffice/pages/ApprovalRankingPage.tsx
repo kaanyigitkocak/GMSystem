@@ -74,15 +74,15 @@ const getCheckTypeName = (checkType: EligibilityCheckType): string => {
 };
 
 // Helper function to check if student is already approved by dean
-const isStudentApprovedByDean = (student: Student): boolean => {
+const isStudentApprovedByDean = (student: Student, recentlyApproved: Set<string>): boolean => {
   const processStatus = student.activeGraduationProcessStatus;
-  return processStatus === 11; // DEANS_OFFICE_APPROVED
+  return processStatus === 11 || recentlyApproved.has(student.id); // DEANS_OFFICE_APPROVED
 };
 
 // Helper function to check if student is already rejected by dean
-const isStudentRejectedByDean = (student: Student): boolean => {
+const isStudentRejectedByDean = (student: Student, recentlyRejected: Set<string>): boolean => {
   const processStatus = student.activeGraduationProcessStatus;
-  return processStatus === 12; // DEANS_OFFICE_REJECTED
+  return processStatus === 12 || recentlyRejected.has(student.id); // DEANS_OFFICE_REJECTED
 };
 
 // Helper function to check if student is rejected by secretary
@@ -98,15 +98,15 @@ const isWaitingForDeanApproval = (student: Student): boolean => {
 };
 
 // Helper function to get row background color based on approval/rejection status
-const getRowBackgroundColor = (student: Student): string => {
+const getRowBackgroundColor = (student: Student, recentlyApproved: Set<string>, recentlyRejected: Set<string>): string => {
   const processStatus = student.activeGraduationProcessStatus;
   
-  if (isStudentRejectedByDean(student) || isStudentRejectedBySecretary(student)) {
+  if (isStudentRejectedByDean(student, recentlyRejected) || isStudentRejectedBySecretary(student)) {
     console.log(`Setting RED background for student ${student.firstName} ${student.lastName} - status: ${processStatus}`);
     return '#ffebee'; // Light red background for rejected students
   }
   
-  if (isStudentApprovedByDean(student)) {
+  if (isStudentApprovedByDean(student, recentlyApproved)) {
     console.log(`Setting GREEN background for student ${student.firstName} ${student.lastName} - status: ${processStatus}`);
     return '#e8f5e8'; // Light green background for approved students
   }
@@ -121,11 +121,11 @@ const getRowBackgroundColor = (student: Student): string => {
 };
 
 // Helper function to get row opacity based on status
-const getRowOpacity = (student: Student): number => {
+const getRowOpacity = (student: Student, recentlyRejected: Set<string>): number => {
   if (isStudentRejectedBySecretary(student)) {
     return 0.6; // Make row appear faded when rejected by secretary
   }
-  if (isStudentRejectedByDean(student)) {
+  if (isStudentRejectedByDean(student, recentlyRejected)) {
     return 0.7; // Slightly faded for dean rejected, but still prominent
   }
   return 1; // Normal opacity for other statuses
@@ -142,7 +142,7 @@ const getDeanStatusChip = (student: Student) => {
     case 1: // AWAITING_DEPT_SECRETARY_TRANSCRIPT_UPLOAD
       return (
         <Chip
-          label="Awaiting Transcript Upload"
+          label="Advisor Pending"
           color="warning"
           size="small"
           sx={{ backgroundColor: '#ed6c02', color: 'white', fontWeight: 'bold' }}
@@ -341,6 +341,8 @@ const ApprovalRankingPage = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
+  const [recentlyApprovedStudents, setRecentlyApprovedStudents] = useState<Set<string>>(new Set());
+  const [recentlyRejectedStudents, setRecentlyRejectedStudents] = useState<Set<string>>(new Set());
 
   // Computed values
   const students = sortStudentsByEligibilityAndGPA(studentsData);
@@ -407,6 +409,9 @@ const ApprovalRankingPage = () => {
     try {
       console.log("🔍 [DeanApprovalRanking] Approving student:", student.id);
       
+      // Add to recently approved set for immediate UI feedback
+      setRecentlyApprovedStudents(prev => new Set(prev).add(student.id));
+      
       await approveStudents.mutateAsync({
         studentUserIds: [student.id],
         deansOfficeUserId: facultyInfo.deanId,
@@ -434,6 +439,9 @@ const ApprovalRankingPage = () => {
 
     try {
       console.log(`🔍 [DeanApprovalRanking] Confirming rejection for student: ${studentToReject.id} with reason: ${rejectionReason}`);
+      
+      // Add to recently rejected set for immediate UI feedback
+      setRecentlyRejectedStudents(prev => new Set(prev).add(studentToReject.id));
       
       await rejectStudents.mutateAsync({
         studentUserIds: [studentToReject.id],
@@ -792,7 +800,7 @@ const ApprovalRankingPage = () => {
                     {sortedStudents.map((student, index) => (
                       <TableRow
                         key={student.id}
-                        sx={{ backgroundColor: getRowBackgroundColor(student), opacity: getRowOpacity(student) }}
+                        sx={{ backgroundColor: getRowBackgroundColor(student, recentlyApprovedStudents, recentlyRejectedStudents), opacity: getRowOpacity(student, recentlyRejectedStudents) }}
                       >
                         <TableCell>
                           <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -856,9 +864,9 @@ const ApprovalRankingPage = () => {
                               </IconButton>
                             </Tooltip>
                             <Tooltip title={
-                              isStudentRejectedByDean(student)
+                              isStudentRejectedByDean(student, recentlyRejectedStudents)
                                 ? "Student already rejected by dean"
-                                : isStudentApprovedByDean(student) 
+                                : isStudentApprovedByDean(student, recentlyApprovedStudents) 
                                 ? "Student already approved by dean" 
                                 : isStudentRejectedBySecretary(student)
                                 ? "Student rejected by secretary"
@@ -885,9 +893,9 @@ const ApprovalRankingPage = () => {
                               </span>
                             </Tooltip>
                             <Tooltip title={
-                              isStudentRejectedByDean(student)
+                              isStudentRejectedByDean(student, recentlyRejectedStudents)
                                 ? "Student already rejected by dean"
-                                : isStudentApprovedByDean(student) 
+                                : isStudentApprovedByDean(student, recentlyApprovedStudents) 
                                 ? "Student already approved by dean" 
                                 : isStudentRejectedBySecretary(student)
                                 ? "Student rejected by secretary"

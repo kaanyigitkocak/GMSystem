@@ -50,8 +50,10 @@ import {
   exportStudentsToPDF, 
   formatEligibilityStatus, 
   formatGraduationStatus,
+  getStatusColor,
   type StudentExportData 
 } from '../../../core/utils/exportUtils';
+import { GraduationProcessStatus } from '../types/index.d';
 
 const Grid = MuiGrid as any;
 
@@ -70,57 +72,51 @@ const getCheckTypeName = (checkType: EligibilityCheckType): string => {
 };
 
 // Helper function to check if student is already approved by secretary
-const isStudentApprovedBySecretary = (student: Student): boolean => {
-  const processStatus = student.graduationProcess?.status;
-  const isApproved = processStatus === 8;
-  
-  return isApproved;
+const isStudentApprovedBySecretary = (student: Student, recentlyApproved: Set<string>): boolean => {
+  const processStatus = student.activeGraduationProcessStatus || student.graduationProcess?.status;
+  return processStatus === GraduationProcessStatus.DEPT_SECRETARY_APPROVED_PENDING_DEAN || recentlyApproved.has(student.id);
 };
 
 // Helper function to check if student is already rejected by secretary
-const isStudentRejectedBySecretary = (student: Student): boolean => {
-  const processStatus = student.graduationProcess?.status;
-  const isRejected = processStatus === 9;
-  
-  return isRejected;
+const isStudentRejectedBySecretary = (student: Student, recentlyRejected: Set<string>): boolean => {
+  const processStatus = student.activeGraduationProcessStatus || student.graduationProcess?.status;
+  return processStatus === GraduationProcessStatus.DEPT_SECRETARY_REJECTED_PROCESS || recentlyRejected.has(student.id);
 };
 
 // Helper function to check if student is rejected by advisor
 const isStudentRejectedByAdvisor = (student: Student): boolean => {
-  const processStatus = student.graduationProcess?.status;
-  return processStatus === 6; // Status 6: Advisor Rejected
+  const processStatus = student.activeGraduationProcessStatus || student.graduationProcess?.status;
+  return processStatus === GraduationProcessStatus.ADVISOR_NOT_ELIGIBLE;
 };
 
 // Helper function to check if student is waiting for advisor approval
 const isWaitingForAdvisorApproval = (student: Student): boolean => {
-  const processStatus = student.graduationProcess?.status;
-  const isWaiting = processStatus === 1;
-  
-  return isWaiting;
+  const processStatus = student.activeGraduationProcessStatus || student.graduationProcess?.status;
+  return processStatus === GraduationProcessStatus.AWAITING_DEPT_SECRETARY_TRANSCRIPT_UPLOAD;
 };
 
 // Helper function to get row background color based on approval/rejection status
-const getRowBackgroundColor = (student: Student): string => {
-  const processStatus = student.graduationProcess?.status;
+const getRowBackgroundColor = (student: Student, recentlyApproved: Set<string>, recentlyRejected: Set<string>): string => {
+  const processStatus = student.activeGraduationProcessStatus || student.graduationProcess?.status;
   
   // Priority: Rejected (red) > Approved (green) > Waiting for advisor (light gray) > Normal (transparent)
-  if (isStudentRejectedBySecretary(student) || isStudentRejectedByAdvisor(student)) { // Added advisor rejection check
+  if (isStudentRejectedBySecretary(student, recentlyRejected) || isStudentRejectedByAdvisor(student)) {
     console.log(`Setting RED background for student ${student.name} - status: ${processStatus}`);
-    return '#ffebee'; // Light red background for rejected students (status = 9 or 6)
+    return '#ffebee'; // Light red background for rejected students
   }
   
-  if (isStudentApprovedBySecretary(student)) {
+  if (isStudentApprovedBySecretary(student, recentlyApproved)) {
     console.log(`Setting GREEN background for student ${student.name} - status: ${processStatus}`);
-    return '#e8f5e8'; // Light green background for approved students (status = 8)
+    return '#e8f5e8'; // Light green background for approved students
   }
   
   if (isWaitingForAdvisorApproval(student)) {
     console.log(`Setting LIGHT GRAY background for student ${student.name} - status: ${processStatus}`);
-    return '#f5f5f5'; // Light gray background for students waiting for advisor approval (status = 1)
+    return '#f5f5f5'; // Light gray background for students waiting for advisor approval
   }
   
   console.log(`Setting TRANSPARENT background for student ${student.name} - status: ${processStatus}`);
-  return 'transparent'; // Normal background for status = 5 or other values
+  return 'transparent'; // Normal background for other statuses
 };
 
 // Helper function to get row opacity based on status
@@ -134,98 +130,7 @@ const getRowOpacity = (student: Student): number => {
   return 1; // Normal opacity for other statuses
 };
 
-// Helper function to get status chip for secretary view
-const getSecretaryStatusChip = (student: Student) => {
-  const processStatus = student.graduationProcess?.status;
-  
-  // Keep main debug log to track graduation process data
-  console.log(`🔍 [SecretaryStatusChip] Student ${student.name}: processStatus=${processStatus}, graduationProcess=`, student.graduationProcess);
-  
-  if (isStudentRejectedByAdvisor(student)) { // Added advisor rejection check
-    return (
-      <Chip
-        label="Advisor Rejected"
-        color="error"
-        size="small"
-        sx={{ 
-          backgroundColor: '#d32f2f', // Consistent red for rejections
-          color: 'white',
-          fontWeight: 'bold'
-        }}
-      />
-    );
-  }
-  
-  if (isStudentRejectedBySecretary(student)) {
-    return (
-      <Chip
-        label="Rejected by Secretary"
-        color="error"
-        size="small"
-        sx={{ 
-          backgroundColor: '#d32f2f',
-          color: 'white',
-          fontWeight: 'bold'
-        }}
-      />
-    );
-  }
-  
-  if (isStudentApprovedBySecretary(student)) {
-    return (
-      <Chip
-        label="Approved by Secretary"
-        color="success"
-        size="small"
-        sx={{ 
-          backgroundColor: '#2e7d32',
-          color: 'white',
-          fontWeight: 'bold'
-        }}
-      />
-    );
-  }
-  
-  if (isWaitingForAdvisorApproval(student)) {
-    return (
-      <Chip
-        label="Waiting for Advisor Approval"
-        color="warning"
-        size="small"
-        sx={{ 
-          backgroundColor: '#ed6c02',
-          color: 'white',
-          fontWeight: 'bold'
-        }}
-      />
-    );
-  }
-  
-  // Status 5 - Ready for secretary review
-  if (processStatus === 5) {
-    return (
-      <Chip
-        label="Ready for Review"
-        color="info"
-        size="small"
-        sx={{ 
-          backgroundColor: '#0288d1',
-          color: 'white',
-          fontWeight: 'bold'
-        }}
-      />
-    );
-  }
-  
-  // Default case
-  return (
-    <Chip
-      label={`Status: ${processStatus || 'Unknown'}`}
-      color="default"
-      size="small"
-    />
-  );
-};
+
 
 // Helper function to sort students by eligibility and GPA
 const sortStudentsByEligibilityAndGPA = (students: Student[]): Student[] => {
@@ -268,6 +173,8 @@ const ApprovalRankingPage = () => {
   const [errorMessage, setErrorMessage] = useState<string>('');
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
   const [studentToReject, setStudentToReject] = useState<Student | null>(null);
+  const [recentlyApprovedStudents, setRecentlyApprovedStudents] = useState<Set<string>>(new Set());
+  const [recentlyRejectedStudents, setRecentlyRejectedStudents] = useState<Set<string>>(new Set());
 
   // console.log("[ApprovalRankingPage] performingChecks from context:", performingChecks);
   // console.log("[ApprovalRankingPage] loading from context:", loading);
@@ -340,6 +247,9 @@ const ApprovalRankingPage = () => {
     try {
       console.log("🔍 [SecretaryApprovalRanking] Approving student:", student.id);
       
+      // Add to recently approved set for immediate UI feedback
+      setRecentlyApprovedStudents(prev => new Set(prev).add(student.id));
+      
       // Check and cleanup localStorage if needed before approval
       cleanupLocalStorageIfNeeded();
       
@@ -374,6 +284,9 @@ const ApprovalRankingPage = () => {
 
     try {
       console.log(`🔍 [SecretaryApprovalRanking] Confirming rejection for student: ${studentToReject.id} with reason: ${rejectionReason}`);
+      
+      // Add to recently rejected set for immediate UI feedback
+      setRecentlyRejectedStudents(prev => new Set(prev).add(studentToReject.id));
       
       const secretaryData = await getSecretaryData();
       
@@ -693,7 +606,7 @@ const ApprovalRankingPage = () => {
                         <TableCell>Department</TableCell>
                         <TableCell>GPA</TableCell>
                         <TableCell>Eligibility Status</TableCell>
-                        <TableCell>Secretary Status</TableCell>
+                        <TableCell>Process Status</TableCell>
                         <TableCell>Last Check Date</TableCell>
                         <TableCell>Actions</TableCell>
                       </TableRow>
@@ -702,7 +615,7 @@ const ApprovalRankingPage = () => {
                       {sortedStudents.map((student, index) => (
                         <TableRow
                           key={student.id}
-                          sx={{ backgroundColor: getRowBackgroundColor(student), opacity: getRowOpacity(student) }}
+                          sx={{ backgroundColor: getRowBackgroundColor(student, recentlyApprovedStudents, recentlyRejectedStudents), opacity: getRowOpacity(student) }}
                         >
                           <TableCell>
                             <Typography variant="body2" sx={{ fontWeight: 'bold' }}>
@@ -735,7 +648,22 @@ const ApprovalRankingPage = () => {
                             )}
                           </TableCell>
                           <TableCell>
-                            {getSecretaryStatusChip(student)}
+                            <Chip
+                              label={formatGraduationStatus(student.activeGraduationProcessStatus || student.graduationProcess?.status)}
+                              color={getStatusColor(student.activeGraduationProcessStatus || student.graduationProcess?.status)}
+                              size="small"
+                              sx={
+                                isStudentApprovedBySecretary(student, recentlyApprovedStudents) ? {
+                                  backgroundColor: '#2e7d32',
+                                  color: 'white',
+                                  fontWeight: 'bold'
+                                } : isStudentRejectedBySecretary(student, recentlyRejectedStudents) ? {
+                                  backgroundColor: '#d32f2f',
+                                  color: 'white',
+                                  fontWeight: 'bold'
+                                } : {}
+                              }
+                            />
                           </TableCell>
                           <TableCell>
                             {student.eligibilityStatus?.lastCheckDate
@@ -768,9 +696,9 @@ const ApprovalRankingPage = () => {
                                 </span>
                               </Tooltip>
                               <Tooltip title={
-                                isStudentRejectedBySecretary(student)
+                                isStudentRejectedBySecretary(student, recentlyRejectedStudents)
                                   ? "Student already rejected by secretary"
-                                  : isStudentApprovedBySecretary(student) 
+                                  : isStudentApprovedBySecretary(student, recentlyApprovedStudents) 
                                   ? "Student already approved by secretary" 
                                   : isWaitingForAdvisorApproval(student)
                                   ? "Waiting for advisor approval"
@@ -782,14 +710,14 @@ const ApprovalRankingPage = () => {
                                   disabled={(() => {
                                     const hasResults = student.eligibilityStatus?.hasResults;
                                     const isEligible = student.eligibilityStatus?.isEligible;
-                                    const isApproved = isStudentApprovedBySecretary(student);
-                                    const isRejected = isStudentRejectedBySecretary(student);
+                                    const isApproved = isStudentApprovedBySecretary(student, recentlyApprovedStudents);
+                                    const isRejected = isStudentRejectedBySecretary(student, recentlyRejectedStudents);
                                     const isWaiting = isWaitingForAdvisorApproval(student);
                                     const processStatus = student.graduationProcess?.status;
                                     
                                     // For secretary: Only check if student is already processed or waiting for advisor
                                     // Allow approval for students with status 5 (approved by advisor)
-                                    const disabled = isApproved || isRejected || isWaiting || processStatus !== 5;
+                                    const disabled = isApproved || isRejected || isWaiting || processStatus !== GraduationProcessStatus.ADVISOR_ELIGIBLE;
                                     
                                     console.log(`Approve button for ${student.name}: processStatus=${processStatus}, hasResults=${hasResults}, isEligible=${isEligible}, isApproved=${isApproved}, isRejected=${isRejected}, isWaiting=${isWaiting}, disabled=${disabled}`);
                                     
@@ -803,9 +731,9 @@ const ApprovalRankingPage = () => {
                                 </span>
                               </Tooltip>
                               <Tooltip title={
-                                isStudentRejectedBySecretary(student)
+                                isStudentRejectedBySecretary(student, recentlyRejectedStudents)
                                   ? "Student already rejected by secretary"
-                                  : isStudentApprovedBySecretary(student) 
+                                  : isStudentApprovedBySecretary(student, recentlyApprovedStudents) 
                                   ? "Student already approved by secretary" 
                                   : isWaitingForAdvisorApproval(student)
                                   ? "Waiting for advisor approval"
@@ -816,14 +744,14 @@ const ApprovalRankingPage = () => {
                                   onClick={() => handleOpenRejectDialog(student)}
                                   disabled={(() => {
                                     const hasResults = student.eligibilityStatus?.hasResults;
-                                    const isApproved = isStudentApprovedBySecretary(student);
-                                    const isRejected = isStudentRejectedBySecretary(student);
+                                    const isApproved = isStudentApprovedBySecretary(student, recentlyApprovedStudents);
+                                    const isRejected = isStudentRejectedBySecretary(student, recentlyRejectedStudents);
                                     const isWaiting = isWaitingForAdvisorApproval(student);
                                     const processStatus = student.graduationProcess?.status;
                                     
                                     // For secretary: Only check if student is already processed or waiting for advisor
                                     // Allow rejection for students with status 5 (approved by advisor)
-                                    const disabled = isApproved || isRejected || isWaiting || processStatus !== 5;
+                                    const disabled = isApproved || isRejected || isWaiting || processStatus !== GraduationProcessStatus.ADVISOR_ELIGIBLE;
                                     
                                     console.log(`Reject button for ${student.name}: processStatus=${processStatus}, hasResults=${hasResults}, isApproved=${isApproved}, isRejected=${isRejected}, isWaiting=${isWaiting}, disabled=${disabled}`);
                                     

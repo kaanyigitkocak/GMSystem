@@ -172,8 +172,8 @@ export const getStudentsApi = async (): Promise<Student[]> => {
     const secretaryData = await getSecretaryData();
     const departmentId = secretaryData.departmentId;
 
-    // First, get the list of all students in the department
-    const studentsListUrl = `${apiBaseUrl}/Students?departmentId=${departmentId}&PageRequest.PageIndex=0&PageRequest.PageSize=1000`;
+    // Optimized: Get students with departmentId parameter in single request
+    const studentsListUrl = `${apiBaseUrl}/Students?PageIndex=0&PageSize=100&departmentId=${departmentId}`;
     console.log(
       "🔍 [SecretaryApiDebug] Fetching students list from:",
       studentsListUrl
@@ -193,118 +193,69 @@ export const getStudentsApi = async (): Promise<Student[]> => {
       `🔍 [SecretaryApiDebug] Fetched ${data.items.length} students from API.`
     );
 
-    // Now, for each student, fetch detailed data including graduation process
-    console.log(
-      `🔍 [SecretaryApiDebug] Fetching detailed data for each student...`
-    );
-    const allStudents = await Promise.all(
-      data.items.map(async (item) => {
-        try {
-          // Fetch individual student data to get graduation process
-          const studentResponse = await fetch(
-            `${apiBaseUrl}/Students/${item.id}`,
-            {
-              ...fetchOptions,
-              method: "GET",
-              headers: {
-                ...fetchOptions.headers,
-                Authorization: `Bearer ${authToken}`,
-              },
+    // Transform the response data directly (optimized - no individual API calls needed)
+    const transformedStudents: Student[] = data.items.map(
+      (studentData: any) => {
+        console.log(
+          `🔍 [SecretaryApiDebug] Processing student ${studentData.firstName} ${studentData.lastName} (ID: ${studentData.id}):`,
+          studentData
+        );
+
+        // Create graduation process object from the response data
+        const graduationProcess = studentData.activeGraduationProcessId
+          ? {
+              id: studentData.activeGraduationProcessId,
+              status: studentData.activeGraduationProcessStatus,
+              academicTerm: studentData.activeGraduationProcessAcademicTerm,
+              creationDate: studentData.activeGraduationProcessInitiationDate,
+              lastUpdateDate: studentData.activeGraduationProcessLastUpdateDate,
             }
-          );
+          : undefined;
 
-          const studentDetailData = await handleApiResponse<any>(
-            studentResponse
-          );
-
-          // Log the detailed data to ensure it has graduationProcess
-          console.log(
-            `🔍 [SecretaryApiDebug] Student ${studentDetailData.firstName} ${studentDetailData.lastName} (ID: ${studentDetailData.id}) detailed data:`,
-            studentDetailData
-          );
-
-          return {
-            id: studentDetailData.id, // Directly from studentDetailData
-            studentNumber: studentDetailData.studentNumber,
-            firstName: studentDetailData.firstName,
-            lastName: studentDetailData.lastName,
-            name: `${studentDetailData.firstName || ""} ${
-              studentDetailData.lastName || ""
-            }`.trim(),
-            email: studentDetailData.email,
-            departmentId: studentDetailData.departmentId,
-            departmentName:
-              studentDetailData.departmentName || secretaryData.departmentName,
-            department:
-              studentDetailData.departmentName || secretaryData.departmentName, // Prefer departmentName from studentDetailData if available
-            facultyId: studentDetailData.facultyId || "",
-            facultyName: studentDetailData.facultyName || "",
-            programName: studentDetailData.programName || "",
-            enrollDate: studentDetailData.enrollDate || "",
-            currentGpa: studentDetailData.currentGpa || 0,
-            gpa: studentDetailData.currentGpa || 0,
-            currentEctsCompleted: studentDetailData.currentEctsCompleted || 0,
-            graduationStatus: studentDetailData.graduationStatus || 0,
-            status: mapStudentStatus(studentDetailData.graduationStatus), // Student's general status from backend's graduationStatus field
-            assignedAdvisorUserId:
-              studentDetailData.assignedAdvisorUserId || null,
-            activeGraduationProcessId:
-              studentDetailData.graduationProcess?.id || null,
-            activeGraduationProcessStatus:
-              studentDetailData.graduationProcess?.status || null,
-            activeGraduationProcessAcademicTerm:
-              studentDetailData.graduationProcess?.academicTerm || null,
-            activeGraduationProcessInitiationDate:
-              studentDetailData.graduationProcess?.creationDate || null,
-            activeGraduationProcessLastUpdateDate:
-              studentDetailData.graduationProcess?.lastUpdateDate || null,
-            graduationProcess: studentDetailData.graduationProcess || undefined, // This is the GraduationProcess object
-            phone:
-              studentDetailData.phoneNumber || studentDetailData.phone || "",
-            lastMeeting: studentDetailData.lastMeetingDate || "",
-          };
-        } catch (error) {
-          console.warn(
-            `⚠️ [SecretaryApiDebug] Failed to fetch detailed data for student ${item.id}:`,
-            error
-          );
-          // Return basic student data from the list if detailed fetch fails
-          return {
-            id: item.id,
-            studentNumber: item.studentNumber, // from list item
-            firstName: item.firstName, // from list item
-            lastName: item.lastName, // from list item
-            name: `${item.firstName || ""} ${item.lastName || ""}`.trim(),
-            email: item.email, // from list item
-            departmentId: item.departmentId, // from list item
-            departmentName: secretaryData.departmentName, // Default department name
-            department: secretaryData.departmentName, // Default department name
-            facultyId: item.facultyId || "",
-            facultyName: item.facultyName || "",
-            programName: item.programName || "",
-            enrollDate: item.enrollDate || "",
-            currentGpa: item.currentGpa || 0,
-            gpa: item.currentGpa || 0,
-            currentEctsCompleted: item.currentEctsCompleted || 0,
-            graduationStatus: item.graduationStatus || 0,
-            status: mapStudentStatus(item.graduationStatus), // from list item
-            assignedAdvisorUserId: item.assignedAdvisorUserId || null,
-            activeGraduationProcessId: null,
-            activeGraduationProcessStatus: null,
-            activeGraduationProcessAcademicTerm: null,
-            activeGraduationProcessInitiationDate: null,
-            activeGraduationProcessLastUpdateDate: null,
-            graduationProcess: undefined,
-            phone: item.phoneNumber || item.phone || "",
-            lastMeeting: item.lastMeetingDate || "",
-          };
-        }
-      })
+        return {
+          id: studentData.id,
+          studentNumber: studentData.studentNumber,
+          firstName: studentData.firstName,
+          lastName: studentData.lastName,
+          name: `${studentData.firstName || ""} ${
+            studentData.lastName || ""
+          }`.trim(),
+          email: studentData.email,
+          departmentId: studentData.departmentId,
+          departmentName:
+            studentData.departmentName || secretaryData.departmentName,
+          department:
+            studentData.departmentName || secretaryData.departmentName,
+          facultyId: studentData.facultyId || "",
+          facultyName: studentData.facultyName || "",
+          programName: studentData.programName || "",
+          enrollDate: studentData.enrollDate || "",
+          currentGpa: studentData.currentGpa || 0,
+          gpa: studentData.currentGpa || 0,
+          currentEctsCompleted: studentData.currentEctsCompleted || 0,
+          graduationStatus: studentData.graduationStatus || 0,
+          status: mapStudentStatus(studentData.graduationStatus),
+          assignedAdvisorUserId: studentData.assignedAdvisorUserId || null,
+          activeGraduationProcessId:
+            studentData.activeGraduationProcessId || null,
+          activeGraduationProcessStatus:
+            studentData.activeGraduationProcessStatus || null,
+          activeGraduationProcessAcademicTerm:
+            studentData.activeGraduationProcessAcademicTerm || null,
+          activeGraduationProcessInitiationDate:
+            studentData.activeGraduationProcessInitiationDate || null,
+          activeGraduationProcessLastUpdateDate:
+            studentData.activeGraduationProcessLastUpdateDate || null,
+          graduationProcess: graduationProcess,
+          phone: studentData.phoneNumber || studentData.phone || "",
+          lastMeeting: studentData.lastMeetingDate || "",
+        };
+      }
     );
 
     // Cache the students data
     const studentsToCache: CachedStudentsData = {
-      students: allStudents,
+      students: transformedStudents,
       timestamp: Date.now(),
     };
     setCachedData(STUDENTS_CACHE_KEY, studentsToCache);
@@ -312,7 +263,7 @@ export const getStudentsApi = async (): Promise<Student[]> => {
     console.log(
       "✅ [SecretaryApiDebug] Successfully fetched and processed students data."
     );
-    return allStudents;
+    return transformedStudents;
   } catch (error) {
     console.error("❌ [SecretaryApiDebug] Failed to fetch students:", error);
     if (error instanceof ServiceError) {
